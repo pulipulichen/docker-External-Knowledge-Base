@@ -15,4 +15,9 @@ def ingest_data(knowledge_id, query, top_k, score_threshold):
     # logger.info(f"Top K: {top_k}")
     # logger.info(f"Score Threshold: {score_threshold}" )
 
-    download_file(knowledge_id)
+    knowledge_base_config = get_knowledge_base_config(knowledge_id)
+
+    if knowledge_base_config.get('is_url') is True:
+        download_file(knowledge_id)
+    elif knowledge_base_config.get('is_markdown') is False:
+        convert_file_to_markdown(knowledge_id)

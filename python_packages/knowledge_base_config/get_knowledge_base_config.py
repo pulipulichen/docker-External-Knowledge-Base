@@ -33,7 +33,11 @@ def get_knowledge_base_config(knowledge_id):
         file_name = f"{knowledge_id}.md"
 
         url = knowledge_base_config.get('path')
-        if url:
+        
+        is_url = False
+        is_markdown = False
+        if url and (url.startswith("http://") or url.startswith("https://")):
+            is_url = True
             if is_google_sheets_url(url):
                 converted_url = convert_google_sheets_url_to_ods_download(url)
                 if converted_url != url:
@@ -50,15 +54,15 @@ def get_knowledge_base_config(knowledge_id):
                 if converted_url != url:
                     # logger.info(f"Converted Google Slide URL to Markdown download format: {converted_url}")
                     knowledge_base_config['path'] = converted_url
-            # elif is_existed_not_md(url):
-            #     converted_url = convert_file_to_md(url)
-            #     if converted_url != url:
-            #         logger.info(f"Converted File to Markdown format: {converted_url}")
-            #         knowledge_base_config['path'] = converted_url
             else:
                 logger.info(f"URL '{url}' is not a Google Drive URL, skipping conversion.")
+        elif url.endswith('.md'):
+            is_markdown = True
         
         knowledge_base_config['file_name'] = file_name
+        knowledge_base_config['is_url'] = is_url
+        
+        knowledge_base_config['is_markdown'] = is_markdown
         # logger.info(f"File name set to: {knowledge_base_config['file_name']}")
 
         return knowledge_base_config
