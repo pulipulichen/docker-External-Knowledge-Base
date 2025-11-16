@@ -1,1 +1,1 @@
-果然還是要加network才能運作 - weaviate - 
+初始化設定成功 - weaviate - 
