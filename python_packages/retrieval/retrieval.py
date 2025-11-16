@@ -30,7 +30,7 @@ def check_auth(request):
     return token == API_KEY
 
 @retrieval_bp.route('/retrieval', methods=['POST'])
-def retrieval_endpoint():
+async def retrieval_endpoint():
     # Validate Bearer Token
     if not check_auth(request):
         return jsonify({"error": "Unauthorized"}), 401
@@ -59,7 +59,7 @@ def retrieval_endpoint():
     if USE_MOCK_DB:
         results = get_mock_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
-        results = get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
+        results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
 
     results_json = jsonify({
         "records": results

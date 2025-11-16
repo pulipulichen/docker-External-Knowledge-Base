@@ -23,7 +23,7 @@ def download_file(knowledge_id):
         # If downloaded_file_path exists and its modification time is less than expiration_seconds, do not re-download
         if os.path.exists(downloaded_file_path):
             if update_delay_seconds == -1:
-                logger.info("update_delay_seconds is -1 and file already exists. Skipping download.")
+                # logger.info("update_delay_seconds is -1 and file already exists. Skipping download.")
                 return False
 
             file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(downloaded_file_path))

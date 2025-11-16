@@ -2,7 +2,7 @@
 name = "docker-external-knowledge-base"
 version = "0.1.0"
 dependencies = [
-    "Flask==2.3.3",
+    "Flask[async]==2.3.3",
     "gunicorn==21.2.0",
     "Werkzeug==2.3.8",
     "PyYAML==6.0.1",

@@ -36,7 +36,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
                 logger.error(f"ODS file '{filepath}' is empty or corrupted.")
                 return []
             section_name = list(book.keys())[0] # Use the first sheet if section_name is None
-            logger.info(f"No section_name provided, using the first sheet: '{section_name}'.")
+            # logger.info(f"No section_name provided, using the first sheet: '{section_name}'.")
 
         if section_name not in book:
             logger.error(f"Sheet '{section_name}' not found in the ODS file.")

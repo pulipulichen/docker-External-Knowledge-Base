@@ -22,7 +22,7 @@ def convert_file_to_markdown(knowledge_id):
         # 如果 input_file_path 變更時間小於 update_delay_seconds ，那就不變動
         if os.path.exists(markdown_file_path): # Check if markdown file already exists
             if update_delay_seconds == -1:
-                logger.info("update_delay_seconds is -1 and markdown file already exists. Skipping conversion.")
+                # logger.info("update_delay_seconds is -1 and markdown file already exists. Skipping conversion.")
                 return True # Return True as the file is considered "converted" if it exists and delay is -1
 
         if os.path.exists(input_file_path) and os.path.exists(markdown_file_path):

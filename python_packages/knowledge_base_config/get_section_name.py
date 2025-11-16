@@ -22,6 +22,6 @@ def get_section_name(knowledge_id):
         logger.error(f"ODS file '{filepath}' is empty or corrupted.")
         return []
     section_name = list(book.keys())[0] # Use the first sheet if section_name is None
-    logger.info(f"No section_name provided, using the first sheet: '{section_name}'.")
+    # logger.info(f"No section_name provided, using the first sheet: '{section_name}'.")
 
     return section_name

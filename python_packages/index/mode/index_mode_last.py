@@ -8,7 +8,7 @@ from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_bas
 
 from .index_mode_all import index_mode_all
 
-def index_mode_last(knowledge_id, section_name, chunks):
+async def index_mode_last(knowledge_id, section_name, chunks):
 
     config = get_knowledge_base_config(knowledge_id)
     length = config.get("index", {}).get("length", 100)
@@ -27,8 +27,8 @@ def index_mode_last(knowledge_id, section_name, chunks):
 
         for chunk in last_chunks:
             if "vector" not in chunk:
-                chunk["vector"] = get_embedding(chunk["document"])
+                chunk["vector"] = await get_embedding(chunk["document"])
 
         # return weaviate_add(knowledge_id=item_id, data_rows=last_chunks)
     else:
-        return index_mode_all(knowledge_id, section_name, chunks)
+        return await index_mode_all(knowledge_id, section_name, chunks)

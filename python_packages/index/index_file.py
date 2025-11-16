@@ -22,7 +22,7 @@ from .mode.index_mode_last import index_mode_last
 
 from ..weaviate.weaviate_add import weaviate_add
 
-def index_file(knowledge_id, section_name):
+async def index_file(knowledge_id, section_name):
 
     # logger.info(f"Knowledge ID: {knowledge_id}")
 
@@ -54,6 +54,6 @@ def index_file(knowledge_id, section_name):
 
     index_mode = config.get('index.mode', "all")
     if index_mode is 'all':
-        index_mode_all(knowledge_id, section_name, chunks)
+        await index_mode_all(knowledge_id, section_name, chunks)
     elif index_mode == 'last':
-        index_mode_last(knowledge_id, section_name, chunks)
+        await index_mode_last(knowledge_id, section_name, chunks)

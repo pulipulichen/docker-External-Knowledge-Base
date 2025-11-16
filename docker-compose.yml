@@ -8,12 +8,9 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
-        condition: service_healthy
-      tei_bge_m3:
-        condition: service_healthy
-      weaviate:
-        condition: service_healthy
+      - redis
+      - tei_bge_m3
+      - weaviate
     networks:
       - docker_external_knowledge_base
 
@@ -23,11 +20,6 @@ services:
       - redis_data:/data
     networks:
       - docker_external_knowledge_base
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      timeout: 3s
-      retries: 5
-
   nginx:
     image: nginx:1.21.6
     ports:
@@ -44,7 +36,9 @@ services:
     environment:
       - MODEL_ID=BAAI/bge-m3
       # ...
-    restart: on-failure
+    # restart: on-failure
+    ports:
+      - 40001:80
     volumes:
       - ./tei:/data
     cap_add:
@@ -55,12 +49,6 @@ services:
       driver: "none"
     networks:
       - docker_external_knowledge_base
-    healthcheck:
-      # test: ["CMD", "curl", "-f", "http://localhost/health"]
-      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
-      timeout: 5s
-      retries: 5
-
   weaviate:
     image: semitechnologies/weaviate:1.31.6-bb985f0.amd64
     # restart: on-failure
@@ -89,12 +77,6 @@ services:
     # command: ["/entrypoint.sh"]
     networks:
       - docker_external_knowledge_base
-    healthcheck:
-      # test: ["CMD", "curl", "-f", "http://localhost:8080/v1/meta"]      
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/v1/.well-known/ready"]
-      timeout: 5s
-      retries: 5
-
   weaviate_ui:
     image: naaive/weaviate-ui:v1.0.3
     # restart: on-failure

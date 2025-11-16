@@ -1,1 +1,1 @@
-還是不要做healthcheck好了 - 能夠輸入進去嗎... - weaviate - 
+改成等待 - 能夠輸入進去嗎... - weaviate - 

@@ -11,7 +11,7 @@ from ..index.index_file import index_file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-def ingest_data(knowledge_id, section_name):
+async def ingest_data(knowledge_id, section_name):
 
     # logger.info(f"Knowledge ID: {knowledge_id}")
     # logger.info(f"Query: {query}")
@@ -28,4 +28,4 @@ def ingest_data(knowledge_id, section_name):
     if section_name is None:
         section_name = get_section_name(knowledge_id)
 
-    index_file(knowledge_id, section_name)
+    await index_file(knowledge_id, section_name)
