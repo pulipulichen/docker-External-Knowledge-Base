@@ -41,7 +41,10 @@ def retrieval_endpoint():
     # app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
 
     knowledge_id_raw = data.get("knowledge_id", "")
-    (knowledge_id, section_name) = parse_knowledge_id(knowledge_id_raw)
+    parsed_id = parse_knowledge_id(knowledge_id_raw)
+    knowledge_id = parsed_id["knowledge_id"]
+    section_name = parsed_id["section_name"]
+    app.logger.debug(f"Parsed knowledge_id: {knowledge_id}, section_name: {section_name}")
     
     query = data.get("query", "")
     retrieval_setting = data.get("retrieval_setting", {})

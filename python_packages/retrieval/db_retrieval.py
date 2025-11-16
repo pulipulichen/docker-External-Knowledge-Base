@@ -10,7 +10,7 @@ def get_db_results(knowledge_id: str, section_name: str, query: str, top_k: int,
     """
 
     # ==============================
-    ingest_data(knowledge_id, query, top_k, score_threshold)
+    ingest_data(knowledge_id, section_name)
 
     # In a real scenario, this would interact with a database
     # and return relevant results.

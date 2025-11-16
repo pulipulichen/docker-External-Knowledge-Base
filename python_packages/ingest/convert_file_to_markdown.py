@@ -8,14 +8,14 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
+FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
 
 def convert_file_to_markdown(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
 
     if 'file_name' in config:
-        input_file_path = os.path.join(DOWNLOAD_DIR, config.get('path'))
-        markdown_file_path = os.path.join(DOWNLOAD_DIR, config.get('file_name')) # Define markdown_file_path directly
+        input_file_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
+        markdown_file_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) # Define markdown_file_path directly
 
         update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
 

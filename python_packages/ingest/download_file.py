@@ -8,7 +8,7 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG) # Changed to DEBUG for debugging
 
-DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
+FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
 
 def download_file(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
@@ -18,7 +18,7 @@ def download_file(knowledge_id):
         # Further ingestion logic using the URL would go here
 
         file_name = config.get('file_name')
-        downloaded_file_path = os.path.join(DOWNLOAD_DIR, file_name)
+        downloaded_file_path = os.path.join(FILE_STORAGE_DIR, file_name)
         
         update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
         # logger.debug(f"Expiration seconds: {update_delay_seconds}")
