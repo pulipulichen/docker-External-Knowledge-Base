@@ -1,11 +1,15 @@
 import yaml
 import os
 import logging
-from .url_converter import convert_google_sheets_url_to_ods_download, convert_google_doc_url_to_md_download, convert_google_slide_url_to_md_download, is_existed_not_md, convert_file_to_md
-from .is_google_sheets_url import is_google_sheets_url
-from .is_google_doc_url import is_google_doc_url
-from .is_google_slide_url import is_google_slide_url
 import json
+
+from .url_converter import convert_google_sheets_url_to_ods_download, convert_google_doc_url_to_md_download, convert_google_slide_url_to_md_download, convert_file_to_md
+from .check.is_existed_not_md import is_existed_not_md
+from .check.is_google_sheets_url import is_google_sheets_url
+from .check.is_google_doc_url import is_google_doc_url
+from .check.is_google_slide_url import is_google_slide_url
+
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

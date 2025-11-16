@@ -1,86 +1,16 @@
-import re
-import os
-
-def is_existed_not_md(file_path):
-    """
-    Checks if a local file exists and is not a markdown file.
-    """
-    if os.path.exists(file_path) and not file_path.lower().endswith('.md'):
-        return True
-    return False
-
-def convert_file_to_md(file_path):
-    """
-    Converts a local file to markdown. This is a placeholder function.
-    In a real scenario, this would involve reading the file content and converting it.
-    For now, it just returns the original path.
-    """
-    # Placeholder for actual file conversion logic
-    # For example, if it's a .txt file, you might just rename it or wrap its content.
-    # If it's a .docx or .pdf, you'd use a library to extract text and format as markdown.
-    return file_path
-
-def convert_google_sheets_url_to_ods_download(url):
-    """
-    Converts a Google Sheets 'edit' URL to an 'ods' download URL.
-
-    Args:
-        url (str): The original Google Sheets URL.
-
-    Returns:
-        str: The converted 'ods' download URL, or the original URL if no conversion is needed.
-    """
-    # Regex to match Google Sheets 'edit' URLs and capture the document ID
-    match = re.match(r"https://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9_-]+)/edit(?:\?usp=sharing)?", url)
-
-    if match:
-        doc_id = match.group(1)
-        ods_url = f"https://docs.google.com/spreadsheets/d/{doc_id}/export?format=ods"
-        return ods_url
-    else:
-        return url
-
-def convert_google_doc_url_to_md_download(url):
-    """
-    Converts a Google Docs 'edit' or 'view' URL to a Markdown download URL.
-
-    Args:
-        url (str): The original Google Docs URL.
-
-    Returns:
-        str: The converted Markdown download URL, or the original URL if no conversion is needed.
-    """
-    # Regex to match Google Docs 'edit' or 'view' URLs and capture the document ID
-    match = re.match(r"https://docs\.google\.com/document/d/([a-zA-Z0-9_-]+)/(?:edit|view)(?:\?usp=sharing)?", url)
-
-    if match:
-        doc_id = match.group(1)
-        md_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt&id={doc_id}&exportFormat=txt"
-        return md_url
-    else:
-        return url
-
-def convert_google_slide_url_to_md_download(url):
-    """
-    Converts a Google Slides 'edit' or 'view' URL to a Markdown download URL.
-
-    Args:
-        url (str): The original Google Slides URL.
-
-    Returns:
-        str: The converted Markdown download URL, or the original URL if no conversion is needed.
-    """
-    # Regex to match Google Slides 'edit' or 'view' URLs and capture the document ID
-    match = re.match(r"https://docs\.google\.com/presentation/d/([a-zA-Z0-9_-]+)/(?:edit|view)(?:\?usp=sharing)?", url)
-
-    if match:
-        doc_id = match.group(1)
-        md_url = f"https://docs.google.com/presentation/d/{doc_id}/export/markdown"
-        return md_url
-    else:
-        return url
+from python_packages.knowledge_base_config.convert.convert_file_to_md import convert_file_to_md
+from python_packages.knowledge_base_config.convert.convert_google_sheets_url_to_ods_download import convert_google_sheets_url_to_ods_download
+from python_packages.knowledge_base_config.convert.convert_google_doc_url_to_md_download import convert_google_doc_url_to_md_download
+from python_packages.knowledge_base_config.convert.convert_google_slide_url_to_md_download import convert_google_slide_url_to_md_download
 
 if __name__ == '__main__':
+    # Example usage for local file
+    test_file_path = "/path/to/your/local/file.txt"
+    converted_file_path = convert_file_to_md(test_file_path)
+    print(f"Original file path: {test_file_path}")
+    print(f"Converted file path (md): {converted_file_path}")
+    print("-" * 30)
+
     # Example usage for Google Sheets
     test_url_sheets_edit = "https://docs.google.com/spreadsheets/d/1RB4kKW0s5eUH6f2t3f7m6qnd3OGGbXp0fzQ3zEYn_rM/edit?usp=sharing"
     test_url_sheets_other = "https://www.example.com/document"

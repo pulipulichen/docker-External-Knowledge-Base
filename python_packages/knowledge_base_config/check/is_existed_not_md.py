@@ -4,6 +4,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# def is_existed_not_md(file_path):
+#     """
+#     Checks if a local file exists and is not a markdown file.
+#     """
+#     if os.path.exists(file_path) and not file_path.lower().endswith('.md'):
+#         return True
+#     return False
+
 def is_existed_not_md(url):
     """
     Checks if a given URL points to an existing file that is NOT a Markdown file.
