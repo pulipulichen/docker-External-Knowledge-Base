@@ -7,6 +7,7 @@ from .helper.convert_to_external_knowledge_response import convert_to_external_k
 from .helper.get_client import get_client
 from .weaviate_add import weaviate_add
 import weaviate.classes as wvc
+from .weaviate_ready import weaviate_ready
 
 from weaviate.classes.query import MetadataQuery
 import os
@@ -14,6 +15,9 @@ import os
 def weaviate_query(**kwargs):
 
   collection_name = kwargs.get("knowledge_id", None)
+  if weaviate_ready(**kwargs) is False:
+    return []
+
   # item_id = kwargs.get("item_id", kwargs.get("title", None))
   query = kwargs.get("query", kwargs.get("document", None))
   vector = kwargs.get("vector", [])

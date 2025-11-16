@@ -26,7 +26,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         filepath = config.get('file_path')
 
         if not os.path.exists(filepath):
-            logger.error(f"File '{filepath}' does not exist.")
+            # logger.error(f"File '{filepath}' does not exist.")
             return []
 
         book = pyexcel_ods.get_data(filepath)

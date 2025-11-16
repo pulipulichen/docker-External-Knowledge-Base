@@ -1,9 +1,0 @@
-a:
-  path: https://docs.google.com/spreadsheets/d/1RB4kKW0s5eUH6f2t3f7m6qnd3OGGbXp0fzQ3zEYn_rM/edit?usp=sharing
-  # 一天
-  update_delay_seconds: 86400
-  embedding_model: bge-m3
-  index: 
-    mode: last
-    length: 100
-    max_tokens: 4096

@@ -1,0 +1,9 @@
+prefer_terms:
+  path: https://docs.google.com/spreadsheets/d/1x9vK9E7XdnW6hqfvz4NdQ0BEkq3Qf1vbnf7XTI1HDI4/edit?usp=sharing
+  # 一天
+  update_delay_seconds: 86400
+  embedding_model: bge-m3
+  index: 
+    mode: last
+    length: 100
+    # max_tokens: 4096

@@ -10,8 +10,8 @@ def get_section_name(knowledge_id):
     filepath = config.get('file_path')
 
     if not os.path.exists(filepath):
-        logger.error(f"File '{filepath}' does not exist.")
-        return []
+        # logger.error(f"File '{filepath}' does not exist.")
+        return knowledge_id
     
     if filepath.endswith('.md'):
         return knowledge_id

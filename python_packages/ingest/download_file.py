@@ -36,7 +36,7 @@ def download_file(knowledge_id):
             # logger.debug(f"Expiration timedelta: {datetime.timedelta(seconds=expiration_seconds)}")
 
             if time_difference < datetime.timedelta(seconds=update_delay_seconds):
-                logger.info("File is up to date. Skipping download.")
+                # logger.info("File is up to date. Skipping download.")
                 return False
         
         file_url = config.get('path')

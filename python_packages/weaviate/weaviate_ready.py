@@ -14,11 +14,7 @@ def weaviate_ready(**kwargs):
   if not is_existed:
     return False
 
-  client = get_client()
-  if not client:
-    return False
-
-  collection = get_collection(client, collection_name)
+  collection = get_collection(collection_name)
   if not collection:
     return False
 
