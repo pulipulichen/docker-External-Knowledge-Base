@@ -41,7 +41,7 @@ def download_file(knowledge_id):
         
         file_url = config.get('path')
         if file_url.startswith('http://') or file_url.startswith('https://'):
-            logger.info("URL is a valid HTTP/HTTPS URL.")
+            # logger.info("URL is a valid HTTP/HTTPS URL.")
             
             response = requests.get(file_url)
             
@@ -50,9 +50,7 @@ def download_file(knowledge_id):
             
             os.chmod(downloaded_file_path, 0o777)
 
-            if downloaded_file_path:
-                logger.info(f"Ingestion successful for knowledge_id '{knowledge_id}'. File saved at: {downloaded_file_path}")
-            else:
+            if not downloaded_file_path:
                 logger.error(f"Ingestion failed for knowledge_id '{knowledge_id}'.")
 
             return True

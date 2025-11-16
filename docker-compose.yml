@@ -20,6 +20,8 @@ services:
       - redis_data:/data
     networks:
       - docker_external_knowledge_base
+    logging:
+      driver: "none"
   nginx:
     image: nginx:1.21.6
     ports:
@@ -45,10 +47,11 @@ services:
       - SYS_ADMIN
     security_opt:
       - seccomp=unconfined
-    # logging:
-    #   driver: "none"
+    logging:
+      driver: "none"
     networks:
       - docker_external_knowledge_base
+    
   weaviate:
     image: semitechnologies/weaviate:1.31.6-bb985f0.amd64
     # restart: on-failure
@@ -90,6 +93,8 @@ services:
       - .env
     networks:
       - docker_external_knowledge_base
+    logging:
+      driver: "none"
 
 
 volumes:

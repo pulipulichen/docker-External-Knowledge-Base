@@ -24,14 +24,14 @@ async def wait_for_embedding_service():
     if IS_SERVICE_ALIVE is True:
         return True
 
-    logger.info(f"Waiting for embedding service at {TEI_ENDPOINT}...")
-    logger.info(f"Check Timeout: {SERVICE_CHECK_TIMEOUT}s, Retry Interval: {SERVICE_CHECK_INTERVAL}s")
+    # logger.info(f"Waiting for embedding service at {TEI_ENDPOINT}...")
+    # logger.info(f"Check Timeout: {SERVICE_CHECK_TIMEOUT}s, Retry Interval: {SERVICE_CHECK_INTERVAL}s")
 
     while True:
         try:
             resp = httpx.get(TEI_ENDPOINT, timeout=SERVICE_CHECK_TIMEOUT)
             if resp.status_code == 200:
-                logger.info("Embedding service is available!")
+                # logger.info("Embedding service is available!")
                 break
         except httpx.HTTPStatusError as e:
             # 服務有回應，但是是 4xx 或 5xx 錯誤
