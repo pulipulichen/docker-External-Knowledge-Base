@@ -43,6 +43,11 @@ def get_knowledge_base_config(knowledge_id):
                 if converted_url != url:
                     logger.info(f"Converted Google Slide URL to Markdown download format: {converted_url}")
                     knowledge_base_config['path'] = converted_url
+            elif is_existed_not_md(url):
+                converted_url = convert_file_to_md(url)
+                if converted_url != url:
+                    logger.info(f"Converted File to Markdown format: {converted_url}")
+                    knowledge_base_config['path'] = converted_url
             else:
                 logger.info(f"URL '{url}' is not a Google Sheets URL, skipping conversion.")
         

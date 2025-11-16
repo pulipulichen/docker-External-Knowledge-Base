@@ -7,6 +7,7 @@ dependencies = [
     "Werkzeug",
     "PyYAML",
     "requests",
+    "MarkItDown", # Added for converting HTML to Markdown as per user feedback
 ]
 
 [build-system]
