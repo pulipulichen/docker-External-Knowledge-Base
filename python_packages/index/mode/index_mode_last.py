@@ -21,9 +21,9 @@ async def index_mode_last(knowledge_id, section_name, chunks):
 
         last_chunks = chunks[:length]
 
-        logging.info(f"Number of last_chunks: {len(last_chunks)}")
-        if last_chunks:
-            logging.info(f"Content of the last chunk: {last_chunks[-1]}")
+        # logging.info(f"Number of last_chunks: {len(last_chunks)}")
+        # if last_chunks:
+        #     logging.info(f"Content of the last chunk: {last_chunks[-1]}")
 
         for chunk in last_chunks:
             if "vector" not in chunk:

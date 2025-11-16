@@ -6,7 +6,6 @@ import os
 import weaviate.classes as wvc
 from weaviate.classes.config import Property, DataType, Tokenization
 
-
 # https://weaviate.io/developers/weaviate/connections/connect-local
 def get_collection(collection_name):
   client = get_client()

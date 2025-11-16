@@ -18,3 +18,18 @@ This module includes the `weaviate_item_ready` function, which checks if a speci
 
 ### `weaviate_query.py`
 The `weaviate_query` module provides the `weaviate_query` function for performing hybrid (text and vector) searches within a Weaviate collection. It supports various query configurations such as `query_alpha`, `max_results`, `score_threshold`, and `item_distinct` filtering, and returns relevant knowledge base responses.
+
+----
+
+# Mute logger
+
+```py
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
+
+import logging
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpx_logger").setLevel(logging.WARNING)
+logging.getLogger("weaviate").setLevel(logging.WARNING)
+```

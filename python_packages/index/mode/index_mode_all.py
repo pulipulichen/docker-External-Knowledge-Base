@@ -18,8 +18,8 @@ async def index_mode_all(knowledge_id, section_name, chunks):
 
     # 用logger記錄，總共多少個chunks，然後最後一個chunk的內容
     # logger.info(f"Total number of chunks: {len(chunks)}")
-    if chunks:
-        logger.info(f"Content of the last chunk: {chunks[-1]}")
+    # if chunks:
+    #     logger.info(f"Content of the last chunk: {chunks[-1]}")
     # else:
     #     logger.info("No chunks to process.")
 

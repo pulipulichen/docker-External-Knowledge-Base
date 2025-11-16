@@ -40,8 +40,14 @@ async def get_embedding(text: str):
     try:
         await wait_for_embedding_service()
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
+        # async with httpx.AsyncClient() as client:
+        #     response = await client.post(
+        #         f"{TEI_ENDPOINT}/embed",
+        #         json={"inputs": text},
+        #         headers={"Content-Type": "application/json"},
+        #         timeout=10
+        #     )
+        response = httpx.post(
                 f"{TEI_ENDPOINT}/embed",
                 json={"inputs": text},
                 headers={"Content-Type": "application/json"},

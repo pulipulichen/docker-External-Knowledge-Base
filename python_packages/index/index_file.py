@@ -37,9 +37,11 @@ async def index_file(knowledge_id, section_name):
         logger.error(f"File not found at path: {filepath}")
         return False
 
-    if filename:
-        logger.info(f"Filename for knowledge ID '{knowledge_id}': {filename}")
-    else:
+    # if filename:
+    #     logger.info(f"Filename for knowledge ID '{knowledge_id}': {filename}")
+    # else:
+    #     logger.error(f"Filename not found in config for knowledge ID: {knowledge_id}")
+    if not filename:
         logger.error(f"Filename not found in config for knowledge ID: {knowledge_id}")
 
     chunks = get_chunks_from_file(knowledge_id, section_name)
@@ -53,7 +55,7 @@ async def index_file(knowledge_id, section_name):
     #     logger.info(f"Last chunk content: {chunks[-1]}")
 
     index_mode = config.get('index.mode', "all")
-    if index_mode is 'all':
+    if index_mode == 'all':
         await index_mode_all(knowledge_id, section_name, chunks)
     elif index_mode == 'last':
         await index_mode_last(knowledge_id, section_name, chunks)

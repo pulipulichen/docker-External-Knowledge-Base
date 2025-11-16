@@ -7,6 +7,7 @@ from .helper.segment_text import segment_text
 import weaviate.classes as wvc
 import os
 
+
 def weaviate_add(**kwargs):
 
   collection_name = kwargs.get("knowledge_id", None)

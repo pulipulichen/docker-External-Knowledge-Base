@@ -12,7 +12,7 @@ def download_file(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
 
     if 'path' in config:
-        logger.info(f"Retrieved URL for knowledge_id '{knowledge_id}': {config.get('path')}")
+        # logger.info(f"Retrieved URL for knowledge_id '{knowledge_id}': {config.get('path')}")
         # Further ingestion logic using the URL would go here
 
         downloaded_file_path = config.get('file_path')
