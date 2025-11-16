@@ -21,8 +21,6 @@ def check_auth(request):
         return False
     
     token = auth.split("Bearer ")[-1].strip()
-    app.logger.debug(f"API_KEY: {API_KEY}")
-    app.logger.debug(f"Token: {token}")
     return token == API_KEY
 
 @app.route('/retrieval', methods=['POST'])
