@@ -20,8 +20,8 @@ def download_file(knowledge_id):
         file_name = config.get('file_name')
         downloaded_file_path = os.path.join(DOWNLOAD_DIR, file_name)
         
-        download_expiration_seconds = config.get('download_expiration_seconds', 30 * 60)
-        # logger.debug(f"Expiration seconds: {download_expiration_seconds}")
+        update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
+        # logger.debug(f"Expiration seconds: {update_delay_seconds}")
 
         # If downloaded_file_path exists and its modification time is less than expiration_seconds, do not re-download
         if os.path.exists(downloaded_file_path):
@@ -34,7 +34,7 @@ def download_file(knowledge_id):
             # logger.debug(f"Time difference: {time_difference}")
             # logger.debug(f"Expiration timedelta: {datetime.timedelta(seconds=expiration_seconds)}")
 
-            if time_difference < datetime.timedelta(seconds=download_expiration_seconds):
+            if time_difference < datetime.timedelta(seconds=update_delay_seconds):
                 logger.info("File is up to date. Skipping download.")
                 return False
         

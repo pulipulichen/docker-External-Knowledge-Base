@@ -1,5 +1,6 @@
 import logging
 import os
+import time # Import the time module
 import markitdown # Assuming this is the correct import for the package
 
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
@@ -14,10 +15,21 @@ def convert_file_to_markdown(knowledge_id):
 
     if 'file_name' in config:
         input_file_path = os.path.join(DOWNLOAD_DIR, config.get('path'))
-        output_file_name = config.get('file_name')
+        markdown_file_path = os.path.join(DOWNLOAD_DIR, config.get('file_name')) # Define markdown_file_path directly
 
-        download_expiration_seconds = config.get('download_expiration_seconds', 30 * 60)
-        
+        update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
+
+        # 如果 input_file_path 變更時間小於 update_delay_seconds ，那就不變動
+        if os.path.exists(input_file_path) and os.path.exists(markdown_file_path):
+            last_modified_time = os.path.getmtime(input_file_path)
+            current_time = time.time()
+            if (current_time - last_modified_time) < update_delay_seconds:
+                logger.info(f"File '{input_file_path}' was modified recently (within {update_delay_seconds} seconds). Skipping conversion.")
+                return True
+        else:
+            logger.error(f"Input file '{input_file_path}' not found for knowledge_id '{knowledge_id}'.")
+            return False
+
         try:
             # Read the content of the original file
             with open(input_file_path, 'r', encoding='utf-8') as f:
@@ -31,7 +43,7 @@ def convert_file_to_markdown(knowledge_id):
             markdown_content = markitdown.convert(content) # This is a placeholder, actual API might differ
 
             # Write the markdown content to a new file
-            with open(output_file_name, 'w', encoding='utf-8') as f:
+            with open(markdown_file_path, 'w', encoding='utf-8') as f: # Use markdown_file_path here
                 f.write(markdown_content)
 
             logger.info(f"Conversion successful for knowledge_id '{knowledge_id}'. Markdown file saved at: {markdown_file_path}")
