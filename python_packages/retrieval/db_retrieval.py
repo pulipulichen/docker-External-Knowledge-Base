@@ -3,7 +3,7 @@ from flask import Flask
 
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
-def get_db_results(knowledge_id: str, query: str, top_k: int, score_threshold: float = None):
+def get_db_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
     """
     Retrieves results from the actual database based on the query, knowledge_id, top_k, and score_threshold.
     (Placeholder for actual database retrieval logic)

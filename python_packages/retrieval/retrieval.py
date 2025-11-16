@@ -2,8 +2,12 @@ import json
 import os
 import logging
 from flask import Blueprint, Flask, request, jsonify
+
+
 from .mock_retrieval import get_mock_results
 from .db_retrieval import get_db_results
+
+from ..knowledge_base_config.parse_knowledge_id import parse_knowledge_id
 
 retrieval_bp = Blueprint('retrieval', __name__)
 
@@ -36,7 +40,8 @@ def retrieval_endpoint():
 
     # app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
 
-    knowledge_id = data.get("knowledge_id", "")
+    knowledge_id_raw = data.get("knowledge_id", "")
+    (knowledge_id, section_name) = parse_knowledge_id(knowledge_id_raw)
     
     query = data.get("query", "")
     retrieval_setting = data.get("retrieval_setting", {})
@@ -49,9 +54,9 @@ def retrieval_endpoint():
     # Decide whether to use Mock Data or real DB based on USE_MOCK_DB
     # ==============================
     if USE_MOCK_DB:
-        results = get_mock_results(knowledge_id, query, top_k, score_threshold)
+        results = get_mock_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
-        results = get_db_results(knowledge_id, query, top_k, score_threshold)
+        results = get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
 
     results_json = jsonify({
         "records": results

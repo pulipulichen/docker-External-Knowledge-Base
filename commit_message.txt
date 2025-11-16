@@ -1,2 +1,1 @@
-下載功能完成 - ingest - 
-初始化。晚點做，先把前面的做完 - index - 
+區分出section name，這要怎麼判斷呢？ - index - 

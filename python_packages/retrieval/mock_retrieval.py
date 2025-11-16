@@ -1,4 +1,4 @@
-def get_mock_results(knowledge_id: str, query: str, top_k: int, score_threshold: float = None):
+def get_mock_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
     """
     Generates mock retrieval results based on the query, knowledge_id, top_k, and score_threshold.
     """

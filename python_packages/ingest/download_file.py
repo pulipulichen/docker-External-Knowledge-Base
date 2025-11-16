@@ -20,10 +20,10 @@ def download_file(knowledge_id):
         file_name = config.get('file_name')
         downloaded_file_path = os.path.join(DOWNLOAD_DIR, file_name)
         
-        expiration_seconds = config.get('expiration_seconds', 30 * 60)
-        # logger.debug(f"Expiration seconds: {expiration_seconds}")
+        download_expiration_seconds = config.get('download_expiration_seconds', 30 * 60)
+        # logger.debug(f"Expiration seconds: {download_expiration_seconds}")
 
-        # 如果 downloaded_file_path 存在，而且變動時間小於 expiration_seconds，則不重新下載
+        # If downloaded_file_path exists and its modification time is less than expiration_seconds, do not re-download
         if os.path.exists(downloaded_file_path):
             file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(downloaded_file_path))
             current_time = datetime.datetime.now()
@@ -34,7 +34,7 @@ def download_file(knowledge_id):
             # logger.debug(f"Time difference: {time_difference}")
             # logger.debug(f"Expiration timedelta: {datetime.timedelta(seconds=expiration_seconds)}")
 
-            if time_difference < datetime.timedelta(seconds=expiration_seconds):
+            if time_difference < datetime.timedelta(seconds=download_expiration_seconds):
                 logger.info("File is up to date. Skipping download.")
                 return False
         
