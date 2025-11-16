@@ -2,6 +2,7 @@
 import os
 import logging
 import redis
+import json
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -44,4 +45,7 @@ def index_file(knowledge_id, section_name):
         logger.error("Failed to retrieve chunks from file.")
         return False
     
-    logger.debug(chunks)
+    logger.info(f"Number of chunks: {len(chunks)}")
+    if chunks:
+        logger.info(f"First chunk content: {chunks[0]}")
+        logger.info(f"Last chunk content: {chunks[-1]}")

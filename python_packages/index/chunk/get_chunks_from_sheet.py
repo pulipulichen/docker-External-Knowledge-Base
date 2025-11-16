@@ -2,8 +2,11 @@ import pyexcel_ods
 from collections import OrderedDict
 import json
 import os
+import logging
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
+
+logger = logging.getLogger(__name__)
 
 def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
     """
@@ -23,18 +26,26 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         filepath = config.get('file_path')
 
         if not os.path.exists(filepath):
-            print(f"Error: File '{filepath}' does not exist.")
+            logger.error(f"File '{filepath}' does not exist.")
             return []
 
         book = pyexcel_ods.get_data(filepath)
+        
+        if section_name is None:
+            if not book:
+                logger.error(f"ODS file '{filepath}' is empty or corrupted.")
+                return []
+            section_name = list(book.keys())[0] # Use the first sheet if section_name is None
+            logger.info(f"No section_name provided, using the first sheet: '{section_name}'.")
+
         if section_name not in book:
-            print(f"Error: Sheet '{section_name}' not found in the ODS file.")
+            logger.error(f"Sheet '{section_name}' not found in the ODS file.")
             return []
 
         sheet_data = book[section_name]
 
         if not sheet_data:
-            print(f"Warning: Sheet '{section_name}' is empty.")
+            logger.warning(f"Sheet '{section_name}' is empty.")
             return []
 
         # The first row contains the keys
@@ -45,15 +56,21 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         for row_index in range(1, len(sheet_data)):
             row_values = sheet_data[row_index]
             chunk = OrderedDict()
+            is_empty = True
             for i, key in enumerate(keys):
                 value = row_values[i] if i < len(row_values) else ""
-                chunk[key] = str(value).strip()
-            chunks.append(json.dumps(chunk, ensure_ascii=False)) # Convert chunk to JSON string here
+                cleaned_value = str(value).strip()
+                if len(cleaned_value) > 0:
+                    chunk[key] = cleaned_value
+                    is_empty = False
+                    
+            if is_empty is False:
+                chunks.append(json.dumps(chunk, ensure_ascii=False)) # Convert chunk to JSON string here
         return chunks
 
     except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
+        logger.error(f"File not found at {filepath}")
         return []
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return []
