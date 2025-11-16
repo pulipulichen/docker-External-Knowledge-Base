@@ -1,9 +1,10 @@
 
 import logging
-import os
 
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
+
 from .download_file import download_file
+from .convert_file_to_markdown import convert_file_to_markdown
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

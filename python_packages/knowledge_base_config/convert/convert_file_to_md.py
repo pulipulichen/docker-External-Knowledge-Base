@@ -1,5 +1,3 @@
-import os
-
 def convert_file_to_md(file_path):
     """
     Converts a local file to markdown. This is a placeholder function.
