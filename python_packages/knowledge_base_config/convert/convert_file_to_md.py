@@ -9,4 +9,6 @@ def convert_file_to_md(file_path):
     # Placeholder for actual file conversion logic
     # For example, if it's a .txt file, you might just rename it or wrap its content.
     # If it's a .docx or .pdf, you'd use a library to extract text and format as markdown.
+    if not file_path.endswith('.md'):
+        file_path + '.md'
     return file_path

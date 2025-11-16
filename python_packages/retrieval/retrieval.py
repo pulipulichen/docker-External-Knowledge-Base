@@ -34,7 +34,7 @@ def retrieval_endpoint():
     # Read JSON body
     data = request.get_json(force=True)
 
-    app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
+    # app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
 
     knowledge_id = data.get("knowledge_id", "")
     
@@ -58,7 +58,7 @@ def retrieval_endpoint():
     })
 
     # Display results_json in Log
-    app.logger.debug(f"Retrieval results: {results_json.get_data(as_text=True)}")
+    # app.logger.debug(f"Retrieval results: {results_json.get_data(as_text=True)}")
 
     return results_json
 

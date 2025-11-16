@@ -14,7 +14,7 @@ def get_db_results(knowledge_id: str, query: str, top_k: int, score_threshold: f
 
     # In a real scenario, this would interact with a database
     # and return relevant results.
-    app.logger.debug(f"Performing database retrieval for knowledge_id: {knowledge_id}, query: {query}, top_k: {top_k}, score_threshold: {score_threshold}")
+    # app.logger.debug(f"Performing database retrieval for knowledge_id: {knowledge_id}, query: {query}, top_k: {top_k}, score_threshold: {score_threshold}")
     
     mock_db_results = [
         {

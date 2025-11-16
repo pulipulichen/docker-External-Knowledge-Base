@@ -1,3 +1,4 @@
 a:
   path: https://docs.google.com/spreadsheets/d/1RB4kKW0s5eUH6f2t3f7m6qnd3OGGbXp0fzQ3zEYn_rM/edit?usp=sharing
   embedding_model: bge-m3
+  expiration_seconds: 30

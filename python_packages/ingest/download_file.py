@@ -1,10 +1,14 @@
 import logging
 import requests
 import os
+import datetime
+
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG) # Changed to DEBUG for debugging
+
+DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
 
 def download_file(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
@@ -13,16 +17,33 @@ def download_file(knowledge_id):
         logger.info(f"Retrieved URL for knowledge_id '{knowledge_id}': {config.get('path')}")
         # Further ingestion logic using the URL would go here
 
+        file_name = config.get('file_name')
+        downloaded_file_path = os.path.join(DOWNLOAD_DIR, file_name)
+        
+        expiration_seconds = config.get('expiration_seconds', 30 * 60)
+        # logger.debug(f"Expiration seconds: {expiration_seconds}")
+
+        # 如果 downloaded_file_path 存在，而且變動時間小於 expiration_seconds，則不重新下載
+        if os.path.exists(downloaded_file_path):
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(downloaded_file_path))
+            current_time = datetime.datetime.now()
+            time_difference = current_time - file_mod_time
+            
+            # logger.debug(f"File modification time: {file_mod_time}")
+            # logger.debug(f"Current time: {current_time}")
+            # logger.debug(f"Time difference: {time_difference}")
+            # logger.debug(f"Expiration timedelta: {datetime.timedelta(seconds=expiration_seconds)}")
+
+            if time_difference < datetime.timedelta(seconds=expiration_seconds):
+                logger.info("File is up to date. Skipping download.")
+                return False
+        
         file_url = config.get('path')
         if file_url.startswith('http://') or file_url.startswith('https://'):
             logger.info("URL is a valid HTTP/HTTPS URL.")
             
-            file_name = config.get('file_name')
-
-            download_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
-            
             response = requests.get(file_url)
-            downloaded_file_path = os.path.join(download_dir, file_name)
+            
             with open(downloaded_file_path, 'wb') as f:
                 f.write(response.content)
 
@@ -30,3 +51,9 @@ def download_file(knowledge_id):
                 logger.info(f"Ingestion successful for knowledge_id '{knowledge_id}'. File saved at: {downloaded_file_path}")
             else:
                 logger.error(f"Ingestion failed for knowledge_id '{knowledge_id}'.")
+
+            return True
+
+    # ==============================
+
+    return False
