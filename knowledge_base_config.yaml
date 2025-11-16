@@ -5,3 +5,4 @@ a:
   index: 
     mode: last
     length: 100
+    max_tokens: 4096

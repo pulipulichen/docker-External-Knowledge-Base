@@ -13,6 +13,8 @@ from .convert.convert_google_doc_url_to_md_download import convert_google_doc_ur
 from .convert.convert_google_slide_url_to_md_download import convert_google_slide_url_to_md_download
 # from .convert.convert_file_to_md import convert_file_to_md
 
+FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -60,6 +62,9 @@ def get_knowledge_base_config(knowledge_id):
             is_markdown = True
         
         knowledge_base_config['file_name'] = file_name
+        filepath = os.path.join(FILE_STORAGE_DIR, file_name)
+        knowledge_base_config['file_path'] = filepath
+
         knowledge_base_config['is_url'] = is_url
         
         knowledge_base_config['is_markdown'] = is_markdown
