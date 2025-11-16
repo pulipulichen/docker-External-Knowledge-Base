@@ -37,4 +37,6 @@ def get_mock_results(knowledge_id: str, section_name: str, query: str, top_k: in
         if score_threshold is None or result["score"] >= score_threshold:
             filtered_results.append(result)
 
-    return filtered_results[:top_k]
+    return {
+        "records": filtered_results[:top_k]
+    }

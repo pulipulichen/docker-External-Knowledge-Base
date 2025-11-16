@@ -61,14 +61,14 @@ async def retrieval_endpoint():
     else:
         results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
 
-    results_json = jsonify({
-        "records": results
-    })
+    # results_json = jsonify({
+    #     "records": results
+    # })
 
     # Display results_json in Log
     # app.logger.debug(f"Retrieval results: {results_json.get_data(as_text=True)}")
 
-    return results_json
+    return results
 
 if __name__ == '__main__':
     # This block is for local testing of the retrieval blueprint

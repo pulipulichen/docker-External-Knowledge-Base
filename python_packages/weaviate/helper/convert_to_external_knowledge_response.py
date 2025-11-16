@@ -1,17 +1,21 @@
-def convert_to_external_knowledge_response(results):
+def convert_to_external_knowledge_response(knowledge_id, data_source_path, results):
   records = []
-  # print('bbb================================================================')
+  # print('================================================================')
   # print(results)
   # print(len(results), score_threshold)
+
   for result in results:
     score = result.metadata.score
-    title = result.properties["_item_id"]
+    title = result.properties["_chunk_id"]
     content = result.properties["_document"]
 
     metadata = result.properties
-    del metadata["_item_id"]
+    metadata["path"] = data_source_path
+    metadata["description"] = knowledge_id
+    # del metadata["_item_id"]
     del metadata["_document"]
     del metadata["_index"]
+    del metadata["_chunk_id"]
 
     # Remove None values from metadata
     metadata = {k: v for k, v in metadata.items() if v is not None}

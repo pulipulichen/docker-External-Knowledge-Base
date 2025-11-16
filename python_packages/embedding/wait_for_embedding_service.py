@@ -20,6 +20,7 @@ async def wait_for_embedding_service():
     """
     Waits until the embedding service (TEI_ENDPOINT) is available.
     """
+    global IS_SERVICE_ALIVE
     if IS_SERVICE_ALIVE is True:
         return True
 
