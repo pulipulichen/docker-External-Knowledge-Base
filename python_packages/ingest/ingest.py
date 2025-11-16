@@ -5,7 +5,7 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 
 from .download_file import download_file
 from .convert_file_to_markdown import convert_file_to_markdown
-from ..index.index import index_file
+from ..index.index_file import index_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

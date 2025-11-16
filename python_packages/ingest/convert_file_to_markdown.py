@@ -20,13 +20,18 @@ def convert_file_to_markdown(knowledge_id):
         update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
 
         # 如果 input_file_path 變更時間小於 update_delay_seconds ，那就不變動
+        if os.path.exists(markdown_file_path): # Check if markdown file already exists
+            if update_delay_seconds == -1:
+                logger.info("update_delay_seconds is -1 and markdown file already exists. Skipping conversion.")
+                return True # Return True as the file is considered "converted" if it exists and delay is -1
+
         if os.path.exists(input_file_path) and os.path.exists(markdown_file_path):
             last_modified_time = os.path.getmtime(input_file_path)
             current_time = time.time()
             if (current_time - last_modified_time) < update_delay_seconds:
                 logger.info(f"File '{input_file_path}' was modified recently (within {update_delay_seconds} seconds). Skipping conversion.")
                 return True
-        else:
+        elif not os.path.exists(input_file_path): # Only log error if input file is missing
             logger.error(f"Input file '{input_file_path}' not found for knowledge_id '{knowledge_id}'.")
             return False
 
