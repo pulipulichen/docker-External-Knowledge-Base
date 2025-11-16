@@ -3,6 +3,8 @@ name = "docker-external-knowledge-base"
 version = "0.1.0"
 dependencies = [
     "Flask",
+    "gunicorn",
+    "Werkzeug",
 ]
 
 [build-system]
