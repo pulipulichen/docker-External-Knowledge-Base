@@ -1,5 +1,6 @@
 {
     "scripts": {
-        "start": "sudo docker compose down; sudo docker compose up --build"
+        "start": "sudo docker compose down; sudo docker compose up --build",
+        "reset": "sudo docker compose down -v; sudo docker compose up --build"
     }
 }

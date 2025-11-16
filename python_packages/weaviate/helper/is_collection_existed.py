@@ -14,4 +14,7 @@ def is_collection_existed(collection_name):
   if collection_name is None:
     collection_name = os.getenv('DATABASE_COLLECTION_NAME', 'knowledge_base')
   
-  return client.collections.exists(collection_name)
+  try:
+    return client.collections.exists(collection_name)
+  except Exception as e:
+    return False

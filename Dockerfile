@@ -9,7 +9,7 @@ COPY pyproject.toml pyproject.toml
 RUN pip install --no-cache-dir -e .
 
 # Copy the current directory contents into the container at /app
-COPY . .
+# COPY . .
 
 # Expose port 80
 EXPOSE 80

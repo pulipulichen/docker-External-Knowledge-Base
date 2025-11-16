@@ -1,1 +1,1 @@
-能夠輸入進去嗎... - weaviate - 
+還是不要做healthcheck好了 - 能夠輸入進去嗎... - weaviate - 

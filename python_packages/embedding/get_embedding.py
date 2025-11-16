@@ -2,6 +2,11 @@ import requests
 import os
 import redis
 import json
+import logging
+
+# Configure logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 TEI_ENDPOINT = os.getenv("TEI_ENDPOINT", "http://tei_bge_m3:80")
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
@@ -13,9 +18,9 @@ CACHE_EXPIRATION_SECONDS = int(os.getenv("CACHE_EXPIRATION_SECONDS", 3600)) # Ca
 try:
     redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
     redis_client.ping()
-    print("Connected to Redis successfully!")
+    logger.info("Connected to Redis successfully!")
 except redis.exceptions.ConnectionError as e:
-    print(f"Could not connect to Redis: {e}")
+    logger.error(f"Could not connect to Redis: {e}")
     redis_client = None
 
 def get_embedding(text: str):
@@ -26,7 +31,7 @@ def get_embedding(text: str):
         cache_key = f"embedding:{text}"
         cached_result = redis_client.get(cache_key)
         if cached_result:
-            print(f"Cache hit for text: {text[:30]}...")
+            # logger.info(f"Cache hit for text: {text[:30]}...")
             return json.loads(cached_result)
 
     try:
@@ -38,14 +43,17 @@ def get_embedding(text: str):
         )
         response.raise_for_status()  # Raises HTTPError for bad responses (4xx or 5xx)
         embedding_result = response.json()
+        
+        if isinstance(embedding_result[0], list):
+            embedding_result = embedding_result[0]
 
         if redis_client and embedding_result:
             redis_client.setex(cache_key, CACHE_EXPIRATION_SECONDS, json.dumps(embedding_result))
-            print(f"Cached embedding for text: {text[:30]}...")
+            # logger.info(f"Cached embedding for text: {text[:30]}...")
         
         return embedding_result
     except requests.exceptions.RequestException as e:
-        print(f"Error getting embedding: {e}")
+        logger.error(f"Error getting embedding: {e}")
         return None
 
 if __name__ == "__main__":
@@ -53,17 +61,17 @@ if __name__ == "__main__":
     embedding_result = get_embedding(test_text)
 
     if embedding_result:
-        print("Embedding 成功取得！")
-        print(f"Embedding 向量長度: {len(embedding_result[0])}")
-        print(f"前5個向量值: {embedding_result[0][:5]}")
+        logger.info("Embedding 成功取得！")
+        logger.info(f"Embedding 向量長度: {len(embedding_result[0])}")
+        logger.info(f"前5個向量值: {embedding_result[0][:5]}")
     else:
-        print("Embedding 取得失敗。")
+        logger.error("Embedding 取得失敗。")
 
     test_text_2 = "第二個測試句子。"
     embedding_result_2 = get_embedding(test_text_2)
 
     if embedding_result_2:
-        print("第二個 Embedding 成功取得！")
-        print(f"Embedding 向量長度: {len(embedding_result_2[0])}")
+        logger.info("第二個 Embedding 成功取得！")
+        logger.info(f"Embedding 向量長度: {len(embedding_result_2[0])}")
     else:
-        print("第二個 Embedding 取得失敗。")
+        logger.error("第二個 Embedding 取得失敗。")

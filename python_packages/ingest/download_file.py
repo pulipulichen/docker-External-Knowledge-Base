@@ -47,6 +47,8 @@ def download_file(knowledge_id):
             
             with open(downloaded_file_path, 'wb') as f:
                 f.write(response.content)
+            
+            os.chmod(downloaded_file_path, 0o777)
 
             if downloaded_file_path:
                 logger.info(f"Ingestion successful for knowledge_id '{knowledge_id}'. File saved at: {downloaded_file_path}")
