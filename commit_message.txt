@@ -1,1 +1,1 @@
-Post方法模組化 - External Knowledge的Hello World - 
+加上nginx，未完成 - External Knowledge的Hello World - 

@@ -11,8 +11,8 @@ RUN pip install --no-cache-dir -e .
 # Copy the current directory contents into the container at /app
 COPY . .
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port 80
+EXPOSE 80
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--reload", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--reload", "main:app"]
