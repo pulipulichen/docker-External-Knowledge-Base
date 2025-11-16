@@ -1,3 +1,4 @@
+import json
 import os
 import logging
 from flask import Blueprint, Flask, request, jsonify
@@ -10,12 +11,12 @@ retrieval_bp = Blueprint('retrieval', __name__)
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
-# 你自己的 API KEY（正式環境請改成環境變數）
+# Your API KEY (use environment variable in production)
 USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
 API_KEY = os.getenv('API_KEY')
 
 def check_auth(request):
-    """檢查 Authorization: Bearer xxx"""
+    """Checks Authorization: Bearer xxx"""
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         app.logger.debug("Authorization header missing or malformed.")
@@ -26,25 +27,36 @@ def check_auth(request):
 
 @retrieval_bp.route('/retrieval', methods=['POST'])
 def retrieval_endpoint():
-    # 驗證 Bearer Token
+    # Validate Bearer Token
     if not check_auth(request):
         return jsonify({"error": "Unauthorized"}), 401
 
-    # 讀取 JSON body
+    # Read JSON body
     data = request.get_json(force=True)
 
+    knowledge_id = data.get("knowledge_id", "")
     query = data.get("query", "")
-    top_k = data.get("top_k", 5)
+    retrieval_setting = data.get("retrieval_setting", {})
+    
+    top_k = retrieval_setting.get("top_k", 5)
+    score_threshold = retrieval_setting.get("score_threshold", None)
 
     # ==============================
-    # 根據 USE_MOCK_DB 決定使用 Mock Data 或真實 DB
+    # Decide whether to use Mock Data or real DB based on USE_MOCK_DB
     # ==============================
     if USE_MOCK_DB:
-        results = get_mock_results(query, top_k)
+        results = get_mock_results(knowledge_id, query, top_k, score_threshold)
     else:
-        results = get_db_results(query, top_k)
+        results = get_db_results(knowledge_id, query, top_k, score_threshold)
 
-    return jsonify(results)
+    results_json = jsonify({
+        "records": results
+    })
+
+    # Display results_json in Log
+    app.logger.debug(f"Retrieval results: {results_json.get_data(as_text=True)}")
+
+    return results_json
 
 if __name__ == '__main__':
     # This block is for local testing of the retrieval blueprint
