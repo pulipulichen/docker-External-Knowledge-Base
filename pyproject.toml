@@ -2,13 +2,14 @@
 name = "docker-external-knowledge-base"
 version = "0.1.0"
 dependencies = [
-    "Flask",
-    "gunicorn",
-    "Werkzeug",
-    "PyYAML",
-    "requests",
-    "MarkItDown", # Added for converting HTML to Markdown as per user feedback
-    "redis",
+    "Flask==2.3.3",
+    "gunicorn==21.2.0",
+    "Werkzeug==2.3.8",
+    "PyYAML==6.0.1",
+    "requests==2.31.0",
+    "MarkItDown==0.1.0", # Added for converting HTML to Markdown as per user feedback
+    "redis==5.0.1",
+    "weaviate-client==4.11.1",
 ]
 
 [build-system]
