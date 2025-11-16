@@ -33,6 +33,8 @@ services:
       - SYS_ADMIN
     security_opt:
       - seccomp=unconfined
+    logging:
+      driver: "none"
 
 volumes:
   tei_bge_m3:

@@ -6,6 +6,7 @@ dependencies = [
     "gunicorn",
     "Werkzeug",
     "PyYAML",
+    "requests",
 ]
 
 [build-system]

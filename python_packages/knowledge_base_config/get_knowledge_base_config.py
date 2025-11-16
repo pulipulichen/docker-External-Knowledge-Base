@@ -1,7 +1,9 @@
 import yaml
 import os
 import logging
-from .url_converter import convert_google_sheets_url_to_ods_download
+from .url_converter import convert_google_sheets_url_to_ods_download, convert_google_doc_url_to_md_download, convert_google_slide_url_to_md_download
+from .google_sheets_validator import is_google_sheets_url
+from .google_doc_slide_validator import is_google_doc_url, is_google_slide_url
 import json
 
 logger = logging.getLogger(__name__)
@@ -21,13 +23,32 @@ def get_knowledge_base_config(knowledge_id):
         knowledge_base_config = config.get(knowledge_id)
         logger.info(f"Found URL for knowledge_id '{knowledge_id}': {json.dumps(knowledge_base_config, indent=2)}")
         
+        file_name = f"{knowledge_id}.md"
+
         url = knowledge_base_config.get('path')
         if url:
-            converted_url = convert_google_sheets_url_to_ods_download(url)
-            if converted_url != url:
-                logger.info(f"Converted Google Sheets URL to ODS download format: {converted_url}")
-                knowledge_base_config['path'] = converted_url
+            if is_google_sheets_url(url):
+                converted_url = convert_google_sheets_url_to_ods_download(url)
+                if converted_url != url:
+                    logger.info(f"Converted Google Sheets URL to ODS download format: {converted_url}")
+                    knowledge_base_config['path'] = converted_url
+                    file_name = f"{knowledge_id}.ods"
+            elif is_google_doc_url(url):
+                converted_url = convert_google_doc_url_to_md_download(url)
+                if converted_url != url:
+                    logger.info(f"Converted Google Doc URL to Markdown download format: {converted_url}")
+                    knowledge_base_config['path'] = converted_url
+            elif is_google_slide_url(url):
+                converted_url = convert_google_slide_url_to_md_download(url)
+                if converted_url != url:
+                    logger.info(f"Converted Google Slide URL to Markdown download format: {converted_url}")
+                    knowledge_base_config['path'] = converted_url
+            else:
+                logger.info(f"URL '{url}' is not a Google Sheets URL, skipping conversion.")
         
+        knowledge_base_config['file_name'] = file_name
+        # logger.info(f"File name set to: {knowledge_base_config['file_name']}")
+
         return knowledge_base_config
     else:
         logger.warning(f"Knowledge ID '{knowledge_id}' not found in config.")
