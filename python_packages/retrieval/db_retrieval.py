@@ -1,11 +1,20 @@
+from ..ingest.ingest import ingest_data
+from flask import Flask
+
+app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
+
 def get_db_results(knowledge_id: str, query: str, top_k: int, score_threshold: float = None):
     """
     Retrieves results from the actual database based on the query, knowledge_id, top_k, and score_threshold.
     (Placeholder for actual database retrieval logic)
     """
+
+    # ==============================
+    ingest_data(knowledge_id, query, top_k, score_threshold)
+
     # In a real scenario, this would interact with a database
     # and return relevant results.
-    print(f"Performing database retrieval for knowledge_id: {knowledge_id}, query: {query}, top_k: {top_k}, score_threshold: {score_threshold}")
+    app.logger.debug(f"Performing database retrieval for knowledge_id: {knowledge_id}, query: {query}, top_k: {top_k}, score_threshold: {score_threshold}")
     
     mock_db_results = [
         {

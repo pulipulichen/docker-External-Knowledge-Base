@@ -5,6 +5,7 @@ dependencies = [
     "Flask",
     "gunicorn",
     "Werkzeug",
+    "PyYAML",
 ]
 
 [build-system]

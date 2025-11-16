@@ -2,8 +2,8 @@ import json
 import os
 import logging
 from flask import Blueprint, Flask, request, jsonify
-from python_packages.retrieval.mock_retrieval import get_mock_results
-from python_packages.retrieval.db_retrieval import get_db_results
+from .mock_retrieval import get_mock_results
+from .db_retrieval import get_db_results
 
 retrieval_bp = Blueprint('retrieval', __name__)
 
@@ -43,6 +43,7 @@ def retrieval_endpoint():
     
     top_k = retrieval_setting.get("top_k", 5)
     score_threshold = retrieval_setting.get("score_threshold", None)
+
 
     # ==============================
     # Decide whether to use Mock Data or real DB based on USE_MOCK_DB
