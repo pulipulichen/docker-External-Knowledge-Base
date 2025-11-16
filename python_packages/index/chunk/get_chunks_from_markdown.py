@@ -31,6 +31,7 @@ def get_chunks_from_markdown(knowledge_id: str) -> List[str]:
     max_tokens = config.get('index.max_tokens', 4096)
     lines = markdown_content.split('\n')
 
+    chunk_count = 0
     for i, line in enumerate(lines):
         line_tokens = len(encoding.encode(line))
 
@@ -51,12 +52,21 @@ def get_chunks_from_markdown(knowledge_id: str) -> List[str]:
         if (line.strip() == "" and i + 1 < len(lines) and lines[i+1].strip() == "") or \
            (i == len(lines) - 1 and current_chunk_lines):
             if current_chunk_lines:
-                chunks.append("\n".join(current_chunk_lines))
+                # chunks.append("\n".join(current_chunk_lines))
+                append_to_chunks(chunks, current_chunk_lines, knowledge_id, chunk_count)
+                chunk_count += 1
                 current_chunk_lines = []
                 current_chunk_tokens = 0
 
     # Add any remaining content as a chunk
     if current_chunk_lines:
-        chunks.append("\n".join(current_chunk_lines))
+        append_to_chunks(chunks, current_chunk_lines, knowledge_id, chunk_count)
 
     return chunks
+
+def append_to_chunks(chunks, lines, knowledge_id, chunk_count):
+    chunk = {
+        "chunk_id": f"{knowledge_id}_{chunk_count}",
+        "document": "\n".join(lines),
+    }
+    chunks.append(chunk)

@@ -1,1 +1,1 @@
-分段姑且是完成了，那接下來是輸入到weaviate裡面... - weaviate - 
+能夠輸入進去嗎... - weaviate - 

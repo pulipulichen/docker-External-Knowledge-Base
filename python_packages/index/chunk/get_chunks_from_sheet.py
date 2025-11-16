@@ -63,9 +63,15 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
                 if len(cleaned_value) > 0:
                     chunk[key] = cleaned_value
                     is_empty = False
-                    
+
             if is_empty is False:
-                chunks.append(json.dumps(chunk, ensure_ascii=False)) # Convert chunk to JSON string here
+                chunks.append({
+                    "chunk_id": f"{knowledge_id}_{section_name}_{row_index}",
+                    "document": json.dumps(chunk, ensure_ascii=False),
+                    # "metadata": {
+                    #     "_item_id": filepath,
+                    # }
+                }) # Convert chunk to JSON string here
         return chunks
 
     except FileNotFoundError:

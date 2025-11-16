@@ -17,6 +17,8 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 
 from ..embedding.get_embedding import get_embedding
 from .chunk.get_chunks_from_file import get_chunks_from_file
+from .mode.index_mode_all import index_mode_all
+from .mode.index_mode_last import index_mode_last
 
 from ..weaviate.weaviate_add import weaviate_add
 
@@ -45,7 +47,13 @@ def index_file(knowledge_id, section_name):
         logger.error("Failed to retrieve chunks from file.")
         return False
     
-    logger.info(f"Number of chunks: {len(chunks)}")
-    if chunks:
-        logger.info(f"First chunk content: {chunks[0]}")
-        logger.info(f"Last chunk content: {chunks[-1]}")
+    # logger.info(f"Number of chunks: {len(chunks)}")
+    # if chunks:
+    #     logger.info(f"First chunk content: {chunks[0]}")
+    #     logger.info(f"Last chunk content: {chunks[-1]}")
+
+    index_mode = config.get('index.mode', "all")
+    if index_mode is 'all':
+        index_mode_all(knowledge_id, section_name, chunks)
+    elif index_mode == 'last':
+        index_mode_last(knowledge_id, section_name, chunks)
