@@ -1,5 +1,5 @@
 from python_packages.retrieval.retrieval import app
-from python_packages.retrieval.hello_routes import hello_bp
+from python_packages.hello.hello_routes import hello_bp
 
 app.register_blueprint(hello_bp)
 
