@@ -13,7 +13,10 @@ async def index_mode_last(knowledge_id, section_name, chunks):
     config = get_knowledge_base_config(knowledge_id)
     length = config.get("index", {}).get("length", 100)
     
-    item_id = f"{knowledge_id}_{section_name}"
+    if config.get('section'):
+        item_id = f"{knowledge_id}"
+    else:
+        item_id = f"{knowledge_id}_{section_name}"
 
     is_ready = weaviate_ready(knowledge_id=item_id)
 

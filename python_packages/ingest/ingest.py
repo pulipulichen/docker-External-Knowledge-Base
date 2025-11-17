@@ -22,7 +22,7 @@ async def ingest_data(knowledge_id, section_name):
 
     if knowledge_base_config.get('is_url') is True:
         download_file(knowledge_id)
-    elif knowledge_base_config.get('is_markdown') is False:
+    elif knowledge_base_config.get('markdown_convertable') is True:
         convert_file_to_markdown(knowledge_id)
 
     if section_name is None:

@@ -1,12 +1,17 @@
 import logging
 from ...embedding.get_embedding import get_embedding
 from ...weaviate.weaviate_add import weaviate_add
+from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
 logger = logging.getLogger(__name__)
 
 async def index_mode_all(knowledge_id, section_name, chunks):
     
-    item_id = f"{knowledge_id}_{section_name}"
+    config = get_knowledge_base_config(knowledge_id)
+    if config.get('section'):
+        item_id = f"{knowledge_id}"
+    else:
+        item_id = f"{knowledge_id}_{section_name}"
 
     # logger.info(await get_embedding('測試'))
 
