@@ -12,6 +12,7 @@ def download_file(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
 
     if 'path' in config:
+        
         # logger.info(f"Retrieved URL for knowledge_id '{knowledge_id}': {config.get('path')}")
         # Further ingestion logic using the URL would go here
 
@@ -27,8 +28,21 @@ def download_file(knowledge_id):
                 return False
 
             file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(downloaded_file_path))
-            current_time = datetime.datetime.now()
-            time_difference = current_time - file_mod_time
+            
+            
+            index_time_filepath = downloaded_file_path + '.index-time.txt'
+            
+            last_index_time = datetime.datetime.now()
+            if os.path.exists(index_time_filepath):
+                try:
+                    with open(index_time_filepath, 'r') as f:
+                        timestamp_str = f.read().strip()
+                        last_index_time = datetime.datetime.fromisoformat(timestamp_str)
+                        logger.debug(f"Read index time from file: {last_index_time}")
+                except Exception as e:
+                    logger.error(f"Error reading index time from {index_time_filepath}: {e}")
+
+            time_difference = file_mod_time - last_index_time
             
             # logger.debug(f"File modification time: {file_mod_time}")
             # logger.debug(f"Current time: {current_time}")
@@ -49,6 +63,10 @@ def download_file(knowledge_id):
                 f.write(response.content)
             
             os.chmod(downloaded_file_path, 0o777)
+
+            with open(index_time_filepath, 'w') as f:
+                f.write(current_time.isoformat())
+            logger.debug(f"Updated index time file: {index_time_filepath} with {current_time.isoformat()}")
 
             if not downloaded_file_path:
                 logger.error(f"Ingestion failed for knowledge_id '{knowledge_id}'.")

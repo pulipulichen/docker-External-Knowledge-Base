@@ -18,8 +18,10 @@ FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../knowledge_base_config')
+
 def get_knowledge_base_config(knowledge_id):
-    config_path = os.path.join(os.path.dirname(__file__), '../../knowledge_base_config.yaml')
+    config_path = os.path.join(CONFIG_DIR, knowledge_id + '.yml')
     
     if not os.path.exists(config_path):
         logger.error(f"Knowledge base config file not found at {config_path}")

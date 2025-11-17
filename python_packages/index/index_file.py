@@ -3,6 +3,7 @@ import os
 import logging
 import redis
 import json
+import datetime
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -59,3 +60,13 @@ async def index_file(knowledge_id, section_name):
         await index_mode_all(knowledge_id, section_name, chunks)
     elif index_mode == 'last':
         await index_mode_last(knowledge_id, section_name, chunks)
+
+    # 把現在的時間寫入index_itme
+    index_time = filepath + '.index-time.txt'
+    current_time = datetime.datetime.now().isoformat()
+    try:
+        with open(index_time, 'w') as f:
+            f.write(current_time)
+        logger.info(f"Index time '{current_time}' written to {index_time}")
+    except IOError as e:
+        logger.error(f"Failed to write index time to {index_time}: {e}")
