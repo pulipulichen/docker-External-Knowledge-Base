@@ -52,6 +52,8 @@ def download_file(knowledge_id):
             if time_difference < datetime.timedelta(seconds=update_delay_seconds):
                 # logger.info("File is up to date. Skipping download.")
                 return False
+            
+            os.remove(index_time_filepath)
         
         file_url = config.get('path')
         if file_url.startswith('http://') or file_url.startswith('https://'):
