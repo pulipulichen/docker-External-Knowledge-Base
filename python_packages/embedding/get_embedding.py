@@ -21,7 +21,7 @@ CACHE_EXPIRATION_SECONDS = int(os.getenv("CACHE_EXPIRATION_SECONDS", 3600)) # Ca
 try:
     redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
     redis_client.ping()
-    logger.info("Connected to Redis successfully!")
+    # logger.info("Connected to Redis successfully!")
 except redis.exceptions.ConnectionError as e:
     logger.error(f"Could not connect to Redis: {e}")
     redis_client = None
