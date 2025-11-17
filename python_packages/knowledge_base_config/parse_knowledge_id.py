@@ -1,3 +1,5 @@
+from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
+
 def parse_knowledge_id(knowledge_id):
     if "!" in knowledge_id:
         parts = knowledge_id.rsplit("!", 1)
@@ -5,7 +7,10 @@ def parse_knowledge_id(knowledge_id):
         section_name = parts[1]
     else:
         knowledge_id = knowledge_id
-        section_name = None
+        config = get_knowledge_base_config(knowledge_id)
+        section_name = config.get('section')
+
+    # 用logger顯示knowledge_id跟section_name
     
     return {
         "knowledge_id": knowledge_id,
