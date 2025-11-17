@@ -12,7 +12,7 @@ logging.getLogger("httpx_logger").setLevel(logging.WARNING)
 logging.getLogger("weaviate").setLevel(logging.WARNING)
 
 app = Flask(__name__)
-app.register_blueprint(hello_bp)
+# app.register_blueprint(hello_bp)
 app.register_blueprint(retrieval_bp)
 
 

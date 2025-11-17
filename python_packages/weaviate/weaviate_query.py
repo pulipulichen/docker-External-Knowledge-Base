@@ -12,11 +12,15 @@ from .weaviate_ready import weaviate_ready
 from weaviate.classes.query import MetadataQuery
 import os
 
+from flask import Flask
+app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
+
 def weaviate_query(**kwargs):
 
   collection_name = kwargs.get("knowledge_id", None)
   if weaviate_ready(**kwargs) is False:
-    return []
+    app.logger.info(f"not ready")
+    return {"records": []}
 
   # item_id = kwargs.get("item_id", kwargs.get("title", None))
   query = kwargs.get("query", kwargs.get("document", None))
@@ -28,7 +32,8 @@ def weaviate_query(**kwargs):
   # print(query, collection_name)
 
   if query == None or len(vector) == 0:
-    return []
+    app.logger.info(f"no query or vector")
+    return {"records": []}
   
 
   # =================================================================
@@ -38,7 +43,7 @@ def weaviate_query(**kwargs):
   
   query_alpha = query_config.get("query_alpha", 0.5)
   max_results = query_config.get("max_results", 5)
-  result_width = query_config.get("result_width", 5)
+  # result_width = query_config.get("result_width", 5)
   score_threshold = query_config.get("score_threshold", 0)
   # item_distinct = query_config.get("item_distinct", True) 
   offset = query_config.get("offset", 0) 

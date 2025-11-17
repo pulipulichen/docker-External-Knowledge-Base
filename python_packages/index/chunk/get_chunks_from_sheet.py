@@ -52,10 +52,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         keys = [str(cell).strip() for cell in sheet_data[0]]
         chunks = []
 
-        include_fileds = config.get('include_fileds', None)
-        if include_fileds is not None:
-            # keys只保留 include_fileds 有的欄位
-            keys = [key for key in keys if key in include_fileds]
+        include_fileds = config.get('include_fileds', [])
 
         # Iterate through the rest of the rows to get values
         for row_index in range(1, len(sheet_data)):
@@ -65,7 +62,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             for i, key in enumerate(keys):
                 value = row_values[i] if i < len(row_values) else ""
                 cleaned_value = str(value).strip()
-                if len(cleaned_value) > 0:
+                if len(cleaned_value) > 0 and key in include_fileds:
                     chunk[key] = cleaned_value
                     is_empty = False
 

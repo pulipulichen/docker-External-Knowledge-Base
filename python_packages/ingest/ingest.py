@@ -11,7 +11,11 @@ from ..index.index_file import index_file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# import time
+
 async def ingest_data(knowledge_id, section_name):
+
+    # time.sleep(30)
 
     # logger.info(f"Knowledge ID: {knowledge_id}")
     # logger.info(f"Query: {query}")
