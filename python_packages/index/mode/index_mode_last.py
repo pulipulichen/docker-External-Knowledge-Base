@@ -25,9 +25,9 @@ async def index_mode_last(knowledge_id, section_name, chunks):
 
     if is_ready is True:
 
-        last_chunks = chunks[:length]
+        last_chunks = chunks[-length:]
 
-        # logging.info(f"Number of last_chunks: {len(last_chunks)}")
+        # logging.info(f"Number of last_chunks ({length}): {len(last_chunks)} - {len(chunks)}")
         # if last_chunks:
         #     logging.info(f"Content of the last chunk: {last_chunks[-1]}")
 
@@ -39,14 +39,9 @@ async def index_mode_last(knowledge_id, section_name, chunks):
                 if "vector" not in chunk:
                     chunk["vector"] = await get_embedding(chunk["document"])
             
-            logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
+            # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
             weaviate_add(knowledge_id=item_id, data_rows=batch_chunks)
-
-
-        # for chunk in last_chunks:
-        #     if "vector" not in chunk:
-        #         chunk["vector"] = await get_embedding(chunk["document"])
-
-        # return weaviate_add(knowledge_id=item_id, data_rows=last_chunks)
+        
+        return last_chunks
     else:
         return await index_mode_all(knowledge_id, section_name, chunks)

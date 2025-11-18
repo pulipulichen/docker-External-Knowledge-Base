@@ -59,10 +59,6 @@ async def index_file(knowledge_id, section_name):
             logger.info("File is up to date. Skipping index.")
             return False
 
-    # if filename:
-    #     logger.info(f"Filename for knowledge ID '{knowledge_id}': {filename}")
-    # else:
-    #     logger.error(f"Filename not found in config for knowledge ID: {knowledge_id}")
     if not filename:
         logger.error(f"Filename not found in config for knowledge ID: {knowledge_id}")
 
@@ -76,7 +72,10 @@ async def index_file(knowledge_id, section_name):
     #     logger.info(f"First chunk content: {chunks[0]}")
     #     logger.info(f"Last chunk content: {chunks[-1]}")
 
-    index_mode = config.get('index.mode', "all")
+    index_mode = config.get('index', {}).get('mode', 'all')
+    # logger.info(f"Index_mode: {index_mode}")
+    # logger.info(f"conifg: {json.dumps(config)}")
+
     if index_mode == 'all':
         await index_mode_all(knowledge_id, section_name, chunks)
     elif index_mode == 'last':

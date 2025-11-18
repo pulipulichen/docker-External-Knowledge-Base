@@ -26,7 +26,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         filepath = config.get('file_path')
 
         if not os.path.exists(filepath):
-            # logger.error(f"File '{filepath}' does not exist.")
+            logger.error(f"File '{filepath}' does not exist.")
             return []
 
         book = pyexcel_ods.get_data(filepath)
@@ -62,9 +62,10 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             for i, key in enumerate(keys):
                 value = row_values[i] if i < len(row_values) else ""
                 cleaned_value = str(value).strip()
-                if len(cleaned_value) > 0 and key in include_fileds:
-                    chunk[key] = cleaned_value
-                    is_empty = False
+                if len(cleaned_value) > 0:
+                    if len(include_fileds) == 0 or key in include_fileds:
+                        chunk[key] = cleaned_value
+                        is_empty = False
 
             if is_empty is False:
                 chunks.append({

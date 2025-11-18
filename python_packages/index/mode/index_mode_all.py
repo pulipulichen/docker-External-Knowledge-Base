@@ -32,5 +32,5 @@ async def index_mode_all(knowledge_id, section_name, chunks):
             if "vector" not in chunk:
                 chunk["vector"] = await get_embedding(chunk["document"])
         
-        logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
+        # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
         weaviate_add(knowledge_id=item_id, data_rows=batch_chunks)
