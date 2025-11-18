@@ -1,12 +1,15 @@
 from ...embedding.get_embedding import get_embedding
 from ...weaviate.weaviate_add import weaviate_add
 import logging
+logger = logging.getLogger(__name__)
 
 from ...weaviate.weaviate_ready import weaviate_ready
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
 from .index_mode_all import index_mode_all
+
+BATCH = 100
 
 async def index_mode_last(knowledge_id, section_name, chunks):
 
@@ -28,9 +31,21 @@ async def index_mode_last(knowledge_id, section_name, chunks):
         # if last_chunks:
         #     logging.info(f"Content of the last chunk: {last_chunks[-1]}")
 
-        for chunk in last_chunks:
-            if "vector" not in chunk:
-                chunk["vector"] = await get_embedding(chunk["document"])
+        for i in range(0, len(last_chunks), BATCH):
+            batch_chunks = last_chunks[i:i + BATCH]
+
+            # 首先，先把chunks裡面，沒有vector的，加上vector。
+            for chunk in batch_chunks:
+                if "vector" not in chunk:
+                    chunk["vector"] = await get_embedding(chunk["document"])
+            
+            logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
+            weaviate_add(knowledge_id=item_id, data_rows=batch_chunks)
+
+
+        # for chunk in last_chunks:
+        #     if "vector" not in chunk:
+        #         chunk["vector"] = await get_embedding(chunk["document"])
 
         # return weaviate_add(knowledge_id=item_id, data_rows=last_chunks)
     else:
