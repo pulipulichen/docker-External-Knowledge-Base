@@ -38,7 +38,7 @@ async def index_file(knowledge_id, section_name):
         logger.error(f"File not found at path: {filepath}")
         return False
 
-    index_time_filepath = filepath + '.index-time.txt'
+    index_time_filepath = filepath + '-' + knowledge_id + '.index-time.txt'
     last_index_time = None
     if os.path.exists(index_time_filepath):
         try:
