@@ -53,7 +53,7 @@ services:
       - docker_external_knowledge_base
     
   weaviate:
-    image: semitechnologies/weaviate:1.31.6-bb985f0.amd64
+    image: semitechnologies/weaviate:1.32.16-31de226.amd64
     # restart: on-failure
     # ports: # 暴露 Weaviate 服務的端口到主機
     #   - "58080:8080" # 將容器的 8080 端口映射到主機的 58080 端口 (HTTP)
