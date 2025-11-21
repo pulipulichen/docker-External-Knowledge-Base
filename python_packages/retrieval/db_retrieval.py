@@ -1,24 +1,13 @@
 import asyncio
 import json
-from ..ingest.ingest import ingest_data
 from flask import Flask
 from ..weaviate.weaviate_query import weaviate_query
 from ..embedding.get_embedding import get_embedding
 from ..knowledge_base_config.get_section_name import get_section_name
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
+from ..ingest.fire_and_forget_ingest import fire_and_forget_ingest
 
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
-
-import threading
-import asyncio
-
-def fire_and_forget_ingest(knowledge_id: str, section_name: str):
-    def runner():
-        # 每個 thread 自己開一個 event loop
-        asyncio.run(ingest_data(knowledge_id, section_name))
-
-    t = threading.Thread(target=runner, daemon=True)
-    t.start()
 
 async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
     """
