@@ -1,1 +1,1 @@
-上傳後轉成ods功能 - weaviate_ui壞了 - 
+再來就是要連上dify - 

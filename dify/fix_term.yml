@@ -1,0 +1,582 @@
+app:
+  description: https://docs.google.com/spreadsheets/d/1x9vK9E7XdnW6hqfvz4NdQ0BEkq3Qf1vbnf7XTI1HDI4/edit?gid=0#gid=0
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 用詞修正
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.5.6@6937ac6c3f88d0ef5021881b00eab58e0722e1b3cc186087b023688679abd074
+    version: null
+kind: app
+version: 0.4.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: ''
+    id: 607b0b13-c127-44ad-bf72-c94a5585265f
+    name: SLEEP_SECONDS
+    selector:
+    - env
+    - SLEEP_SECONDS
+    value: 10
+    value_type: integer
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: code
+      id: 1737640544419-source-1737640594602-target
+      selected: false
+      source: '1737640544419'
+      sourceHandle: source
+      target: '1737640594602'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: code
+      id: 1737640594602-source-1737640653724-target
+      selected: false
+      source: '1737640594602'
+      sourceHandle: source
+      target: '1737640653724'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: iteration
+      id: 1737640653724-source-1737640824935-target
+      selected: false
+      source: '1737640653724'
+      sourceHandle: source
+      target: '1737640824935'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        iteration_id: '1737640824935'
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1737640941878-source-1737640960047-target
+      source: '1737640941878'
+      sourceHandle: source
+      target: '1737640960047'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        iteration_id: '1737640824935'
+        sourceType: iteration-start
+        targetType: code
+      id: 1737640824935start-source-1737641045984-target
+      source: 1737640824935start
+      sourceHandle: source
+      target: '1737641045984'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        iteration_id: '1737640824935'
+        sourceType: code
+        targetType: knowledge-retrieval
+      id: 1737641045984-source-1737640941878-target
+      source: '1737641045984'
+      sourceHandle: source
+      target: '1737640941878'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: end
+      id: 1737644486354-source-1737640675124-target
+      source: '1737644486354'
+      sourceHandle: source
+      target: '1737640675124'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: iteration
+        targetType: code
+      id: 1737640824935-source-1737644486354-target
+      source: '1737640824935'
+      sourceHandle: source
+      target: '1737644486354'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables:
+        - default: 'false'
+          label: split
+          max_length: 48
+          options:
+          - 'false'
+          - 'true'
+          required: true
+          type: select
+          variable: split
+        - label: text
+          max_length: null
+          options: []
+          required: true
+          type: paragraph
+          variable: text
+      height: 114
+      id: '1737640544419'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "\nfunction main({split, text}) {\n    split = (split === 'true')\n\n\
+          \    let chunks\n\n    if (split === false) {\n        chunks = [text]\n\
+          \    }\n    else {\n        let tmp = []\n        let temLimitLen = 300\n\
+          \        chunks = []\n        let parts = text.split('\\n\\n')\n       \
+          \     .map(item => item.trim())\n            .filter(item => (item.length\
+          \ > 0))\n\n        parts.forEach(part => {\n            // tmp.push(part)\n\
+          \n            if ((tmp.join('\\n\\n') + part).length > temLimitLen) {\n\
+          \                chunks.push(tmp.join('\\n\\n'))\n                tmp =\
+          \ [part]\n            }\n            else {\n                tmp.push(part)\n\
+          \            }\n        })\n\n        if (tmp.length > 0) {\n          \
+          \  chunks.push(tmp.join('\\n\\n'))\n        }\n    }\n\n    return {\n \
+          \       chunks\n    }\n}\n"
+        code_language: javascript
+        desc: ''
+        outputs:
+          chunks:
+            children: null
+            type: array[string]
+        selected: false
+        title: Split
+        type: code
+        variables:
+        - value_selector:
+          - '1737640544419'
+          - split
+          variable: split
+        - value_selector:
+          - '1737640544419'
+          - text
+          variable: text
+      height: 52
+      id: '1737640594602'
+      position:
+        x: 387.2105126672992
+        y: 282
+      positionAbsolute:
+        x: 387.2105126672992
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import time\n\ndef main(SLEEP_SECONDS) -> dict:\n    time.sleep(SLEEP_SECONDS\
+          \ / 2)\n    return {\n        \"result\": 0,\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: number
+        selected: false
+        title: Sleep
+        type: code
+        variables:
+        - value_selector:
+          - env
+          - SLEEP_SECONDS
+          variable: SLEEP_SECONDS
+      height: 52
+      id: '1737640653724'
+      position:
+        x: 688
+        y: 282
+      positionAbsolute:
+        x: 688
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1737644486354'
+          - result
+          variable: text
+        selected: false
+        title: End
+        type: end
+      height: 88
+      id: '1737640675124'
+      position:
+        x: 2037.8157690009486
+        y: 618.7894873327009
+      positionAbsolute:
+        x: 2037.8157690009486
+        y: 618.7894873327009
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        error_handle_mode: terminated
+        height: 206
+        is_parallel: false
+        iterator_selector:
+        - '1737640594602'
+        - chunks
+        output_selector:
+        - '1737640960047'
+        - text
+        output_type: array[string]
+        parallel_nums: 10
+        selected: false
+        start_node_id: 1737640824935start
+        title: Iteration
+        type: iteration
+        width: 992
+      height: 206
+      id: '1737640824935'
+      position:
+        x: 1081.9208956739405
+        y: 159.94821462745026
+      positionAbsolute:
+        x: 1081.9208956739405
+        y: 159.94821462745026
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 992
+      zIndex: 1
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: 1737640824935start
+      parentId: '1737640824935'
+      position:
+        x: 24
+        y: 68
+      positionAbsolute:
+        x: 1105.9208956739405
+        y: 227.94821462745026
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+      zIndex: 1002
+    - data:
+        dataset_ids:
+        - tTQweAl5jRN/ppomWpeH2nK6ovlLEeFgYOV5menal07euIONlPqHRFuVPQSzYFyn
+        desc: ''
+        isInIteration: true
+        iteration_id: '1737640824935'
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-large
+            provider: langgenius/huggingface_tei/huggingface_tei
+          score_threshold: null
+          top_k: 10
+        query_variable_selector:
+        - '1737640824935'
+        - item
+        retrieval_mode: multiple
+        selected: false
+        title: Knowledge Retrieval
+        type: knowledge-retrieval
+      height: 90
+      id: '1737640941878'
+      parentId: '1737640824935'
+      position:
+        x: 428
+        y: 65.05146156541781
+      positionAbsolute:
+        x: 1509.9208956739405
+        y: 224.99967619286807
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1737640941878'
+          - result
+        desc: ''
+        isInIteration: true
+        iteration_id: '1737640824935'
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gemini-flash-latest
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: e031a655-3acb-45c0-9e65-8d8c9b6d78fd
+          role: system
+          text: 'Use the following context as your learned knowledge, inside <context></context>
+            XML tags.
+
+            <context>
+
+            {{#context#}}
+
+            </context>
+
+            When answer to user:
+
+            - If you don''t know, just say that you don''t know.
+
+            - If you don''t know when you are not sure, ask for clarification.
+
+            Avoid mentioning that you obtained the information from the context.
+
+            And answer according to the language of the user''s question.
+
+            請使用繁體中文來描述，不要用簡體中文。
+
+            請以臺灣人習慣的字詞來描述。
+
+
+            不要使用「數據」，請使用「資訊」或「資料」。
+
+            不要使用「高效」，請使用「有效率」或「提升效率」。
+
+            不要使用「可視化」，請使用「視覺化」或「資訊視覺化」。
+
+            不要使用「用戶」，請使用「使用者」。
+
+            不要使用「加載」，請使用「載入」。
+
+
+            請根據context修正輸入文字的用詞，不要有額外的說明。
+
+
+            直接給出修改結果就好了。
+
+
+            No more addtional description or opening, just give me rewrite result.
+
+            '
+        - id: 5602e204-9ff6-4afa-837c-e980dad554e5
+          role: user
+          text: '{{#1737640824935.item#}}'
+        retry_config:
+          max_retries: 10
+          retry_enabled: false
+          retry_interval: 5000
+        selected: false
+        title: LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 88
+      id: '1737640960047'
+      parentId: '1737640824935'
+      position:
+        x: 734
+        y: 65
+      positionAbsolute:
+        x: 1815.9208956739405
+        y: 224.94821462745026
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        code: "import time\n\ndef main(index, split, SLEEP_SECONDS) -> dict:\n   \
+          \ if split == 'true':\n        sleep_time = SLEEP_SECONDS * (index + 1)\
+          \ \n        if sleep_time > 50:\n            sleep_time = 50\n        time.sleep(sleep_time)\n\
+          \n        \n    return {\n        \"result\": 0,\n    }\n"
+        code_language: python3
+        desc: ''
+        isInIteration: true
+        iteration_id: '1737640824935'
+        outputs:
+          result:
+            children: null
+            type: number
+        selected: false
+        title: sleep
+        type: code
+        variables:
+        - value_selector:
+          - '1737640824935'
+          - index
+          variable: index
+        - value_selector:
+          - '1737640544419'
+          - split
+          variable: split
+        - value_selector:
+          - env
+          - SLEEP_SECONDS
+          variable: SLEEP_SECONDS
+      height: 52
+      id: '1737641045984'
+      parentId: '1737640824935'
+      position:
+        x: 128
+        y: 70.78948733270079
+      positionAbsolute:
+        x: 1209.9208956739405
+        y: 230.73770196015104
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        code: "\nfunction main({input}) {\n    input = input.map(item => item.trim())\n\
+          \        .filter(item => (item.length > 0))\n\n    return {\n        result:\
+          \ input.join('\\n\\n')\n    }\n}\n"
+        code_language: javascript
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: Merge
+        type: code
+        variables:
+        - value_selector:
+          - '1737640824935'
+          - output
+          variable: input
+      height: 52
+      id: '1737644486354'
+      position:
+        x: 1483.9724217251749
+        y: 643.8948733270081
+      positionAbsolute:
+        x: 1483.9724217251749
+        y: 643.8948733270081
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        author: user
+        desc: ''
+        height: 161
+        selected: false
+        showAuthor: true
+        text: '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Icon:
+          ","type":"text","version":1},{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"https://www.flaticon.com/free-icon/dictionary_4033369?term=dictionary&page=1&position=2&origin=search&related_id=4033369","type":"text","version":1}],"direction":null,"format":"","indent":0,"type":"link","version":1,"rel":"noreferrer","target":null,"title":null,"url":"https://www.flaticon.com/free-icon/dictionary_4033369?term=dictionary&amp;page=1&amp;position=2&amp;origin=search&amp;related_id=4033369"}],"direction":null,"format":"","indent":0,"type":"paragraph","version":1,"textFormat":0,"textStyle":""}],"direction":null,"format":"","indent":0,"type":"root","version":1}}'
+        theme: blue
+        title: ''
+        type: ''
+        width: 423
+      height: 161
+      id: '1763324865690'
+      position:
+        x: 13.15592846157023
+        y: 29.474687734136115
+      positionAbsolute:
+        x: 13.15592846157023
+        y: 29.474687734136115
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-note
+      width: 423
+    viewport:
+      x: -1147.358283756331
+      y: -130.49176154423202
+      zoom: 0.870550563296124
+  rag_pipeline_variables: []

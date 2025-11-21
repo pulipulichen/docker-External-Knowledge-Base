@@ -82,7 +82,7 @@ services:
       - docker_external_knowledge_base
   weaviate_ui:
     image: naaive/weaviate-ui:v1.0.3
-    # restart: on-failure
+    restart: on-failure
     ports:
       - 47777:7777
     depends_on:
