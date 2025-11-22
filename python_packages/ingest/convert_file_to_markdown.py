@@ -17,7 +17,7 @@ def convert_file_to_markdown(knowledge_id):
         input_file_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
         markdown_file_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) # Define markdown_file_path directly
 
-        update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
+        update_delay_seconds = config.get('auto_update.delay_seconds', 30 * 60)
 
         # 如果 input_file_path 變更時間小於 update_delay_seconds ，那就不變動
         if os.path.exists(markdown_file_path): # Check if markdown file already exists

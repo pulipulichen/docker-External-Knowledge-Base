@@ -18,7 +18,7 @@ def download_file(knowledge_id):
 
         downloaded_file_path = config.get('file_path')
         
-        update_delay_seconds = config.get('update_delay_seconds', 30 * 60)
+        update_delay_seconds = config.get('auto_update.delay_seconds', 30 * 60)
         # logger.debug(f"Expiration seconds: {update_delay_seconds}")
 
         # If downloaded_file_path exists and its modification time is less than expiration_seconds, do not re-download
