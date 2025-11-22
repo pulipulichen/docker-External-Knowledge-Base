@@ -22,6 +22,8 @@ async def ingest_data(knowledge_id, section_name, force_update: False):
     # logger.info(f"Top K: {top_k}")
     # logger.info(f"Score Threshold: {score_threshold}" )
 
+    # logger.info(f"force_update: {force_update}")
+
     knowledge_base_config = get_knowledge_base_config(knowledge_id)
 
     if knowledge_base_config.get('is_url') is True:

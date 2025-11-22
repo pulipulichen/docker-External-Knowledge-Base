@@ -43,7 +43,7 @@ def weaviate_query(**kwargs):
   
   query_alpha = query_config.get("query_alpha", 0.5)
   max_results = query_config.get("max_results", 5)
-  app.logger.info(f"max_results: {max_results}")
+  # app.logger.info(f"max_results: {max_results}")
   # result_width = query_config.get("result_width", 5)
   score_threshold = query_config.get("score_threshold", 0)
   # item_distinct = query_config.get("item_distinct", True) 

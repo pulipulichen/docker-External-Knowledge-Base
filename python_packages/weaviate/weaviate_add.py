@@ -6,7 +6,9 @@ from .helper.segment_text import segment_text
 
 import weaviate.classes as wvc
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 def weaviate_add(**kwargs):
 
@@ -58,7 +60,7 @@ def weaviate_add(**kwargs):
 
   collection.data.insert_many(batch_products)
 
-  print(f"Inserted {len(batch_products)} objects into Weaviate collection '{collection_name}'.")
+  logger.info(f"Inserted {len(batch_products)} objects into Weaviate collection '{collection_name}'.")
 
   return True
 
@@ -87,11 +89,11 @@ if __name__ == "__main__":
     },
   ]
 
-  print(f"Attempting to add data to collection: {test_knowledge_id}")
+  logger.info(f"Attempting to add data to collection: {test_knowledge_id}")
   success = weaviate_add(knowledge_id=test_knowledge_id, data_rows=test_data_rows)
 
   if success:
-    print("weaviate_add test successful!")
+    logger.info("weaviate_add test successful!")
     # You can add verification steps here, e.g., query the collection to see if data was added.
   else:
-    print("weaviate_add test failed.")
+    logger.info("weaviate_add test failed.")

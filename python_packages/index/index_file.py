@@ -26,8 +26,8 @@ from .check_file_need_update_automatically import check_file_need_update_automat
 async def index_file(knowledge_id, section_name, force_update: False):
 
     # logger.info(f"Knowledge ID: {knowledge_id}")
-    if force_update is False and check_file_need_update_automatically(knowledge_id, section_name) is False:
-        # logger.debug("File needs to be updated automatically.")
+    if force_update is False and check_file_need_update_automatically(knowledge_id) is False:
+        logger.info("File does not need to be updated automatically.")
         return False
 
     # ----------------------------

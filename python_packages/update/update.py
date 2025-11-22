@@ -14,8 +14,13 @@ app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__mai
 
 from ..ingest.fire_and_forget_ingest import fire_and_forget_ingest
 
+from ..auth.check_auth import check_auth # Import check_auth from the new auth module
+
 @update_bp.route('/update', methods=['POST'])
 async def update_endpoint():
+    # Validate Bearer Token
+    if not check_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
     
     knowledge_id_raw = request.form.get('knowledge_id')
 
@@ -28,16 +33,18 @@ async def update_endpoint():
 
     try:
         config = get_knowledge_base_config(knowledge_id)
+
+        # logging.info(f'knowledge_id: {knowledge_id}')
         
         if not config:
             return jsonify({"error": "Knowledge base configuration not found"}), 404
 
         fire_and_forget_ingest(knowledge_id, section_name, True)
 
-        return True
+        return jsonify({"message": "Update successful"}), 200
 
     except Exception as e:
-        logging.error(f"Error during file upload: {e}")
+        logging.error(f"Error during update: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

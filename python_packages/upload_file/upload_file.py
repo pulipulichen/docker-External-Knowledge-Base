@@ -15,9 +15,14 @@ app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__mai
 from ..ingest.fire_and_forget_ingest import fire_and_forget_ingest
 from .convert_to_ods import convert_to_ods
 
+from ..auth.check_auth import check_auth # Import check_auth from the new auth module
 
 @upload_file_bp.route('/upload_file', methods=['POST'])
 async def upload_file_endpoint():
+    # Validate Bearer Token
+    if not check_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
     

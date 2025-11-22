@@ -8,7 +8,7 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-def check_file_need_update_automatically(knowledge_id, section_name):
+def check_file_need_update_automatically(knowledge_id):
     # logger.info(f"Knowledge ID: {knowledge_id}")
 
     config = get_knowledge_base_config(knowledge_id)
@@ -16,10 +16,6 @@ def check_file_need_update_automatically(knowledge_id, section_name):
         logger.error(f"Could not retrieve config for knowledge ID: {knowledge_id}")
         return False
     
-    auto_update_enabled = config.get('auto_update.enable', False)
-    if auto_update_enabled is False:
-        return False
-
     filename = config.get('file_name')
     filepath = config.get('file_path')
     if not os.path.exists(filepath):
@@ -41,7 +37,7 @@ def check_file_need_update_automatically(knowledge_id, section_name):
         file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
         time_difference = file_mod_time - last_index_time
 
-        update_delay_seconds = config.get('auto_update.delay_seconds', 30 * 60)
+        update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 
         if last_index_time is not None and time_difference < datetime.timedelta(seconds=update_delay_seconds):
             logger.info("File is up to date. Skipping index.")

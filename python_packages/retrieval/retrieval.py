@@ -3,9 +3,9 @@ import os
 import logging
 from flask import Blueprint, Flask, request, jsonify
 
-
 from .mock_retrieval import get_mock_results
 from .db_retrieval import get_db_results
+from ..auth.check_auth import check_auth # Import check_auth from the new auth module
 
 from ..knowledge_base_config.parse_knowledge_id import parse_knowledge_id
 
@@ -15,19 +15,7 @@ retrieval_bp = Blueprint('retrieval', __name__)
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
-# Your API KEY (use environment variable in production)
 USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
-API_KEY = os.getenv('API_KEY')
-
-def check_auth(request):
-    """Checks Authorization: Bearer xxx"""
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        app.logger.debug("Authorization header missing or malformed.")
-        return False
-    
-    token = auth.split("Bearer ")[-1].strip()
-    return token == API_KEY
 
 @retrieval_bp.route('/retrieval', methods=['POST'])
 async def retrieval_endpoint():
