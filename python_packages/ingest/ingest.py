@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 
 # import time
 
-async def ingest_data(knowledge_id, section_name):
+async def ingest_data(knowledge_id, section_name, force_update: False):
 
     # time.sleep(30)
 
@@ -25,11 +25,11 @@ async def ingest_data(knowledge_id, section_name):
     knowledge_base_config = get_knowledge_base_config(knowledge_id)
 
     if knowledge_base_config.get('is_url') is True:
-        download_file(knowledge_id)
+        download_file(knowledge_id, force_update)
     elif knowledge_base_config.get('markdown_convertable') is True:
-        convert_file_to_markdown(knowledge_id)
+        convert_file_to_markdown(knowledge_id, force_update)
 
     if section_name is None:
         section_name = get_section_name(knowledge_id)
 
-    await index_file(knowledge_id, section_name)
+    await index_file(knowledge_id, section_name, force_update)
