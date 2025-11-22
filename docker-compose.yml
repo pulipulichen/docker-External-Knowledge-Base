@@ -20,8 +20,8 @@ services:
       - redis_data:/data
     networks:
       - docker_external_knowledge_base
-    logging:
-      driver: "none"
+    # logging:
+    #   driver: "none"
   nginx:
     image: nginx:1.21.6
     ports:
@@ -47,8 +47,8 @@ services:
       - SYS_ADMIN
     security_opt:
       - seccomp=unconfined
-    logging:
-      driver: "none"
+    # logging:
+    #   driver: "none"
     networks:
       - docker_external_knowledge_base
     
@@ -74,8 +74,8 @@ services:
       # - ./weaviate/entrypoint.sh:/entrypoint.sh
     env_file:
       - .env
-    logging:
-      driver: "none"
+    # logging:
+    #   driver: "none"
     # entrypoint: []
     # command: ["/entrypoint.sh"]
     networks:
@@ -93,8 +93,8 @@ services:
       - .env
     networks:
       - docker_external_knowledge_base
-    logging:
-      driver: "none"
+    # logging:
+    #   driver: "none"
 
 
 volumes:
