@@ -18,8 +18,8 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
 
     # ==============================
     # ✅ 丟到背景 thread，完全不等
-    # fire_and_forget_ingest(knowledge_id, section_name, False)
-    await ingest_data(knowledge_id, section_name, False)
+    fire_and_forget_ingest(knowledge_id, section_name, False)
+    # await ingest_data(knowledge_id, section_name, False)
 
     # ==============================
 
