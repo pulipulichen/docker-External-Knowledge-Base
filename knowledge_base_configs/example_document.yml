@@ -1,0 +1,4 @@
+path: example_document
+auto_update:
+  enable: true
+  delay_seconds: 30
