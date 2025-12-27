@@ -45,6 +45,6 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
         path=config.get("path", None)
     )
 
-    app.logger.info(f"Results from Weaviate query: {json.dumps(results, indent=2)}")
+    # app.logger.info(f"Results from Weaviate query: {json.dumps(results, indent=2)}")
 
     return results

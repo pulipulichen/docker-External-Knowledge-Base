@@ -37,6 +37,7 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
         if current_chunk_tokens + line_tokens > max_tokens and current_chunk_lines:
             # chunks.append("\n".join(current_chunk_lines))
             append_to_chunks(chunks, current_chunk_lines, knowledge_id, chunk_count, file_path)
+            chunk_count += 1
             current_chunk_lines = []
             current_chunk_tokens = 0
 

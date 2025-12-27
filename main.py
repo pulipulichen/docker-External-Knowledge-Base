@@ -3,6 +3,7 @@ from python_packages.retrieval.retrieval import retrieval_bp
 # from python_packages.hello.hello_routes import hello_bp
 from python_packages.upload_file.upload_file import upload_file_bp
 from python_packages.update.update import update_bp
+from python_packages.file_host.file_host import file_host_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -18,6 +19,7 @@ app = Flask(__name__)
 app.register_blueprint(retrieval_bp)
 app.register_blueprint(upload_file_bp)
 app.register_blueprint(update_bp)
+app.register_blueprint(file_host_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)

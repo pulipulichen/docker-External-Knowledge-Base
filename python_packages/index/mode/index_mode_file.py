@@ -26,7 +26,7 @@ async def index_mode_file(knowledge_id, markdown_file_path):
         return
     
     # logger.info(await get_embedding("測試"))
-    # logger.info(f"Length of chunks: {len(chunks)}")
+    logger.info(f"Length of chunks: {len(chunks)}")
     # logger.info(f"Content of the last chunk: {chunks[-1]}")
 
     # 把chunks依照BATCH數量分成多個batch_chunks
@@ -47,7 +47,7 @@ async def index_mode_file(knowledge_id, markdown_file_path):
             if "document" not in chunk:
                 continue
         
-        logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
+        # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
         
         weaviate_add(knowledge_id=knowledge_id, data_rows=batch_chunks)
 
