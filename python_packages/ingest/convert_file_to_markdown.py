@@ -1,7 +1,7 @@
 import logging
 import os
 import time # Import the time module
-import markitdown # Assuming this is the correct import for the package
+from .convert_file_path_to_markdown_content import convert_file_path_to_markdown_content
 
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
@@ -37,16 +37,7 @@ def convert_file_to_markdown(knowledge_id, force_update: False):
                 return False
 
         try:
-            # Read the content of the original file
-            with open(input_file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-
-            # Convert to markdown using markitdown (assuming a simple conversion method)
-            # The actual method might vary based on the markitdown library's API
-            # For now, I'll assume a direct conversion function.
-            # If markitdown is for rendering markdown, I might need a different library for converting other formats TO markdown.
-            # Given the prompt "用markitdown的套件來轉換", I'll assume it has a conversion utility.
-            markdown_content = markitdown.convert(content) # This is a placeholder, actual API might differ
+            markdown_content = convert_file_path_to_markdown_content(input_file_path) # This is a placeholder, actual API might differ
 
             # Write the markdown content to a new file
             with open(markdown_file_path, 'w', encoding='utf-8') as f: # Use markdown_file_path here

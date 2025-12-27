@@ -9,7 +9,7 @@ def get_section_name(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
     filepath = config.get('file_path')
 
-    if not os.path.exists(filepath):
+    if not os.path.exists(filepath) or os.path.isdir(filepath):
         # logger.error(f"File '{filepath}' does not exist.")
         return knowledge_id
     

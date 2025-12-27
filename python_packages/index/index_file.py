@@ -33,24 +33,28 @@ async def index_file(knowledge_id, section_name, force_update: False):
     # ----------------------------
     config = get_knowledge_base_config(knowledge_id)
 
-    chunks = get_chunks_from_file(knowledge_id, section_name)
-    if chunks is None:
-        logger.error("Failed to retrieve chunks from file.")
-        return False
-    
-    # logger.info(f"Number of chunks: {len(chunks)}")
-    # if chunks:
-    #     logger.info(f"First chunk content: {chunks[0]}")
-    #     logger.info(f"Last chunk content: {chunks[-1]}")
+    if config.get('is_file', True):
 
-    index_mode = config.get('index', {}).get('mode', 'all')
-    # logger.info(f"Index_mode: {index_mode}")
-    # logger.info(f"conifg: {json.dumps(config)}")
+        chunks = get_chunks_from_file(knowledge_id, section_name)
+        if chunks is None:
+            logger.error("Failed to retrieve chunks from file.")
+            return False
+        
+        # logger.info(f"Number of chunks: {len(chunks)}")
+        # if chunks:
+        #     logger.info(f"First chunk content: {chunks[0]}")
+        #     logger.info(f"Last chunk content: {chunks[-1]}")
 
-    if index_mode == 'all':
-        await index_mode_all(knowledge_id, section_name, chunks)
-    elif index_mode == 'last':
-        await index_mode_last(knowledge_id, section_name, chunks)
+        index_mode = config.get('index', {}).get('mode', 'all')
+        # logger.info(f"Index_mode: {index_mode}")
+        # logger.info(f"conifg: {json.dumps(config)}")
+
+        if index_mode == 'all':
+            await index_mode_all(knowledge_id, section_name, chunks)
+        elif index_mode == 'last':
+            await index_mode_last(knowledge_id, section_name, chunks)
+    else:
+        print('是folder')
 
     # =====================================================
     # 把現在的時間寫入index_itme    

@@ -13,13 +13,13 @@ from .convert.convert_google_doc_url_to_md_download import convert_google_doc_ur
 from .convert.convert_google_slide_url_to_md_download import convert_google_slide_url_to_md_download
 # from .convert.convert_file_to_md import convert_file_to_md
 
-FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../knowledge_base_files')
+FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../', 'knowledge_base_files')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 def get_knowledge_base_config(knowledge_id):
-    CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../knowledge_base_configs')
+    CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../', 'knowledge_base_configs')
     config_path = os.path.join(CONFIG_DIR, knowledge_id + '.yml')
     
     if not os.path.exists(config_path):
@@ -38,6 +38,7 @@ def get_knowledge_base_config(knowledge_id):
     url = knowledge_base_config.get('path')
     
     is_url = False
+    is_file = True
     markdown_convertable = True
     if url and (url.startswith("http://") or url.startswith("https://")):
         is_url = True
@@ -65,6 +66,11 @@ def get_knowledge_base_config(knowledge_id):
     elif url.endswith('.md') or url.endswith('.ods'):
         file_name = url
         markdown_convertable = False
+    elif os.path.isfile(os.path.join(FILE_STORAGE_DIR, url)) is False:
+        is_file = False
+        file_name = url
+        is_url = False
+        markdown_convertable = False
     
     knowledge_base_config['file_name'] = file_name
 
@@ -73,6 +79,7 @@ def get_knowledge_base_config(knowledge_id):
     knowledge_base_config['file_path'] = filepath
 
     knowledge_base_config['is_url'] = is_url
+    knowledge_base_config['is_file'] = is_file
     
     knowledge_base_config['markdown_convertable'] = markdown_convertable
     # logger.info(f"File name set to: {knowledge_base_config['file_name']}")

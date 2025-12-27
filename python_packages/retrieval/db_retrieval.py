@@ -6,6 +6,7 @@ from ..embedding.get_embedding import get_embedding
 from ..knowledge_base_config.get_section_name import get_section_name
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 from ..ingest.fire_and_forget_ingest import fire_and_forget_ingest
+from ..ingest.ingest import ingest_data
 
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
@@ -17,7 +18,8 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
 
     # ==============================
     # ✅ 丟到背景 thread，完全不等
-    fire_and_forget_ingest(knowledge_id, section_name, False)
+    # fire_and_forget_ingest(knowledge_id, section_name, False)
+    await ingest_data(knowledge_id, section_name, False)
 
     # ==============================
 

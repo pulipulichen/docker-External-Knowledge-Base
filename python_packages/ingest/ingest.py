@@ -6,6 +6,7 @@ from ..knowledge_base_config.get_section_name import get_section_name
 
 from .download_file import download_file
 from .convert_file_to_markdown import convert_file_to_markdown
+from .convert_dir_to_markdown import convert_dir_to_markdown
 from ..index.index_file import index_file
 
 logger = logging.getLogger(__name__)
@@ -14,14 +15,9 @@ logger.setLevel(logging.INFO)
 # import time
 
 async def ingest_data(knowledge_id, section_name, force_update: False):
-
     # time.sleep(30)
 
     # logger.info(f"Knowledge ID: {knowledge_id}")
-    # logger.info(f"Query: {query}")
-    # logger.info(f"Top K: {top_k}")
-    # logger.info(f"Score Threshold: {score_threshold}" )
-
     # logger.info(f"force_update: {force_update}")
 
     knowledge_base_config = get_knowledge_base_config(knowledge_id)
@@ -30,6 +26,8 @@ async def ingest_data(knowledge_id, section_name, force_update: False):
         download_file(knowledge_id, force_update)
     elif knowledge_base_config.get('markdown_convertable') is True:
         convert_file_to_markdown(knowledge_id, force_update)
+    elif knowledge_base_config.get('is_file') is False:
+        convert_dir_to_markdown(knowledge_id, force_update)
 
     if section_name is None:
         section_name = get_section_name(knowledge_id)
