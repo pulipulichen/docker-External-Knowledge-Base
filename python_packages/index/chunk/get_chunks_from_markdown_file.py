@@ -25,7 +25,7 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
         markdown_content = f.read()
 
     max_tokens = config.get('index.max_tokens', 2048)
-    lines = markdown_content.split('\n')
+    lines = markdown_content.strip().split('\n')
 
     chunk_count = 0
     for i, line in enumerate(lines):
@@ -46,20 +46,20 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
                 current_chunk_lines = []
                 current_chunk_tokens = 0
 
-            current_chunk_lines.append(line)
+            current_chunk_lines.append(chunk_text)
             current_chunk_tokens += line_tokens
 
-            # If the current line is a double newline (empty line followed by another empty line)
-            # or if it's the end of the content, and the current chunk is not empty,
-            # save the current chunk.
-            if (line.strip() == "" and i + 1 < len(lines) and lines[i+1].strip() == "") or \
-                (i == len(lines) - 1 and current_chunk_lines):
-                if current_chunk_lines:
-                    # chunks.append("\n".join(current_chunk_lines))
-                    append_to_chunks(chunks, current_chunk_lines, knowledge_id, chunk_count, file_path)
-                    chunk_count += 1
-                    current_chunk_lines = []
-                    current_chunk_tokens = 0
+        # If the current line is a double newline (empty line followed by another empty line)
+        # or if it's the end of the content, and the current chunk is not empty,
+        # save the current chunk.
+        if (line.strip() == "" and i + 1 < len(lines) and lines[i+1].strip() == "") or \
+            (i == len(lines) - 1 and current_chunk_lines):
+            if current_chunk_lines:
+                # chunks.append("\n".join(current_chunk_lines))
+                append_to_chunks(chunks, current_chunk_lines, knowledge_id, chunk_count, file_path)
+                chunk_count += 1
+                current_chunk_lines = []
+                current_chunk_tokens = 0
 
     # Add any remaining content as a chunk
     if current_chunk_lines:
