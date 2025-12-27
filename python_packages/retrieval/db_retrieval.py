@@ -28,7 +28,7 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
     
     config = get_knowledge_base_config(knowledge_id)
 
-    if config.get('section'):
+    if config.get('section') or config.get('is_file') is False:
         item_id = f"{knowledge_id}"
     else:
         item_id = f"{knowledge_id}_{section_name}"
@@ -45,6 +45,6 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
         path=config.get("path", None)
     )
 
-    # app.logger.info(f"Results from Weaviate query: {json.dumps(results, indent=2)}")
+    app.logger.info(f"Results from Weaviate query: {json.dumps(results, indent=2)}")
 
     return results
