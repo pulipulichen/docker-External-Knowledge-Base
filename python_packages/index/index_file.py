@@ -19,13 +19,17 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 from .chunk.get_chunks_from_file import get_chunks_from_file
 from .mode.index_mode_all import index_mode_all
 from .mode.index_mode_last import index_mode_last
+from .index_dir import index_dir
 
 # from ..weaviate.weaviate_add import weaviate_add
 from .check_file_need_update_automatically import check_file_need_update_automatically
 
 async def index_file(knowledge_id, section_name, force_update: False):
 
-    # logger.info(f"Knowledge ID: {knowledge_id}")
+    force_update = True
+
+    # logger.info(f"index_file Knowledge ID: {knowledge_id}")
+
     if force_update is False and check_file_need_update_automatically(knowledge_id) is False:
         logger.info("File does not need to be updated automatically.")
         return False
@@ -54,7 +58,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
         elif index_mode == 'last':
             await index_mode_last(knowledge_id, section_name, chunks)
     else:
-        print('是folder')
+        await index_dir(knowledge_id, force_update)
 
     # =====================================================
     # 把現在的時間寫入index_itme    

@@ -26,8 +26,8 @@ async def ingest_data(knowledge_id, section_name, force_update: False):
         download_file(knowledge_id, force_update)
     elif knowledge_base_config.get('markdown_convertable') is True:
         convert_file_to_markdown(knowledge_id, force_update)
-    elif knowledge_base_config.get('is_file') is False:
-        convert_dir_to_markdown(knowledge_id, force_update)
+    # elif knowledge_base_config.get('is_file') is False:
+    #     convert_dir_to_markdown(knowledge_id, force_update)
 
     if section_name is None:
         section_name = get_section_name(knowledge_id)

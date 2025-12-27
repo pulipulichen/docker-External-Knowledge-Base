@@ -51,7 +51,7 @@ async def get_embedding(text: str):
                 f"{TEI_ENDPOINT}/embed",
                 json={"inputs": text},
                 headers={"Content-Type": "application/json"},
-                timeout=10
+                timeout=6000
             )
         response.raise_for_status()  # Raises HTTPError for bad responses (4xx or 5xx)
         embedding_result = response.json()

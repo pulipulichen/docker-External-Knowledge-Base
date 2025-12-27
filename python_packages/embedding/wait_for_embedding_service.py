@@ -12,7 +12,7 @@ SERVICE_CHECK_INTERVAL = int(os.getenv("SERVICE_CHECK_INTERVAL", 5)) # seconds
 
 # *** 建議 1: 增加 Timeout ***
 # 1 秒太短了，對於服務啟動來說可能不夠
-SERVICE_CHECK_TIMEOUT = int(os.getenv("SERVICE_CHECK_TIMEOUT", 5)) # seconds
+SERVICE_CHECK_TIMEOUT = int(os.getenv("SERVICE_CHECK_TIMEOUT", 60)) # seconds
 
 IS_SERVICE_ALIVE = False
 
