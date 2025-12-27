@@ -41,8 +41,16 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
             current_chunk_lines = []
             current_chunk_tokens = 0
 
-        current_chunk_lines.append(line)
-        current_chunk_tokens += line_tokens
+        if line_tokens > max_tokens:
+            tokens = encoding.encode(line)
+            for j in range(0, len(tokens), max_tokens):
+                chunk_tokens = tokens[j:j + max_tokens]
+                chunk_text = encoding.decode(chunk_tokens)
+                append_to_chunks(chunks, [chunk_text], knowledge_id, chunk_count, file_path)
+                chunk_count += 1
+        else:
+            current_chunk_lines.append(line)
+            current_chunk_tokens += line_tokens
 
         # If the current line is a double newline (empty line followed by another empty line)
         # or if it's the end of the content, and the current chunk is not empty,
