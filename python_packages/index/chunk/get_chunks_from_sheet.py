@@ -35,10 +35,10 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             # Resolve symlink to actual file path
             filepath = os.path.realpath(filepath)
 
-            logger.input(f"islink: {filepath}")
+            logger.info(f"islink: {filepath}")
             shutil.copy(filepath, '/tmp')
             filepath = os.path.join('/tmp', os.path.basename(filepath))
-            logger.input(f"tmp: {filepath}")
+            logger.info(f"tmp: {filepath}")
 
         book = pyexcel_ods.get_data(filepath)
 
