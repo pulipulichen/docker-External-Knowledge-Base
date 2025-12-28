@@ -3,6 +3,7 @@ from collections import OrderedDict
 import json
 import os
 import logging
+import shutil
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
@@ -33,7 +34,10 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         if os.path.islink(filepath):
             # Resolve symlink to actual file path
             filepath = os.path.realpath(filepath)
-            logger.error(f"islink: {filepath}")
+
+            logger.input(f"islink: {filepath}")
+            shutil.copy(filepath, '/tmp')
+            filepath = os.path.join('/tmp', os.path.basename(filepath))
 
         book = pyexcel_ods.get_data(filepath)
 
