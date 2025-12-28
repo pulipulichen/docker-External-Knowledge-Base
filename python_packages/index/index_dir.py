@@ -81,7 +81,7 @@ def check_need_update(file_path, markdown_file_path, update_delay_seconds):
     file_mtime = os.path.getmtime(file_path)
     markdown_mtime = os.path.getmtime(markdown_file_path)
 
-    if file_mtime - markdown_mtime > update_delay_seconds:
+    if (file_mtime - markdown_mtime) > update_delay_seconds:
         return True
     
     return False
