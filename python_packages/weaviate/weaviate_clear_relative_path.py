@@ -4,6 +4,9 @@ from .helper.get_client import get_client
 from .weaviate_add import weaviate_add
 import weaviate.classes as wvc
 
+from flask import Flask
+app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
+
 import os
 
 def weaviate_clear_relative_path(**kwargs):
@@ -16,13 +19,16 @@ def weaviate_clear_relative_path(**kwargs):
   
   relative_path = kwargs.get("relative_path")
 
+  app.logger.info(f"relative_path: {relative_path}")
+
   # print({"query": item_id, "collection_name": collection_name})
 
   if relative_path == None:
     return False
+    
   
   filters = metadata_to_filters({
-    "relative_path": relative_path
+    "path": relative_path
   })
 
   # =================================================================

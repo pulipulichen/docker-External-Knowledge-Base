@@ -16,10 +16,12 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
     (Placeholder for actual database retrieval logic)
     """
 
+    force_update = False
+    # force_update = True
     # ==============================
     # ✅ 丟到背景 thread，完全不等
-    fire_and_forget_ingest(knowledge_id, section_name, False)
-    # await ingest_data(knowledge_id, section_name, False)
+    fire_and_forget_ingest(knowledge_id, section_name, force_update)
+    # await ingest_data(knowledge_id, section_name, force_update)
 
     # ==============================
 

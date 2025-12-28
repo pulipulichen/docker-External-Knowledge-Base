@@ -17,7 +17,7 @@ async def index_mode_file(knowledge_id, markdown_file_path):
 
     # weaviate_add(knowledge_id=knowledge_id, data_rows=batch_chunks)
     clear_db_file_path(knowledge_id, markdown_file_path)
-
+    # return False
 
     chunks = get_chunks_from_markdown_file(knowledge_id, markdown_file_path)
     

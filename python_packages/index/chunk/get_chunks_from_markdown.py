@@ -26,7 +26,10 @@ def get_chunks_from_markdown(knowledge_id: str) -> List[str]:
     config = get_knowledge_base_config(knowledge_id)
     file_path = config.get('file_path')
 
-    sections = split(file_path, model="gpt-4", limit=max_tokens)
+    with open(file_path, 'r', encoding='utf-8') as f:
+        markdown_content = f.read()
+
+    sections = split(markdown_content, model="gpt-4", limit=max_tokens)
 
     chunks = []
     for chunk_count, section in enumerate(sections):

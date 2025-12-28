@@ -17,13 +17,26 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
     config = get_knowledge_base_config(knowledge_id)
     max_tokens = config.get('index.max_tokens', 2048)
 
-    sections = split(file_path, model="gpt-4", limit=max_tokens)
+    # logger.info(f"markdown1: {file_path}")
+    # file_path = "/app/knowledge_base_files/example_document-index/2025/雜談：深刻體會Skype退役了 _ Talk：  Deeply Felt Skype's Retirement - 布丁布丁吃什麼？ (12_27_2025 8：57：40 PM).html.md"
+    # logger.info(f"markdown2: {file_path}")
+    
+    # 讀取file_path的內容到 markdown_content
+    with open(file_path, 'r', encoding='utf-8') as f:
+        markdown_content = f.read()
+    
+    sections = split(markdown_content, model="gpt-4", limit=max_tokens)
+
+    # logger.info(f"Length of markdown_content: {len(markdown_content)}")
     
     relative_path = get_relative_path(file_path)
     title = relative_path.split('/')[-1]
 
     chunks = []
     for chunk_count, section in enumerate(sections):
+        # logger.info(f"Length of section: {len(section)}")
+        # logger.info("section content:" + section)
+
         chunks.append({
             "chunk_id": f"{knowledge_id}_{relative_path}_{chunk_count}",
             'document': section,
@@ -32,6 +45,9 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
                 "path": relative_path
             }
         })
+
+    # logger.info(f"Length of chunks: {len(chunks)}")
+    # logger.info(f"Length of sections: {len(sections)}")
 
     return chunks
 
