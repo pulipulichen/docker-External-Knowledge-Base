@@ -5,6 +5,8 @@ services:
       - "80"
     volumes:
       - .:/app
+    tmpfs:
+      - /tmp
     env_file:
       - .env
     depends_on:

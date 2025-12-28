@@ -19,7 +19,7 @@ def weaviate_clear_relative_path(**kwargs):
   
   relative_path = kwargs.get("relative_path")
 
-  app.logger.info(f"relative_path: {relative_path}")
+  # app.logger.info(f"relative_path: {relative_path}")
 
   # print({"query": item_id, "collection_name": collection_name})
 
