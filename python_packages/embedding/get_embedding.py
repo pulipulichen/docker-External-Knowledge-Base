@@ -27,6 +27,9 @@ except redis.exceptions.ConnectionError as e:
     redis_client = None
 
 async def get_embedding(text: str):
+
+    # logger.info(f'embed length: {len(text)}')
+
     """
     取得輸入字串的 embedding 結果。
     """
@@ -47,6 +50,9 @@ async def get_embedding(text: str):
         #         headers={"Content-Type": "application/json"},
         #         timeout=10
         #     )
+
+        
+
         response = httpx.post(
                 f"{TEI_ENDPOINT}/embed",
                 json={"inputs": text},
