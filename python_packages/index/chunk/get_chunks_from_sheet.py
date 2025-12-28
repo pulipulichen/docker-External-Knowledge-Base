@@ -6,6 +6,8 @@ import logging
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
+import shutil
+
 logger = logging.getLogger(__name__)
 
 def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
@@ -28,8 +30,16 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         if not os.path.exists(filepath):
             logger.error(f"File '{filepath}' does not exist.")
             return []
-
-        book = pyexcel_ods.get_data(filepath)
+        
+        
+        tmp_path = os.path.join('/tmp', os.path.basename(filepath))
+        try:
+            shutil.copyfile(filepath, tmp_path)
+            logger.info(f"Copied ODS file to temporary location: {tmp_path}")
+        except Exception as e:
+            logger.error(f"Failed to copy file to /tmp/: {e}")
+            return []
+        book = pyexcel_ods.get_data(tmp_path)
         
         if section_name is None:
             if not book:
