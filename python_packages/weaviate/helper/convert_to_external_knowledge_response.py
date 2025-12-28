@@ -23,6 +23,7 @@ def convert_to_external_knowledge_response(knowledge_id, data_source_path, resul
       metadata["path"] = data_source_path
     else:
       metadata["path"] = URL_HOST + config.get('path') + '/' + urllib.parse.quote(metadata["path"])
+      # metadata["path"] = config.get('path') + '/' + urllib.parse.quote(metadata["path"])
     metadata["description"] = knowledge_id
     # del metadata["_item_id"]
     del metadata["_document"]
