@@ -10,18 +10,25 @@ from ..ingest.ingest import ingest_data
 
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
+# DEBUG = True
+DEBUG = False
+
 async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
     """
     Retrieves results from the actual database based on the query, knowledge_id, top_k, and score_threshold.
     (Placeholder for actual database retrieval logic)
     """
 
-    force_update = False
+    # force_update = False
     # force_update = True
     # ==============================
     # ✅ 丟到背景 thread，完全不等
-    fire_and_forget_ingest(knowledge_id, section_name, force_update)
-    # await ingest_data(knowledge_id, section_name, force_update)
+    if DEBUG is False:
+        force_update = False
+        fire_and_forget_ingest(knowledge_id, section_name, force_update)
+    else:
+        force_update = True
+        await ingest_data(knowledge_id, section_name, force_update)
 
     # ==============================
 
