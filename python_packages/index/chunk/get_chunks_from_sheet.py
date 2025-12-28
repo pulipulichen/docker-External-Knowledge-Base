@@ -33,6 +33,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
         if os.path.islink(filepath):
             # Resolve symlink to actual file path
             filepath = os.path.realpath(filepath)
+            logger.error(f"islink: {filepath}")
 
         book = pyexcel_ods.get_data(filepath)
 
