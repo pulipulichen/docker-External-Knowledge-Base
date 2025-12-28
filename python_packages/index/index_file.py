@@ -47,6 +47,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
         chunks = get_chunks_from_file(knowledge_id, section_name)
         if chunks is None or chunks is False:
             logger.error("Failed to retrieve chunks from file.")
+            unlock_index(config, knowledge_id)
             return False
         
         # logger.info(f"Number of chunks: {len(chunks)}")
