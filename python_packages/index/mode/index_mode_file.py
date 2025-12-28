@@ -1,6 +1,7 @@
 import logging
 from ...embedding.get_embedding import get_embedding
 from ...weaviate.weaviate_add import weaviate_add
+from ...weaviate.weaviate_close import weaviate_close
 from ...weaviate.weaviate_clear_relative_path import weaviate_clear_relative_path
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 import os
@@ -50,6 +51,8 @@ async def index_mode_file(knowledge_id, markdown_file_path):
         # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
         
         weaviate_add(knowledge_id=knowledge_id, data_rows=batch_chunks)
+
+    # weaviate_close()
 
 def clear_db_file_path(knowledge_id, markdown_file_path):
     relative_path = get_relative_path(markdown_file_path)

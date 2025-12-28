@@ -11,8 +11,6 @@ def convert_to_external_knowledge_response(knowledge_id, data_source_path, resul
   # print(results)
   # print(len(results), score_threshold)
 
-  config = get_knowledge_base_config(knowledge_id)
-
   for result in results:
     score = result.metadata.score
     title = result.properties["_chunk_id"]
@@ -22,6 +20,7 @@ def convert_to_external_knowledge_response(knowledge_id, data_source_path, resul
     if "path" not in metadata:
       metadata["path"] = data_source_path
     else:
+      config = get_knowledge_base_config(knowledge_id)
       metadata["path"] = URL_HOST + config.get('path') + '/' + urllib.parse.quote(metadata["path"])
       # metadata["path"] = config.get('path') + '/' + urllib.parse.quote(metadata["path"])
     metadata["description"] = knowledge_id

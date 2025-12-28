@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ...weaviate.weaviate_ready import weaviate_ready
+from ...weaviate.weaviate_close import weaviate_close
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
@@ -42,6 +43,7 @@ async def index_mode_last(knowledge_id, section_name, chunks):
             # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
             weaviate_add(knowledge_id=item_id, data_rows=batch_chunks)
         
-        return last_chunks
+        # weaviate_close()
+        return True
     else:
         return await index_mode_all(knowledge_id, section_name, chunks)

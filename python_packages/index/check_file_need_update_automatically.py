@@ -18,7 +18,8 @@ def check_file_need_update_automatically(knowledge_id):
     
     filename = config.get('file_name')
     filepath = config.get('file_path')
-    if not os.path.exists(filepath):
+
+    if file_or_valid_symlink(filepath) is False:
         logger.error(f"File not found at path: {filepath}")
         return False
 
@@ -49,4 +50,23 @@ def check_file_need_update_automatically(knowledge_id):
     
 
     return True
-    
+
+def file_or_valid_symlink(path: str) -> bool:
+    # 1. 該路徑本身就是檔案 → True
+    if os.path.exists(path):
+        # logger.error(f"exists: {path}")
+        return True
+
+    # 2. 該路徑是軟連結，且指向的目標存在 → True
+    if os.path.islink(path):
+        target = os.readlink(path)
+        # logger.error(f"target: {target}")
+        # 解析成絕對路徑 (處理相對連結與絕對連結)
+        abs_target = os.path.join(os.path.dirname(path), target) if not os.path.isabs(target) else target
+        # logger.error(f"abs_target: {abs_target}")
+        if os.path.exists(abs_target):
+            # logger.error(f"abs_target exists: {abs_target}")
+            return True
+
+    # 其餘情況 → False
+    return False

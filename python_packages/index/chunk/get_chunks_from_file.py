@@ -16,7 +16,7 @@ def get_chunks_from_file(knowledge_id: str, section_name: str) -> List[Dict[str,
     config = get_knowledge_base_config(knowledge_id)
 
     filename = config.get('file_name')
-    if filename.endswith('.ods'):
+    if filename.endswith('.ods') or filename.endswith('.xlsx'):
         chunks = get_chunks_from_sheet(knowledge_id, section_name)
     elif filename.endswith('.md'):
         chunks = get_chunks_from_markdown(knowledge_id)

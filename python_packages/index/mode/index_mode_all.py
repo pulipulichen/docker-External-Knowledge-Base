@@ -1,6 +1,8 @@
 import logging
 from ...embedding.get_embedding import get_embedding
 from ...weaviate.weaviate_add import weaviate_add
+from ...weaviate.weaviate_close import weaviate_close
+
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 
 logger = logging.getLogger(__name__)
@@ -34,3 +36,7 @@ async def index_mode_all(knowledge_id, section_name, chunks):
         
         # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
         weaviate_add(knowledge_id=item_id, data_rows=batch_chunks)
+
+    # weaviate_close()
+
+    return True

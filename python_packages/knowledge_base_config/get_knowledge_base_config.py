@@ -26,7 +26,7 @@ def get_knowledge_base_config(knowledge_id):
         config_path = os.path.join(CONFIG_DIR, knowledge_id + '.yaml')
 
         if not os.path.exists(config_path):
-            logger.error(f"Knowledge base config file not found at {config_path}")
+            logger.error(f"Knowledge base config file not found at {config_path}", stack_info=True)
             return {}
 
     with open(config_path, 'r') as file:
@@ -63,7 +63,7 @@ def get_knowledge_base_config(knowledge_id):
                 markdown_convertable = False
         else:
             logger.info(f"URL '{url}' is not a Google Drive URL, skipping conversion.")
-    elif url.endswith('.md') or url.endswith('.ods'):
+    elif url.endswith('.md') or url.endswith('.ods') or url.endswith('.xlsx'):
         file_name = url
         markdown_convertable = False
     elif os.path.isfile(os.path.join(FILE_STORAGE_DIR, url)) is False:

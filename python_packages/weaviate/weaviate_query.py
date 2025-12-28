@@ -8,6 +8,7 @@ from .helper.get_client import get_client
 from .weaviate_add import weaviate_add
 import weaviate.classes as wvc
 from .weaviate_ready import weaviate_ready
+from .weaviate_close import weaviate_close
 
 from weaviate.classes.query import MetadataQuery
 import os
@@ -79,11 +80,15 @@ def weaviate_query(**kwargs):
   )
   results = response.objects
 
-  return convert_to_external_knowledge_response(
+  output = convert_to_external_knowledge_response(
     collection_name,
     data_source_path,
     results
   )
+
+  weaviate_close()
+
+  return output
 
 if __name__ == "__main__":
   # This is a test usage example.

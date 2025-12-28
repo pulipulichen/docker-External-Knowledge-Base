@@ -28,7 +28,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
 
     # force_update = True
 
-    # logger.info(f"index_file Knowledge ID: {knowledge_id}")
+    # logger.info(f"index_file Knowledge ID: {knowledge_id} {force_update} {check_file_need_update_automatically(knowledge_id)}")
 
     if force_update is False and check_file_need_update_automatically(knowledge_id) is False:
         logger.info("File does not need to be updated automatically.")
@@ -37,6 +37,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
     # ----------------------------
     config = get_knowledge_base_config(knowledge_id)
 
+    index_succesful = False
     if config.get('is_file', True):
 
         chunks = get_chunks_from_file(knowledge_id, section_name)
@@ -54,13 +55,18 @@ async def index_file(knowledge_id, section_name, force_update: False):
         # logger.info(f"conifg: {json.dumps(config)}")
 
         if index_mode == 'all':
-            await index_mode_all(knowledge_id, section_name, chunks)
+            index_succesful = await index_mode_all(knowledge_id, section_name, chunks)
         elif index_mode == 'last':
-            await index_mode_last(knowledge_id, section_name, chunks)
+            index_succesful = await index_mode_last(knowledge_id, section_name, chunks)
     else:
-        await index_dir(knowledge_id, force_update)
+        index_succesful = await index_dir(knowledge_id, force_update)
 
     # =====================================================
+    if index_succesful is True:
+        write_index_time(config, knowledge_id)
+    
+
+def write_index_time(config, knowledge_id):
     # 把現在的時間寫入index_itme    
     current_time = datetime.datetime.now().isoformat()
 
