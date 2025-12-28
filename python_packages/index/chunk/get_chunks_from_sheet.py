@@ -85,7 +85,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
 
     except FileNotFoundError:
         logger.error(f"File not found at {filepath}")
-        return []
+        return False
     except Exception as e:
         logger.error(f"An error occurred: {e}")
-        return []
+        return False

@@ -45,7 +45,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
     if config.get('is_file', True):
 
         chunks = get_chunks_from_file(knowledge_id, section_name)
-        if chunks is None:
+        if chunks is None or chunks is False:
             logger.error("Failed to retrieve chunks from file.")
             return False
         
