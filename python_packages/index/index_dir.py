@@ -13,6 +13,10 @@ logger.setLevel(logging.DEBUG)
 FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../', 'knowledge_base_files')
 
 async def index_dir(knowledge_id, force_update: False):
+
+    # for debug
+    force_update = True
+
     config = get_knowledge_base_config(knowledge_id)
     update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 

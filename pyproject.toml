@@ -15,7 +15,8 @@ dependencies = [
     "pyexcel==0.6.7",
     "pyexcel-ods==0.6.0",
     "pyexcel-xlsx==0.6.0",
-    "openpyxl==3.0.10"
+    "openpyxl==3.0.10",
+    "split_markdown4gpt==1.0.9",
 ]
 
 [build-system]
