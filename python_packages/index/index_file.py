@@ -39,6 +39,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
     
     if lock_index(config, knowledge_id) is False:
         logger.info(f"Index lock acquisition failed: index already in progress for knowledge_id {knowledge_id}")
+        unlock_index(config, knowledge_id)
         return False
 
     index_succesful = False
