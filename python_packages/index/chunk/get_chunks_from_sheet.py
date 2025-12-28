@@ -38,6 +38,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             logger.input(f"islink: {filepath}")
             shutil.copy(filepath, '/tmp')
             filepath = os.path.join('/tmp', os.path.basename(filepath))
+            logger.input(f"tmp: {filepath}")
 
         book = pyexcel_ods.get_data(filepath)
 
