@@ -33,13 +33,13 @@ async def index_file(knowledge_id, section_name, force_update: False):
     if force_update is False and check_file_need_update_automatically(knowledge_id) is False:
         logger.info("File does not need to be updated automatically.")
         return False
+
+    # ----------------------------
+    config = get_knowledge_base_config(knowledge_id)
     
     if lock_index(config, knowledge_id) is False:
         logger.info(f"Index lock acquisition failed: index already in progress for knowledge_id {knowledge_id}")
         return False
-
-    # ----------------------------
-    config = get_knowledge_base_config(knowledge_id)
 
     index_succesful = False
     if config.get('is_file', True):
