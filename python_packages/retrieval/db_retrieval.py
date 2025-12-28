@@ -10,8 +10,8 @@ from ..ingest.ingest import ingest_data
 
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
-# DEBUG = True
-DEBUG = False
+DEBUG = True
+# DEBUG = False
 
 async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
     """
