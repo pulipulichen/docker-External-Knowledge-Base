@@ -26,7 +26,7 @@ from .check_file_need_update_automatically import check_file_need_update_automat
 
 async def index_file(knowledge_id, section_name, force_update: False):
 
-    force_update = True
+    # force_update = True
 
     # logger.info(f"index_file Knowledge ID: {knowledge_id}")
 
