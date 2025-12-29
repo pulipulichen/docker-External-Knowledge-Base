@@ -27,8 +27,8 @@ async def index_dir(knowledge_id, force_update: False):
         markdown_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) + '-index' # Define markdown_file_path directly
 
         # 如果沒有 markdown_dir_path ，那就建立
-        os.makedirs(markdown_dir_path, exist_ok=True)
-        os.chmod(markdown_dir_path, 0o777)
+        
+        
 
         include_ext = config.get('include_ext')
         if isinstance(include_ext, str):
@@ -53,6 +53,7 @@ async def index_dir(knowledge_id, force_update: False):
                 markdown_file_path = convert_to_markdown_file_path(file_path, markdown_dir_path)
                 
                 if force_update is True or check_need_update(file_path, markdown_file_path, update_delay_seconds):
+                    make_index_dir(markdown_dir_path)
                     convert_file_to_markdown(file_path, markdown_file_path)
                     if await index_mode_file(knowledge_id, markdown_file_path) is True:
                         index_result = True
@@ -111,3 +112,7 @@ def convert_file_to_markdown(input_file_path, markdown_file_path):
     except Exception as e:
         logger.error(f"Error converting file for input_file_path '{input_file_path}': {e}")
         return False
+
+def make_index_dir(markdown_dir_path):
+    os.makedirs(markdown_dir_path, exist_ok=True)
+    os.chmod(markdown_dir_path, 0o777)
