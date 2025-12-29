@@ -25,7 +25,7 @@ async def index_mode_file(knowledge_id, markdown_file_path):
     index_result = False
 
     if not isinstance(chunks, list):
-        logger.error(f"chunks is not a list: {type(chunks)}")
+        logger.error(f"chunks are not a list: {type(chunks)}")
         return index_result
     
     # logger.info(await get_embedding("測試"))
