@@ -22,9 +22,11 @@ async def index_mode_file(knowledge_id, markdown_file_path):
 
     chunks = get_chunks_from_markdown_file(knowledge_id, markdown_file_path)
     
+    index_result = False
+
     if not isinstance(chunks, list):
         logger.error(f"chunks is not a list: {type(chunks)}")
-        return
+        return index_result
     
     # logger.info(await get_embedding("測試"))
     logger.info(f"Length of chunks: {len(chunks)}")
@@ -50,9 +52,11 @@ async def index_mode_file(knowledge_id, markdown_file_path):
         
         # logger.info(f"Adding batch {i // BATCH + 1} with {len(batch_chunks)} chunks.")
         
-        weaviate_add(knowledge_id=knowledge_id, data_rows=batch_chunks)
+        if weaviate_add(knowledge_id=knowledge_id, data_rows=batch_chunks) is True:
+            index_result = True
 
     # weaviate_close()
+    return index_result
 
 def clear_db_file_path(knowledge_id, markdown_file_path):
     relative_path = get_relative_path(markdown_file_path)
