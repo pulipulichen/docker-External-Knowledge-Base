@@ -27,6 +27,10 @@ def convert_file_path_to_markdown_content(file_path):
         file_path = os.path.join('/tmp', os.path.basename(file_path))
 
         # 這裡，幫我顯示file_path的大小。如果是0則丟出錯誤
+        file_size = os.path.getsize(file_path)
+        logger.info(f'file size: {file_size} bytes')
+        if file_size == 0:
+            raise ValueError(f"File '{file_path}' is empty (0 bytes).")
 
         logger.info(f'tmp path: {file_path}')
 
