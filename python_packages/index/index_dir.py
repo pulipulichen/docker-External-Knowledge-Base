@@ -39,7 +39,9 @@ async def index_dir(knowledge_id, force_update: False):
             include_ext = [ext.lower() if ext.startswith('.') else f'.{ext.lower()}' for ext in include_ext]
 
         for root, dirs, files in os.walk(input_dir_path):
+            
             for file in files:
+                logger.info(f'file: {file}')
                 file_path = os.path.join(root, file)
                 
                 if include_ext:
