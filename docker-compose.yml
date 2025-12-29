@@ -16,10 +16,17 @@ services:
     networks:
       - docker_external_knowledge_base
     environment:
-      # 強制將 OpenMP 線程數設為 1 (或您分配給容器的核心數)
+      # --- 執行緒限制 (全面覆蓋) ---
       - OMP_NUM_THREADS=1
-      # 為了保險，也可設定 MKL 線程數
       - MKL_NUM_THREADS=1
+      - OPENBLAS_NUM_THREADS=1      # 新增：針對 OpenBLAS 後端
+      - VECLIB_MAXIMUM_THREADS=1    # 新增：針對 Vector 運算
+      - NUMEXPR_NUM_THREADS=1       # 新增：針對 NumExpr
+      
+      # --- 關鍵修復策略 ---
+      # 讓執行緒進入被動等待模式，不要佔用 CPU 空轉 (Spinning)
+      # 這通常能解決 pthread_setaffinity_np 錯誤
+      - OMP_WAIT_POLICY=PASSIVE
 
   redis:
     image: "redis:7.0.12-alpine"
