@@ -31,6 +31,9 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:
     with open(file_path, 'r', encoding='utf-8') as f:
         markdown_content = f.read()
     
+    if markdown_content.strip() == '':
+        return False
+
     sections = convert_str_to_chunks(markdown_content, max_tokens)
 
     # logger.info(f"Length of markdown_content: {len(markdown_content)}")

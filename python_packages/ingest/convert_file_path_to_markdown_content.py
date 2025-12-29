@@ -18,6 +18,11 @@ logger.setLevel(logging.DEBUG)
 def convert_file_path_to_markdown_content(file_path):
     try:
         md = get_markitdown()
+
+        os.system(f"cat '{file_path}' > /dev/null")
+        os.system(f"cp '{file_path}' /tmp")
+        file_path = os.path.join('/tmp', os.path.basename(file_path))
+
         markdown_content = md.convert(file_path)
         return markdown_content.text_content
 
