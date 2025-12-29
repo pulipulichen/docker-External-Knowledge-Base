@@ -51,6 +51,7 @@ def convert_file_path_to_markdown_content(file_path):
                 logger.info(f'tmp path: {file_path}')
 
                 markdown_content = md.convert(file_path)
+
                 markdown_content = markdown_content.text_content
 
                 # 移除 ![alt](data:image/png;base64,...) 格式

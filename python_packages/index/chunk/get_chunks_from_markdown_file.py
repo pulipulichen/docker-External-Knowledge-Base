@@ -21,11 +21,11 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str):
     # file_path = "/app/knowledge_base_files/example_document-index/2025/雜談：深刻體會Skype退役了 _ Talk：  Deeply Felt Skype's Retirement - 布丁布丁吃什麼？ (12_27_2025 8：57：40 PM).html.md"
     # logger.info(f"markdown2: {file_path}")
     
-    logger.info(f"markdown before: {file_path}")
-    os.system(f"cat '{file_path}' > /dev/null")
-    os.system(f"cp '{file_path}' /tmp")
-    file_path = os.path.join('/tmp', os.path.basename(file_path))
-    logger.info(f"markdown after: {file_path}")
+    # logger.info(f"markdown before: {file_path}")
+    # os.system(f"cat '{file_path}' > /dev/null")
+    # os.system(f"cp '{file_path}' /tmp")
+    # file_path = os.path.join('/tmp', os.path.basename(file_path))
+    # logger.info(f"markdown after: {file_path}")
 
     # 讀取file_path的內容到 markdown_content
     with open(file_path, 'r', encoding='utf-8') as f:
