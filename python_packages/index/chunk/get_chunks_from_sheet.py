@@ -30,10 +30,14 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             logger.error(f"File '{filepath}' does not exist.")
             return []
         
-        # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
-        if os.path.islink(filepath):
-            # Resolve symlink to actual file path
-            filepath = os.path.realpath(filepath)
+        
+        try:
+            book = pyexcel_ods.get_data(filepath)
+        except Exception as e:
+            # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
+            if os.path.islink(filepath):
+                # Resolve symlink to actual file path
+                filepath = os.path.realpath(filepath)
 
             # logger.info(f"islink: {filepath}")
             os.system(f"cat '{filepath}' > /dev/null")
@@ -41,7 +45,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             filepath = os.path.join('/tmp', os.path.basename(filepath))
             # logger.info(f"tmp: {filepath}")
 
-        book = pyexcel_ods.get_data(filepath)
+            book = pyexcel_ods.get_data(filepath)
 
         
         if section_name is None:

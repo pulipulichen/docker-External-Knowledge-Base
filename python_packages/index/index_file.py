@@ -3,12 +3,17 @@ import os
 import logging
 import redis
 import datetime
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Initialize Redis client
-redis_client = redis.StrictRedis(host='redis', port=6379, db=0)
+REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_DB = int(os.getenv('REDIS_DB', 0))
+
+redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 # Get Redis expiration from environment variable, default to 30 minutes (1800 seconds)
 REDIS_EXPIRATION_SECONDS = int(os.getenv('REDIS_EXPIRATION_SECONDS', 1800))

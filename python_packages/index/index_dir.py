@@ -20,6 +20,8 @@ async def index_dir(knowledge_id, force_update: False):
     config = get_knowledge_base_config(knowledge_id)
     update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 
+    index_result = False
+
     if 'file_name' in config:
         input_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
         markdown_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) + '-index' # Define markdown_file_path directly
@@ -50,11 +52,12 @@ async def index_dir(knowledge_id, force_update: False):
                 
                 if force_update is True or check_need_update(file_path, markdown_file_path, update_delay_seconds):
                     convert_file_to_markdown(file_path, markdown_file_path)
-                    await index_mode_file(knowledge_id, markdown_file_path)
+                    if await index_mode_file(knowledge_id, markdown_file_path) is True:
+                        index_result = True
                     # logger.info(f"Processing file: {markdown_file_path}")
 
         # logger.info(f"markdown_dir_path: '{markdown_dir_path}'")
-        return True
+        return index_result
 
     logger.error(f"File name not found in config for knowledge_id '{knowledge_id}'.")
     return False
