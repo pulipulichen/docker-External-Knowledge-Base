@@ -8,7 +8,7 @@ from .convert_str_to_chunks import convert_str_to_chunks
 # 如果token長度超過4096，再兩個換行之後，就切斷成不同chunk
 # token長度用gpt4的方式計算
 
-def get_chunks_from_markdown(knowledge_id: str) -> List[str]:    
+def get_chunks_from_markdown(knowledge_id: str):    
     """
     Splits markdown content into chunks based on token length and double newlines.
 

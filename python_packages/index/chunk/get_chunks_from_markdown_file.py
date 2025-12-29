@@ -13,7 +13,7 @@ from .convert_str_to_chunks import convert_str_to_chunks
 # 如果token長度超過4096，再兩個換行之後，就切斷成不同chunk
 # token長度用gpt4的方式計算
 
-def get_chunks_from_markdown_file(knowledge_id, file_path: str) -> List:    
+def get_chunks_from_markdown_file(knowledge_id, file_path: str):    
     config = get_knowledge_base_config(knowledge_id)
     max_tokens = config.get('index.max_tokens', 2048)
 
