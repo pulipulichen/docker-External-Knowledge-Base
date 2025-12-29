@@ -47,6 +47,7 @@ async def index_dir(knowledge_id, force_update: False):
                 if include_ext:
                     file_ext = os.path.splitext(file)[1].lower()
                     if file_ext not in include_ext:
+                        logger.info(f'Skip: {file_path}')
                         continue
                 
                 # logger.info(f"Processing file: {file_path}")

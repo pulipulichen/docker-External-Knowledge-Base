@@ -56,6 +56,9 @@ def convert_file_path_to_markdown_content(file_path):
                 # 移除 ![alt](data:image/png;base64,...) 格式
                 markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
 
+                if len(markdown_content) == 0:
+                    raise ValueError(f"convert markdown error or empty: '{file_path}'")
+
                 return markdown_content
 
             finally:
