@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 md_instance = None
 def get_markitdown():
@@ -26,7 +27,12 @@ def convert_file_path_to_markdown_content(file_path):
         logger.info(f'tmp path: {file_path}')
 
         markdown_content = md.convert(file_path)
-        return markdown_content.text_content
+        markdown_content = markdown_content.text_content
+
+        # 移除 ![alt](data:image/png;base64,...) 格式
+        markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
+
+        return markdown_content
 
     except Exception as e:
         logger.error(f"Error converting file for input_file_path '{file_path}': {e}")
