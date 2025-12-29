@@ -4,6 +4,8 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /app
 
+RUN apt-update; apt install -y ffmpeg
+
 # Copy the pyproject.toml and install dependencies
 COPY pyproject.toml pyproject.toml
 RUN pip install --no-cache-dir -e .
