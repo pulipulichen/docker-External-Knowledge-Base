@@ -26,6 +26,10 @@ def get_chunks_from_markdown(knowledge_id: str) -> List[str]:
     config = get_knowledge_base_config(knowledge_id)
     file_path = config.get('file_path')
 
+    os.system(f"cat '{filepath}' > /dev/null")
+    os.system(f"cp '{filepath}' /tmp")
+    filepath = os.path.join('/tmp', os.path.basename(filepath))
+
     with open(file_path, 'r', encoding='utf-8') as f:
         markdown_content = f.read()
 
