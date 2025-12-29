@@ -36,8 +36,8 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[str]:
             filepath = os.path.realpath(filepath)
 
             # logger.info(f"islink: {filepath}")
-            os.system(f"cat '{filepath}' > /dev/null")
-            # filepath = os.path.join('/tmp', os.path.basename(filepath))
+            os.system(f"cp '{filepath}' /tmp")
+            filepath = os.path.join('/tmp', os.path.basename(filepath))
             # logger.info(f"tmp: {filepath}")
 
         book = pyexcel_ods.get_data(filepath)
