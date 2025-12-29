@@ -15,6 +15,9 @@ services:
       - weaviate
     networks:
       - docker_external_knowledge_base
+    environment:
+      - ORT_INTRA_OP_NUM_THREADS=4
+      - ORT_INTER_OP_NUM_THREADS=2
 
   redis:
     image: "redis:7.0.12-alpine"
