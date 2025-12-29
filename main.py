@@ -1,3 +1,16 @@
+import os
+
+# 1. 告訴 OnnxRuntime 不要嘗試設定 CPU 親和性 (Affinity)
+# 這是直接針對該錯誤代碼的設定
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+# 2. 如果可以，設定這兩個變數來進一步抑制警告
+os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
+
 from flask import Flask
 from python_packages.retrieval.retrieval import retrieval_bp
 # from python_packages.hello.hello_routes import hello_bp
