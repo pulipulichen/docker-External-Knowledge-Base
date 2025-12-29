@@ -16,9 +16,10 @@ services:
     networks:
       - docker_external_knowledge_base
     environment:
-      - ORT_INTRA_OP_NUM_THREADS=4
-      - ORT_INTER_OP_NUM_THREADS=2
-      - ORT_DISABLE_CPU_AFFINITY=1
+      # 強制將 OpenMP 線程數設為 1 (或您分配給容器的核心數)
+      - OMP_NUM_THREADS=1
+      # 為了保險，也可設定 MKL 線程數
+      - MKL_NUM_THREADS=1
 
   redis:
     image: "redis:7.0.12-alpine"
