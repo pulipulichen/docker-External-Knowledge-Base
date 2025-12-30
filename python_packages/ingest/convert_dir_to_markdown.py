@@ -16,7 +16,7 @@ def convert_dir_to_markdown(knowledge_id, force_update: False):
 
     if 'file_name' in config:
         input_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
-        markdown_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) + '-index' # Define markdown_file_path directly
+        markdown_dir_path = os.path.join(FILE_STORAGE_DIR, '.md', config.get('file_name')) + '-index' # Define markdown_file_path directly
 
         # 如果沒有 markdown_dir_path ，那就建立
         os.makedirs(markdown_dir_path, exist_ok=True)

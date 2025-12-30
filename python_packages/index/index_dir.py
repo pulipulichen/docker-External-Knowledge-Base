@@ -24,11 +24,7 @@ async def index_dir(knowledge_id, force_update: False):
 
     if 'file_name' in config:
         input_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
-        markdown_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) + '-index' # Define markdown_file_path directly
-
-        # 如果沒有 markdown_dir_path ，那就建立
-        
-        
+        markdown_dir_path = os.path.join(FILE_STORAGE_DIR, '.md', config.get('file_name')) + '-index' # Define markdown_file_path directly
 
         include_ext = config.get('include_ext')
         if isinstance(include_ext, str):
@@ -54,7 +50,9 @@ async def index_dir(knowledge_id, force_update: False):
                 markdown_file_path = convert_to_markdown_file_path(file_path, markdown_dir_path)
                 
                 if force_update is True or check_need_update(file_path, markdown_file_path, update_delay_seconds):
+                    # 如果沒有 markdown_dir_path ，那就建立
                     make_index_dir(markdown_dir_path)
+
                     convert_file_to_markdown(file_path, markdown_file_path)
                     if await index_mode_file(knowledge_id, markdown_file_path) is True:
                         index_result = True

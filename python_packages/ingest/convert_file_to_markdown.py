@@ -15,7 +15,7 @@ def convert_file_to_markdown(knowledge_id, force_update: False):
 
     if 'file_name' in config:
         input_file_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
-        markdown_file_path = os.path.join(FILE_STORAGE_DIR, config.get('file_name')) # Define markdown_file_path directly
+        markdown_file_path = os.path.join(FILE_STORAGE_DIR, '.md', config.get('file_name')) # Define markdown_file_path directly
 
         if force_update is False:
             update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)

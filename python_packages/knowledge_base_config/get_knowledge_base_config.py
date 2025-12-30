@@ -77,6 +77,7 @@ def get_knowledge_base_config(knowledge_id):
     
     filepath = os.path.join(FILE_STORAGE_DIR, file_name)
     knowledge_base_config['file_path'] = filepath
+    knowledge_base_config['index_time_filepath'] = os.path.join(FILE_STORAGE_DIR, '.time', file_name + '-' + knowledge_id + '.index-time.txt')
 
     knowledge_base_config['is_url'] = is_url
     knowledge_base_config['is_file'] = is_file

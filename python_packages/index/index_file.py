@@ -42,7 +42,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
     # ----------------------------
     config = get_knowledge_base_config(knowledge_id)
     
-    if lock_index(config, knowledge_id) is False:
+    if lock_index(knowledge_id) is False:
         logger.info(f"Index lock acquisition failed: index already in progress for knowledge_id {knowledge_id}")
         return False
 
@@ -52,7 +52,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
         chunks = get_chunks_from_file(knowledge_id, section_name)
         if chunks is None or chunks is False:
             logger.error("Failed to retrieve chunks from file.")
-            unlock_index(config, knowledge_id)
+            unlock_index(knowledge_id)
             return False
         
         # logger.info(f"Number of chunks: {len(chunks)}")
@@ -73,17 +73,15 @@ async def index_file(knowledge_id, section_name, force_update: False):
 
     # =====================================================
     if index_succesful is True:
-        write_index_time(config, knowledge_id)
+        write_index_time(config)
 
     return unlock_index(config, knowledge_id)
     
 
-def write_index_time(config, knowledge_id):
+def write_index_time(config):
     # 把現在的時間寫入index_itme    
     current_time = datetime.datetime.now().isoformat()
-
-    filepath = config.get('file_path')
-    index_time_filepath = filepath + '-' + knowledge_id + '.index-time.txt'
+    index_time_filepath = config.get('index_time_filepath')
 
     try:
         with open(index_time_filepath, 'w') as f:
@@ -92,16 +90,15 @@ def write_index_time(config, knowledge_id):
     except IOError as e:
         logger.error(f"Failed to write index time to {index_time_filepath}: {e}")
 
-def get_lock_filepath(config, knowledge_id):
-    # 幫我在python做 mkdir -p  '/tmp/docker-External-Knowledge-Base-lock/'
+def get_lock_filepath(knowledge_id):
     lock_dir = '/tmp/docker-External-Knowledge-Base-lock/'
     os.makedirs(lock_dir, exist_ok=True)
     lock_filepath = lock_dir + knowledge_id + '.lock.txt'
 
     return lock_filepath
 
-def lock_index(config, knowledge_id):
-    lock_filepath = get_lock_filepath(config, knowledge_id)
+def lock_index(knowledge_id):
+    lock_filepath = get_lock_filepath(knowledge_id)
 
     # 如果 lock_filepath 存在，那回傳False
     # 如果不存在，則建立它，回傳True
@@ -116,8 +113,8 @@ def lock_index(config, knowledge_id):
         logger.error(f"Failed to create lock file {lock_filepath}: {e}")
         return False
 
-def unlock_index(config, knowledge_id):
-    lock_filepath = get_lock_filepath(config, knowledge_id)
+def unlock_index(knowledge_id):
+    lock_filepath = get_lock_filepath(knowledge_id)
 
     # 如果 lock_filepath 存在，那移除它，回傳True
     # 如果不存在，則回傳False
