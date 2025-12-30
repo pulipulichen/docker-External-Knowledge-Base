@@ -112,6 +112,16 @@ def convert_file_to_markdown(input_file_path, markdown_file_path):
         logger.error(f"Error converting file for input_file_path '{input_file_path}': {e}")
         return False
 
+
+ROOT_MARKDOWN_DIR_CHECKED = False
+MARKDOWN_DIR_CHECKED = []
 def make_index_dir(markdown_dir_path):
-    os.makedirs(markdown_dir_path, exist_ok=True)
-    os.chmod(markdown_dir_path, 0o777)
+    if markdown_dir_path not in MARKDOWN_DIR_CHECKED:
+        os.makedirs(markdown_dir_path, exist_ok=True)
+        os.chmod(markdown_dir_path, 0o777)
+        MARKDOWN_DIR_CHECKED.append(markdown_dir_path)
+
+    global ROOT_MARKDOWN_DIR_CHECKED
+    if ROOT_MARKDOWN_DIR_CHECKED is False:
+        os.chmod(os.path.dirname(markdown_dir_path), 0o777)
+        ROOT_MARKDOWN_DIR_CHECKED = True

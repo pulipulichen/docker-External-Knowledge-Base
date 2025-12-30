@@ -1,6 +1,6 @@
 
 ```rclone mount
-rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_base_files/mnt/gdrive --daemon \
+rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_base_files/.mnt/gdrive --daemon \
   --vfs-cache-mode off \
   --drive-export-formats "docx,xlsx,pdf" \
   --vfs-read-chunk-size 32M \
