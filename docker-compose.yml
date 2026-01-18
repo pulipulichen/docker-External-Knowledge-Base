@@ -80,11 +80,11 @@ services:
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
       CLUSTER_HOSTNAME: 'node1'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
-      interval: 5s
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/v1/.well-known/ready || exit 1"]
+      interval: 10s
       timeout: 5s
       retries: 20
-      start_period: 5s
+      start_period: 30s
     volumes:
       - weaviate_data:/var/lib/weaviate
     env_file:
