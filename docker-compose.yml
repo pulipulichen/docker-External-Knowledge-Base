@@ -83,8 +83,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
       interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 20
+      start_period: 5s
     volumes:
       - weaviate_data:/var/lib/weaviate
     env_file:
