@@ -33,6 +33,7 @@ services:
 
   redis:
     image: "redis:7.0.12-alpine"
+    restart: on-failure
     volumes:
       - redis_data:/data
     networks:
@@ -41,6 +42,7 @@ services:
     #   driver: "none"
   nginx:
     image: nginx:1.21.6
+    restart: on-failure
     ports:
       - "8080:80"
     volumes:
@@ -55,7 +57,7 @@ services:
     environment:
       - MODEL_ID=BAAI/bge-m3
       # ...
-    # restart: on-failure
+    restart: on-failure
     ports:
       - 40001:80
     volumes:
