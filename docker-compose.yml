@@ -10,9 +10,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - redis
-      - tei_bge_m3
-      - weaviate
+      redis:
+        condition: service_started
+      tei_bge_m3:
+        condition: service_started
+      weaviate:
+        condition: service_healthy
     networks:
       - docker_external_knowledge_base
     environment:
@@ -68,30 +71,22 @@ services:
     
   weaviate:
     image: semitechnologies/weaviate:1.32.16-31de226.amd64
-    # restart: on-failure
-    # ports: # 暴露 Weaviate 服務的端口到主機
-    #   - "58080:8080" # 將容器的 8080 端口映射到主機的 58080 端口 (HTTP)
-    #   - "50051:50051" # 將容器的 50051 端口映射到主機的 50051 端口 (gRPC)
+    restart: on-failure
     environment:
       QUERY_DEFAULTS_LIMIT: 100
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
-      # DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
       CLUSTER_HOSTNAME: 'node1'
-      # ENABLE_MODULES: 'text2vec-openai'
-      # CLUSTER_HOST: '' # Add this line
-      # CLUSTER_ENABLED: 'false'
-      # LIMIT_RESOURCES: true
-      # RAFT_BOOTSTRAP_EXPECT: '1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - weaviate_data:/var/lib/weaviate
-      # - ./weaviate/entrypoint.sh:/entrypoint.sh
     env_file:
       - .env
-    # logging:
-    #   driver: "none"
-    # entrypoint: []
-    # command: ["/entrypoint.sh"]
     networks:
       - docker_external_knowledge_base
   weaviate_ui:
@@ -100,7 +95,8 @@ services:
     ports:
       - 47777:7777
     depends_on:
-      - weaviate
+      weaviate:
+        condition: service_healthy
     environment:
       - WEAVIATE_URL=http://weaviate:8080
     env_file:
