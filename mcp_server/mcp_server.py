@@ -1,4 +1,3 @@
-from typing import Annotated
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
 
@@ -6,6 +5,9 @@ import os
 from pathlib import Path
 import yaml
 import itertools
+
+from typing import Annotated
+from pydantic import Field  # 新增引用
 
 from search_knowledge_base import search_knowledge_base
 
