@@ -17,4 +17,4 @@ COPY . .
 ENV MCP_API_KEY=${MCP_API_KEY}
 
 # Command to run the application
-CMD ["python3", "/app/rps_mpc_server.py"]
+CMD ["python3", "/app/mcp_server.py"]

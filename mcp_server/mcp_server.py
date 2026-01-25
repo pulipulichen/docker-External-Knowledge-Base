@@ -4,6 +4,9 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
 
 import os
+from pathlib import Path
+import yaml
+import itertools
 
 MCP_API_KEY=os.getenv("MCP_API_KEY")
 
@@ -23,16 +26,19 @@ mcp = FastMCP(name="external-knowledge-base", auth=verifier)
 
 # ===========================
 
-# 載入 /knowledge_base_configs 底下的 yaml 檔案，進入迴圈
-#   把 yaml 檔案的名稱作為name，內容裡面的description作為description
-#   輸出成
-#   knowledge_base_types = [
-#     ("traffic", "查詢交通法規"),
-#     ("labor", "查詢勞動基準法"),
-#     ("criminal", "查詢刑法"),
-#     ("tax", "查詢稅務法規")
-#   ]
+# 假設這是您的核心查詢邏輯
+def core_search_logic(regulation_type: str, query: str) -> str:
+    # 這裡模擬查詢資料庫或 RAG 系統
+    db = {
+        "traffic": "交通法規資料庫: 闖紅燈罰款 1800-5400 元...",
+        "labor": "勞動基準法資料庫: 加班費計算方式為...",
+        "criminal": "刑法資料庫: 竊盜罪處五年以下有期徒刑...",
+        "tax": "稅法資料庫: 綜合所得稅免稅額為..."
+    }
+    result = db.get(regulation_type, "查無此類別")
+    return f"[{regulation_type} 查詢結果] 關鍵字 '{query}': {result}"
 
+# ===========================
 
 def load_knowledge_base_configs(directory):
     kb_list = []
@@ -44,7 +50,10 @@ def load_knowledge_base_configs(directory):
 
     # 搜尋所有 .yaml 檔案 (也可以視需求加入 .yml)
     # 使用 sorted 確保輸出順序一致
-    yaml_files = sorted(directory.glob("*.yaml"))
+    
+    yaml_files = sorted(
+        itertools.chain(directory.glob("*.yml"), directory.glob("*.yaml"))
+    )
 
     for file_path in yaml_files:
         try:
@@ -68,6 +77,9 @@ def load_knowledge_base_configs(directory):
 # 執行轉換
 BASE_DIR = Path("/knowledge_base_configs")
 knowledge_base_types = load_knowledge_base_configs(BASE_DIR)
+print('=====================')
+print(knowledge_base_types)
+print('=====================')
 
 # ===========================
 def make_tool_function(reg_key, reg_desc):
@@ -92,7 +104,7 @@ def make_tool_function(reg_key, reg_desc):
     return dynamic_tool
 
 # 開始迴圈註冊
-for key, desc in regulation_types:
+for key, desc in knowledge_base_types:
     # 1. 產生函數
     tool_func = make_tool_function(key, desc)
     
@@ -146,4 +158,4 @@ def play_rps(user_choice: str) -> Dict[str, str]:
 
 if __name__ == "__main__":
     # 這是讓伺服器運行的進入點
-    mcp.run(transport="http", port=18000, host="0.0.0.0")
+    mcp.run(transport="http", port=80, host="0.0.0.0")
