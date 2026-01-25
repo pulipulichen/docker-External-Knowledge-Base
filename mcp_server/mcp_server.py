@@ -8,6 +8,8 @@ from pathlib import Path
 import yaml
 import itertools
 
+from search_knowledge_base import search_knowledge_base
+
 MCP_API_KEY=os.getenv("MCP_API_KEY")
 
 # 只允許這把 token
@@ -27,16 +29,16 @@ mcp = FastMCP(name="external-knowledge-base", auth=verifier)
 # ===========================
 
 # 假設這是您的核心查詢邏輯
-def core_search_logic(regulation_type: str, query: str) -> str:
-    # 這裡模擬查詢資料庫或 RAG 系統
-    db = {
-        "traffic": "交通法規資料庫: 闖紅燈罰款 1800-5400 元...",
-        "labor": "勞動基準法資料庫: 加班費計算方式為...",
-        "criminal": "刑法資料庫: 竊盜罪處五年以下有期徒刑...",
-        "tax": "稅法資料庫: 綜合所得稅免稅額為..."
-    }
-    result = db.get(regulation_type, "查無此類別")
-    return f"[{regulation_type} 查詢結果] 關鍵字 '{query}': {result}"
+# def core_search_logic(knowledge_id: str, query: str) -> str:
+#     # 這裡模擬查詢資料庫或 RAG 系統
+#     db = {
+#         "traffic": "交通法規資料庫: 闖紅燈罰款 1800-5400 元...",
+#         "labor": "勞動基準法資料庫: 加班費計算方式為...",
+#         "criminal": "刑法資料庫: 竊盜罪處五年以下有期徒刑...",
+#         "tax": "稅法資料庫: 綜合所得稅免稅額為..."
+#     }
+#     result = db.get(regulation_type, "查無此類別")
+#     return f"[{regulation_type} 查詢結果] 關鍵字 '{query}': {result}"
 
 # ===========================
 
@@ -77,9 +79,6 @@ def load_knowledge_base_configs(directory):
 # 執行轉換
 BASE_DIR = Path("/knowledge_base_configs")
 knowledge_base_types = load_knowledge_base_configs(BASE_DIR)
-print('=====================')
-print(knowledge_base_types)
-print('=====================')
 
 # ===========================
 def make_tool_function(reg_key, reg_desc):
@@ -89,8 +88,8 @@ def make_tool_function(reg_key, reg_desc):
     """
     
     # 定義工具函數，這裡的 reg_key 會被鎖定為當下的值
-    def dynamic_tool(query: str) -> str:
-        return core_search_logic(reg_key, query)
+    def dynamic_tool(query: str, top_k: int = 5, score_threshold: float = 0.1) -> str:
+        return search_knowledge_base(reg_key, query, top_k, score_threshold)
     
     # 【關鍵步驟 1】修改函數名稱
     # MCP (和 Python) 依賴函數名稱來識別工具。
@@ -115,46 +114,6 @@ for key, desc in knowledge_base_types:
     print(f"已註冊工具: {tool_func.__name__}")
 
 # ===========================
-
-
-@mcp.tool(
-    name="play_rps",
-    description="進行剪刀石頭布遊戲。使用者輸入 '剪刀'、'石頭' 或 '布'，伺服器會隨機出拳並回傳勝負結果。",
-)
-def play_rps(user_choice: str) -> Dict[str, str]:
-    """
-    執行剪刀石頭布遊戲邏輯。
-    
-    Args:
-        user_choice: 使用者的選擇 (支援中文與英文，如 "剪刀", "rock", "布")
-    """
-    uc = user_choice.strip().lower()
-    
-    # 檢查輸入是否合法
-    if uc not in NORMALIZE:
-        return {
-            "error": "無效的輸入。請輸入：剪刀、石頭、布 (或是 rock, paper, scissors)",
-            "status": "error"
-        }
-
-    user_move = NORMALIZE[uc]
-    # 伺服器隨機出拳
-    server_move = random.choice(["scissors", "rock", "paper"])
-
-    # 判定勝負
-    if user_move == server_move:
-        result = "平手！再試一次吧。"
-    elif (user_move, server_move) in WIN_CONDITIONS:
-        result = "恭喜！你贏了！ 🎉"
-    else:
-        result = "可惜，你輸了。電腦獲勝！ 🤖"
-
-    return {
-        "your_move": DISPLAY_ZH[user_move],
-        "server_move": DISPLAY_ZH[server_move],
-        "result": result,
-        "status": "success"
-    }
 
 if __name__ == "__main__":
     # 這是讓伺服器運行的進入點
