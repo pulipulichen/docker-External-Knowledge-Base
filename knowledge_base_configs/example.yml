@@ -1,4 +1,5 @@
 path: https://docs.google.com/spreadsheets/d/1x9vK9E7XdnW6hqfvz4NdQ0BEkq3Qf1vbnf7XTI1HDI4/edit?usp=sharing
+description: 這是範例知識庫，用來測試知識庫功能。資料來源是Google Sheet的詞彙修正表。
 # 一天
 # update_delay_seconds: 86400
 auto_update:

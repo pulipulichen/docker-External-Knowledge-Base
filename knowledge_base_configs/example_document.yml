@@ -1,4 +1,5 @@
 path: example_document
+description: 這是範例知識庫，用來測試知識庫功能。資料來源是example_document資料夾中的html檔案。
 auto_update:
   enable: true
   delay_seconds: 30

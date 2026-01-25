@@ -109,6 +109,15 @@ services:
     # logging:
     #   driver: "none"
 
+  rps_mpc_server:
+    build: 
+      context: ./mcp/
+      dockerfile: Dockerfile
+    environment:
+      - MCP_API_KEY=${API_KEY}
+    volumes:
+      - ./mcp/mcp_server.py:/app/mcp_server.py
+      - ./knowledge_base_configs:/knowledge_base_configs
 
 volumes:
   redis_data:
