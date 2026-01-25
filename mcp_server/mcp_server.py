@@ -1,5 +1,4 @@
-import random
-from typing import Dict
+from typing import Annotated
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
 
