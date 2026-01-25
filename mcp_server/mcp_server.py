@@ -28,20 +28,6 @@ mcp = FastMCP(name="external-knowledge-base", auth=verifier)
 
 # ===========================
 
-# 假設這是您的核心查詢邏輯
-# def core_search_logic(knowledge_id: str, query: str) -> str:
-#     # 這裡模擬查詢資料庫或 RAG 系統
-#     db = {
-#         "traffic": "交通法規資料庫: 闖紅燈罰款 1800-5400 元...",
-#         "labor": "勞動基準法資料庫: 加班費計算方式為...",
-#         "criminal": "刑法資料庫: 竊盜罪處五年以下有期徒刑...",
-#         "tax": "稅法資料庫: 綜合所得稅免稅額為..."
-#     }
-#     result = db.get(regulation_type, "查無此類別")
-#     return f"[{regulation_type} 查詢結果] 關鍵字 '{query}': {result}"
-
-# ===========================
-
 def load_knowledge_base_configs(directory):
     kb_list = []
     
@@ -88,7 +74,20 @@ def make_tool_function(reg_key, reg_desc):
     """
     
     # 定義工具函數，這裡的 reg_key 會被鎖定為當下的值
-    def dynamic_tool(query: str, top_k: int = 5, score_threshold: float = 0.1) -> str:
+    def dynamic_tool(
+        query: Annotated[
+            str, 
+            Field(description="想要查詢的具體問題或是關鍵字，可以是一段敘述，例如 '加班費如何計算'")
+        ],
+        top_k: Annotated[
+            int, 
+            Field(description="要返回的最佳匹配結果數量 (預設為 5)")
+        ] = 5,
+        score_threshold: Annotated[
+            float, 
+            Field(description="相似度分數門檻 (0.0 到 1.0)，低於此分數的結果將被忽略 (預設為 0.1)")
+        ] = 0.1
+    ) -> str:
         return search_knowledge_base(reg_key, query, top_k, score_threshold)
     
     # 【關鍵步驟 1】修改函數名稱
