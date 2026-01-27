@@ -10,11 +10,5 @@ WORKDIR /app
 COPY ./requirements.txt /app/
 RUN pip install -r requirements.txt
 
-# Copy the current directory contents into the container at /app
-COPY . .
-
-# Set environment variables
-ENV MCP_API_KEY=${MCP_API_KEY}
-
 # Command to run the application
 CMD ["python3", "/app/mcp_server.py"]
