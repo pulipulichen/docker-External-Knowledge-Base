@@ -8,7 +8,7 @@ from .check.is_google_doc_url import is_google_doc_url
 from .check.is_google_slide_url import is_google_slide_url
 # from .check.is_existed_not_md import is_existed_not_md
 
-from .convert.convert_google_sheets_url_to_ods_download import convert_google_sheets_url_to_ods_download
+from .convert.convert_google_sheets_url_to_xlsx_download import convert_google_sheets_url_to_xlsx_download
 from .convert.convert_google_doc_url_to_md_download import convert_google_doc_url_to_md_download
 from .convert.convert_google_slide_url_to_md_download import convert_google_slide_url_to_md_download
 # from .convert.convert_file_to_md import convert_file_to_md
@@ -43,11 +43,11 @@ def get_knowledge_base_config(knowledge_id):
     if url and (url.startswith("http://") or url.startswith("https://")):
         is_url = True
         if is_google_sheets_url(url):
-            converted_url = convert_google_sheets_url_to_ods_download(url)
+            converted_url = convert_google_sheets_url_to_xlsx_download(url)
             if converted_url != url:
                 # logger.info(f"Converted Google Sheets URL to ODS download format: {converted_url}")
                 knowledge_base_config['path'] = converted_url
-                file_name = f"{knowledge_id}.ods"
+                file_name = f"{knowledge_id}.xlsx"
                 markdown_convertable = False
         elif is_google_doc_url(url):
             converted_url = convert_google_doc_url_to_md_download(url)
