@@ -11,14 +11,7 @@ import pyexcel_ods
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-# Add python_packages to sys.path to allow importing image_describe
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Navigate up to the python_packages directory: python_packages/index/chunk/utils/
-package_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
-if package_root not in sys.path:
-    sys.path.append(package_root)
-
-from image_describe.image_describe import image_describe
+from ....image_describe.image_describe import image_describe
 
 logger = logging.getLogger(__name__)
 
