@@ -15,8 +15,8 @@ dependencies = [
     "pyexcel==0.6.7",
     "pyexcel-ods==0.6.0",
     "pyexcel-xlsx==0.6.0",
-    # 修改這裡：從 3.0.10 升級到 3.1.2 (或 >=3.1.0)
-    "openpyxl==3.1.2", 
+    # 修改這裡：從 3.1.2 降級回 3.0.10，因為 pyexcel-xlsx 與 openpyxl 3.1.0+ 不相容
+    "openpyxl==3.0.10", 
     "split_markdown4gpt==1.0.9",
 ]
 
