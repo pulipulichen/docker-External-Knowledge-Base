@@ -112,6 +112,7 @@ services:
       - MCP_API_KEY=${API_KEY}
     volumes:
       - ./mcp_server/mcp_server.py:/app/mcp_server.py
+      - ./mcp_server/search_knowledge_base.py:/app/search_knowledge_base.py
       - ./knowledge_base_configs:/knowledge_base_configs
     networks:
       - docker_external_knowledge_base
