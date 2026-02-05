@@ -4,6 +4,8 @@ import logging
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 from .utils.sheet_to_json import sheet_to_json
 
+import os
+
 logger = logging.getLogger(__name__)
 
 def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[dict]:
@@ -23,6 +25,19 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str) -> list[dict]:
         config = get_knowledge_base_config(knowledge_id)
         filepath = config.get('file_path')
         include_fields = config.get('include_fileds', [])
+
+        # ============
+
+        # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
+        if os.path.islink(filepath):
+            # Resolve symlink to actual file path
+            filepath = os.path.realpath(filepath)
+
+        os.system(f"cat '{filepath}' > /dev/null")
+        os.system(f"cp '{filepath}' /tmp")
+        filepath = os.path.join('/tmp', os.path.basename(filepath))
+
+        # ============
 
         json_array = sheet_to_json(filepath, section_name, include_fields)
         
