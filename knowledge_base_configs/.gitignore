@@ -2,4 +2,6 @@
 !.gitignore
 !example.yml
 !example_document.yml
-!example_sheet_image.yml
+!example_sheet_image_xlsx.yml
+!example_sheet_image_ods.yml
+!example_sheet_image_gsheet.yml

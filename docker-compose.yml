@@ -93,8 +93,7 @@ services:
     ports:
       - 47777:7777
     depends_on:
-      weaviate:
-        condition: service_healthy
+      - weaviate
     environment:
       - WEAVIATE_URL=http://weaviate:8080
     env_file:

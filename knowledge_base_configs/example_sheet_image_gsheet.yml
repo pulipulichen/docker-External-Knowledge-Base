@@ -1,0 +1,13 @@
+path: https://docs.google.com/spreadsheets/d/1-HsE6pbAFZZIYEuYpegskN7m8Xxe3sYEKFtAdHamUTo/edit?usp=sharing
+description: 這是範例知識庫，用來測試知識庫讀取Google Sheet表格與裡面圖片的功能。
+# 一天
+# update_delay_seconds: 86400
+auto_update:
+  enable: true
+  # delay_seconds: 86400
+  delay_seconds: 3
+embedding_model: bge-m3
+index: 
+  mode: last
+  length: 100
+  # max_tokens: 4096
