@@ -2,8 +2,20 @@ from __future__ import annotations
 
 import base64
 import json
+import os
+import sys
 from typing import Any, Dict, List, Optional
 
+# Add python_packages to sys.path to allow importing image_describe
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Navigate up to the python_packages directory
+# path is: .../python_packages/index/chunk/utils/sheet_to_json_with_image.py
+# target is: .../python_packages/
+package_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+if package_root not in sys.path:
+    sys.path.append(package_root)
+
+from image_describe.image_describe import image_describe
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -83,21 +95,38 @@ def convert_xlsx_to_json(
             val = ws.cell(row=r, column=c).value
             
             # 處理文字資料
-            if val is not None and val != "":
+            text_val = str(val).strip() if val is not None and val != "" else ""
+            if text_val:
                 is_empty = False
             
             # 處理圖片資料
             imgs = images_map.get((r, c))
+            image_descriptions = []
             if imgs:
-                is_empty = False
-                content = imgs[0] if len(imgs) == 1 else imgs
-                if val is not None and val != "":
-                    # 若該儲存格同時有文字與圖片，則封裝成物件
-                    val = {"text": val, "images_base64": content}
-                else:
-                    val = content
+                for img_b64 in imgs:
+                    try:
+                        desc = image_describe(img_b64)
+                        # 如果描述成功且不是錯誤訊息，則加入
+                        if desc and not desc.startswith("Error:"):
+                            image_descriptions.append(desc)
+                    except Exception:
+                        continue
+                
+                if image_descriptions:
+                    is_empty = False
+
+            # 組合最終值
+            final_val = None
+            if text_val and image_descriptions:
+                desc_text = "\n".join(image_descriptions)
+                final_val = {"text": text_val, "images_description": desc_text}
+            elif text_val:
+                final_val = text_val
+            elif image_descriptions:
+                final_val = "\n".join(image_descriptions)
             
-            row_item[key] = val
+            if final_val is not None:
+                row_item[key] = final_val
 
         if not is_empty:
             row_item['__row_index__'] = r - header_row + 1

@@ -1,3 +1,4 @@
 *
 !.gitignore
 !example_document/*
+!shopping_cart.xlsx
