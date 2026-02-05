@@ -1,0 +1,5 @@
+*
+!.gitignore
+!example_document/*
+!shopping_cart.xlsx
+!shopping_cart.ods
