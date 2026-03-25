@@ -99,7 +99,9 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             query=None,  # 這裡不需要語義搜尋，我們是要按屬性篩選
             metadata={
                 "path": target_path 
-            }
+            },
+            path=False,
+            show_chunk_id=True
         )
 
         app.logger.info("all_chunks_for_path: " + json.dumps(all_chunks_for_path, ensure_ascii = False))
