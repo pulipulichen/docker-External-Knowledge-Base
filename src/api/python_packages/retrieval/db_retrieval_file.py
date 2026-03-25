@@ -62,12 +62,12 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     # 2. 根據 path 去重，並保留 score 最高的結果
     unique_results_map = {}
 
-    app.logger.info("results:" + json.dumps(results, ensure_ascii = False))
+    # app.logger.info("results:" + json.dumps(results, ensure_ascii = False))
     
     for doc in results.get("records"):
         app.logger.info(json.dumps(doc, ensure_ascii = False))
         
-        path = doc.get("path")
+        path = doc.get("metadata", {}).get("path")
         score = doc.get("score", 0) # 假設結果中有 score 欄位
         
         # 如果 path 還沒出現過，或者當前這筆 score 比存起來的更高
@@ -85,7 +85,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     final_markdown_documents = []
 
     for seed_doc in top_paths_docs:
-        target_path = seed_doc.get("path")
+        target_path = seed_doc.get("metadata", {}).get("path")
         
         # 4. 再次檢索：撈出該 path 底下的「所有」chunks
         # 注意：這裡的 max_results 必須設得夠大，確保能涵蓋整份文件
@@ -103,7 +103,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         # 5. 依照 _chunk_id 進行升序排序 (由小到大)
         sorted_chunks = sorted(
             all_chunks_for_path,
-            key=lambda x: x.get("_chunk_id", 0)
+            key=lambda x: x.get("metadata", {}).get("_chunk_id", 0)
         )
 
         # 6. 合併內容轉為 Markdown 格式
