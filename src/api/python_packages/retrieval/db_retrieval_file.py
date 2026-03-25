@@ -64,8 +64,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
 
     app.logger.info("results:" + json.dumps(results, ensure_ascii = False))
     
-    for doc in results:
-        app.logger.info(doc)
+    for doc in results.get("records"):
+        app.logger.info(json.dumps(doc, ensure_ascii = False))
         
         path = doc.get("path")
         score = doc.get("score", 0) # 假設結果中有 score 欄位
