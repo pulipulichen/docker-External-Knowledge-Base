@@ -67,18 +67,28 @@ def weaviate_query(**kwargs):
   # print(query)
   # print(score_threshold)
   
-  response = collection.query.hybrid(
-    query=segment_text(query), 
-    vector=vector,
-    alpha=query_alpha,
-    query_properties=["_index"],
-    return_metadata=MetadataQuery(score=True),
-    # filters=Filter.by_property("category").equal("音響設備"),
-    filters=filters,
-    max_vector_distance=(1-score_threshold),
-    limit=limit,
-    offset=offset
-  )
+  if (query == None or len(vector) == 0):
+    response = collection.query.hybrid(
+      query=segment_text(query), 
+      vector=vector,
+      alpha=query_alpha,
+      query_properties=["_index"],
+      return_metadata=MetadataQuery(score=True),
+      # filters=Filter.by_property("category").equal("音響設備"),
+      filters=filters,
+      max_vector_distance=(1-score_threshold),
+      limit=limit,
+      offset=offset
+    )
+  else:
+    response = collection.query.hybrid(
+      query_properties=["_index"],
+      return_metadata=MetadataQuery(score=True),
+      filters=filters,
+      limit=limit,
+      offset=offset
+    )
+    
   results = response.objects
 
   output = convert_to_external_knowledge_response(
