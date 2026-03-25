@@ -66,6 +66,8 @@ services:
     environment:
       - MODEL_ID=google/embeddinggemma-300m
       # ...
+    env_file:
+      - .env
     restart: on-failure
     ports:
       - 40001:80
