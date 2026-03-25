@@ -64,7 +64,7 @@ services:
   tei_bge_m3:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.3
     environment:
-      - MODEL_ID=codefuse-ai/F2LLM-v2-0.6B
+      - MODEL_ID=google/embeddinggemma-300m
       # ...
     restart: on-failure
     ports:
