@@ -62,7 +62,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     # 2. 根據 path 去重，並保留 score 最高的結果
     unique_results_map = {}
 
-    app.logger.debug("results:" + results)
+    app.logger.debug("results:" + json.dumps(results, ensure_ascii = False))
     
     for doc in results:
         app.logger.debug(doc)
