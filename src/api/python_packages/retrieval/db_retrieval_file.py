@@ -60,6 +60,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     unique_results_map = {}
     
     for doc in results:
+        print(doc)
         path = doc.get("path")
         score = doc.get("score", 0) # 假設結果中有 score 欄位
         
