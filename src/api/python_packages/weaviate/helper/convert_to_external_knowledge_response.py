@@ -5,7 +5,7 @@ from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_bas
 
 URL_HOST = os.getenv('URL_HOST', "http://127.0.0.1:8080/f")
 
-def convert_to_external_knowledge_response(knowledge_id, data_source_path, results):
+def convert_to_external_knowledge_response(knowledge_id, data_source_path, results, show_chunk_id=False):
   records = []
   # print('================================================================')
   # print(results)
@@ -28,7 +28,9 @@ def convert_to_external_knowledge_response(knowledge_id, data_source_path, resul
     # del metadata["_item_id"]
     del metadata["_document"]
     del metadata["_index"]
-    del metadata["_chunk_id"]
+
+    if show_chunk_id is False:
+      del metadata["_chunk_id"]
 
     if "title" in metadata:
       title = metadata["title"]

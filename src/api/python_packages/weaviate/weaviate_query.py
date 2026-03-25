@@ -29,6 +29,7 @@ def weaviate_query(**kwargs):
   metadata = kwargs.get("metadata", {})
 
   data_source_path = kwargs.get("path", [])
+  show_chunk_id = kwargs.get("show_chunk_id", False)
 
   # print(query, collection_name)
 
@@ -83,7 +84,8 @@ def weaviate_query(**kwargs):
   output = convert_to_external_knowledge_response(
     collection_name,
     data_source_path,
-    results
+    results,
+    show_chunk_id
   )
 
   weaviate_close()

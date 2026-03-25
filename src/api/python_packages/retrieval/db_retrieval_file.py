@@ -56,7 +56,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             "max_results": top_k * top_k_extend_range,
             "score_threshold": score_threshold
         },
-        path=False
+        path=False,
+        show_chunk_id=True
     )
 
     # 2. 根據 path 去重，並保留 score 最高的結果
