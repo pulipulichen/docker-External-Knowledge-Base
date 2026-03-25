@@ -82,7 +82,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         reverse=True
     )[:top_k]
 
-    app.logger.info("results:" + json.dumps(top_paths_docs, ensure_ascii = False))
+    # app.logger.info("results:" + json.dumps(top_paths_docs, ensure_ascii = False))
 
     # --- 💡 新增步驟：根據 path 重組完整文件 ---
     final_markdown_documents = []
@@ -90,7 +90,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     for seed_doc in top_paths_docs:
         target_path = seed_doc.get("metadata", {}).get("path")
 
-        app.logger.info("target_path: " + target_path)
+        # app.logger.info("target_path: " + target_path)
         
         # 4. 再次檢索：撈出該 path 底下的「所有」chunks
         # 注意：這裡的 max_results 必須設得夠大，確保能涵蓋整份文件
@@ -104,7 +104,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             show_chunk_id=True
         )
 
-        app.logger.info("all_chunks_for_path: " + json.dumps(all_chunks_for_path, ensure_ascii = False))
+        # app.logger.info("all_chunks_for_path: " + json.dumps(all_chunks_for_path, ensure_ascii = False))
         records = all_chunks_for_path.get("records", [])
 
         # 5. 依照 _chunk_id 進行升序排序 (由小到大)
