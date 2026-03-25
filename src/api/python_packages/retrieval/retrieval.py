@@ -5,6 +5,7 @@ from flask import Blueprint, Flask, request, jsonify
 
 from .mock_retrieval import get_mock_results
 from .db_retrieval import get_db_results
+from .db_retrieval_file import get_db_file_results
 from ..auth.check_auth import check_auth # Import check_auth from the new auth module
 
 from ..knowledge_base_config.parse_knowledge_id import parse_knowledge_id
@@ -47,7 +48,8 @@ async def retrieval_endpoint():
     if USE_MOCK_DB:
         results = get_mock_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
-        results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
+        # results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
+        results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
 
     # results_json = jsonify({
     #     "records": results
