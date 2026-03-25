@@ -54,7 +54,7 @@ async def get_embedding(text: str):
         
 
         response = httpx.post(
-                f"{TEI_ENDPOINT}/embed_sparse",
+                f"{TEI_ENDPOINT}/embed",
                 json={"inputs": text},
                 headers={"Content-Type": "application/json"},
                 timeout=6000
