@@ -17,12 +17,13 @@ def convert_to_external_knowledge_response(knowledge_id, data_source_path, resul
     content = result.properties["_document"]
 
     metadata = result.properties
-    if "path" not in metadata:
-      metadata["path"] = data_source_path
-    else:
-      config = get_knowledge_base_config(knowledge_id)
-      metadata["path"] = URL_HOST + config.get('path') + '/' + urllib.parse.quote(metadata["path"])
-      # metadata["path"] = config.get('path') + '/' + urllib.parse.quote(metadata["path"])
+    if data_source_path is not False:
+      if "path" not in metadata:
+        metadata["path"] = data_source_path
+      else:
+        config = get_knowledge_base_config(knowledge_id)
+        metadata["path"] = URL_HOST + config.get('path') + '/' + urllib.parse.quote(metadata["path"])
+        # metadata["path"] = config.get('path') + '/' + urllib.parse.quote(metadata["path"])
     metadata["description"] = knowledge_id
     # del metadata["_item_id"]
     del metadata["_document"]
