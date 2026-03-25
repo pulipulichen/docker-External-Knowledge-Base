@@ -64,7 +64,7 @@ services:
   tei_bge_m3:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
     environment:
-      - MODEL_ID=BAAI/bge-m3
+      - MODEL_ID=codefuse-ai/F2LLM-v2-0.6B
       # ...
     restart: on-failure
     ports:
