@@ -65,7 +65,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
     # app.logger.info("results:" + json.dumps(results, ensure_ascii = False))
     
     for doc in results.get("records"):
-        app.logger.info(json.dumps(doc, ensure_ascii = False))
+        # app.logger.info(json.dumps(doc, ensure_ascii = False))
         
         path = doc.get("metadata", {}).get("path")
         score = doc.get("score", 0) # 假設結果中有 score 欄位
@@ -81,11 +81,15 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         reverse=True
     )[:top_k]
 
+    app.logger.info("results:" + json.dumps(top_paths_docs, ensure_ascii = False))
+
     # --- 💡 新增步驟：根據 path 重組完整文件 ---
     final_markdown_documents = []
 
     for seed_doc in top_paths_docs:
         target_path = seed_doc.get("metadata", {}).get("path")
+
+        app.logger.info("target_path: " + target_path)
         
         # 4. 再次檢索：撈出該 path 底下的「所有」chunks
         # 注意：這裡的 max_results 必須設得夠大，確保能涵蓋整份文件
