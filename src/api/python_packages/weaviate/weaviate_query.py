@@ -67,7 +67,14 @@ def weaviate_query(**kwargs):
   # print(query)
   # print(score_threshold)
   
+  
   if (query == None or len(vector) == 0):
+    response = collection.query.fetch_objects(
+      filters=filters,
+      limit=1000,     # 設定較大的 limit 以確保拿完該 path 的所有 chunk
+      return_metadata=MetadataQuery(score=False) # 純過濾查詢沒有 hybrid score
+    )
+  else:
     response = collection.query.hybrid(
       query=segment_text(query), 
       vector=vector,
@@ -79,12 +86,6 @@ def weaviate_query(**kwargs):
       max_vector_distance=(1-score_threshold),
       limit=limit,
       offset=offset
-    )
-  else:
-    response = collection.query.fetch_objects(
-      filters=filters,
-      limit=1000,     # 設定較大的 limit 以確保拿完該 path 的所有 chunk
-      return_metadata=MetadataQuery(score=False) # 純過濾查詢沒有 hybrid score
     )
     
   results = response.objects
