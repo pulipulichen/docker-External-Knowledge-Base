@@ -8,6 +8,9 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 from ..ingest.fire_and_forget_ingest import fire_and_forget_ingest
 from ..ingest.ingest import ingest_data
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__main__'
 
 # DEBUG = True
@@ -58,9 +61,11 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
 
     # 2. 根據 path 去重，並保留 score 最高的結果
     unique_results_map = {}
+
+    app.logger.debug(results)
     
     for doc in results:
-        print(doc)
+        
         path = doc.get("path")
         score = doc.get("score", 0) # 假設結果中有 score 欄位
         
