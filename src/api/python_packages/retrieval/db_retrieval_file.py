@@ -97,11 +97,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         all_chunks_for_path = weaviate_query(
             knowledge_id=item_id,
             query=None,  # 這裡不需要語義搜尋，我們是要按屬性篩選
-            query_config={
-                "max_results": 1000, # 假設單一檔案不會超過 1000 個 chunk
-                "filters": {         # 確保你的 weaviate_query 支援 filter path
-                    "path": target_path 
-                }
+            metadata={
+                "path": target_path 
             }
         )
 

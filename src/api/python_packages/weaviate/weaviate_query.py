@@ -33,8 +33,8 @@ def weaviate_query(**kwargs):
 
   # print(query, collection_name)
 
-  if query == None or len(vector) == 0:
-    app.logger.info(f"no query or vector")
+  if (query == None or len(vector) == 0) and len(metadata.keys()) == 0:
+    app.logger.info(f"Query, vector or metadata are empty.")
     return {"records": []}
   
 
