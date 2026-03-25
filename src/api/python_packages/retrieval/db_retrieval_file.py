@@ -105,10 +105,11 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         )
 
         app.logger.info("all_chunks_for_path: " + json.dumps(all_chunks_for_path, ensure_ascii = False))
+        records = all_chunks_for_path.get("records", [])
 
         # 5. 依照 _chunk_id 進行升序排序 (由小到大)
         sorted_chunks = sorted(
-            all_chunks_for_path,
+            records,
             key=lambda x: x.get("metadata", {}).get("_chunk_id", 0)
         )
 
@@ -122,4 +123,6 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             "content": full_content
         })
 
-    return final_markdown_documents
+    return {
+        "records": final_markdown_documents
+    }
