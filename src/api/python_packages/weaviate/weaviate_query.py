@@ -81,12 +81,10 @@ def weaviate_query(**kwargs):
       offset=offset
     )
   else:
-    response = collection.query.hybrid(
-      query_properties=["_index"],
-      return_metadata=MetadataQuery(score=True),
+    response = collection.query.fetch_objects(
       filters=filters,
-      limit=limit,
-      offset=offset
+      limit=1000,     # 設定較大的 limit 以確保拿完該 path 的所有 chunk
+      return_metadata=MetadataQuery(score=False) # 純過濾查詢沒有 hybrid score
     )
     
   results = response.objects
