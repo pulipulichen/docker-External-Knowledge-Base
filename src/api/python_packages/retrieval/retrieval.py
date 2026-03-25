@@ -30,6 +30,7 @@ async def retrieval_endpoint():
     # app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
 
     knowledge_id_raw = data.get("knowledge_id", "")
+    file_mode = data.get("file_mode", False)
     parsed_id = parse_knowledge_id(knowledge_id_raw)
     knowledge_id = parsed_id["knowledge_id"]
     section_name = parsed_id["section_name"]
@@ -47,8 +48,9 @@ async def retrieval_endpoint():
     # ==============================
     if USE_MOCK_DB:
         results = get_mock_results(knowledge_id, section_name, query, top_k, score_threshold)
+    elif file_mode is False:
+        results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
-        # results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
         results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
 
     # results_json = jsonify({
