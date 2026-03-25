@@ -102,6 +102,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             }
         )
 
+        app.logger.info("all_chunks_for_path: " + json.dumps(all_chunks_for_path, ensure_ascii = False))
+
         # 5. 依照 _chunk_id 進行升序排序 (由小到大)
         sorted_chunks = sorted(
             all_chunks_for_path,
