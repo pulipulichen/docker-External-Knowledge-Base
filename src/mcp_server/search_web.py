@@ -1,3 +1,5 @@
+"""Call the API POST /search endpoint (SearXNG-backed) from the MCP server."""
+
 import json
 import os
 
@@ -12,6 +14,7 @@ def search_web(
     safesearch: int | None = None,
     time_range: str | None = None,
 ):
+    """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/search"
 
     api_key = os.environ.get("MCP_API_KEY")
@@ -37,14 +40,14 @@ def search_web(
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         result = response.json()
-        print("搜尋成功，回應如下:")
+        print("Search succeeded; response:")
         print(json.dumps(result, indent=4, ensure_ascii=False))
         return json.dumps(result, ensure_ascii=False)
 
     except requests.exceptions.RequestException as e:
-        print(f"請求發生錯誤: {e}")
+        print(f"Request failed: {e}")
         if "response" in locals() and response.content:
-            print(f"錯誤詳情: {response.text}")
+            print(f"Error body: {response.text}")
 
         return json.dumps(
             {

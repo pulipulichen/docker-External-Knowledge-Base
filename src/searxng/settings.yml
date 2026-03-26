@@ -1,0 +1,11 @@
+# 只保留三個一般網頁引擎；其餘預設引擎都不載入
+# https://docs.searxng.org/admin/settings/settings.html#engines-keep-only
+use_default_settings:
+  engines:
+    keep_only:
+      - duckduckgo
+      - google
+      - bing
+
+server:
+  secret_key: "ultrasecretkey"
