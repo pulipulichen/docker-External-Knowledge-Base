@@ -7,5 +7,5 @@ use_default_settings:
       - google
       - bing
 
-# server:
-  # secret_key: "ultrasecretkey2ultrasecretkey"
+server:
+  secret_key: "ultrasecretkey2ultrasecretkey"
