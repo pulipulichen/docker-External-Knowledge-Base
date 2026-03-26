@@ -13,7 +13,7 @@ services:
     depends_on:
       redis:
         condition: service_started
-      tei_bge_m3:
+      tei:
         condition: service_started
       weaviate:
         # condition: service_healthy
@@ -61,7 +61,7 @@ services:
     networks:
       - docker_external_knowledge_base
 
-  tei_bge_m3:
+  tei:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.3
     environment:
       - MODEL_ID=google/embeddinggemma-300m
@@ -121,6 +121,30 @@ services:
       - ./knowledge_base/configs:/knowledge_base_configs
     networks:
       - docker_external_knowledge_base
+
+    # Mercury Parser API 服務
+  # 常用於將網頁內容轉換為乾淨的內容，適合閱讀與 RSS 整合
+  mercury-parser:
+    image: wangqiru/mercury-parser-api:latest
+    restart: unless-stopped
+    ports:
+      - "43000:3000"
+    environment:
+      # 如果需要調整時區，可以取消註解
+      - TZ=Asia/Taipei
+    # 建議限制記憶體使用量，因為解析網頁有時較佔資源
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  searxng:
+    image: searxng/searxng:2026.3.25-fe1d6d9c4
+    ports:
+      - "40001:8080"
+    volumes:
+      - "./searxng:/etc/searxng"
+    restart: unless-stopped
 
 volumes:
   redis_data:

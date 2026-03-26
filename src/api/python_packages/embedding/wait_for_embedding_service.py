@@ -7,7 +7,7 @@ import asyncio
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-TEI_ENDPOINT = os.getenv("TEI_ENDPOINT", "http://tei_bge_m3:80")
+TEI_ENDPOINT = os.getenv("TEI_ENDPOINT", "http://tei:80")
 SERVICE_CHECK_INTERVAL = int(os.getenv("SERVICE_CHECK_INTERVAL", 5)) # seconds
 
 # *** 建議 1: 增加 Timeout ***
