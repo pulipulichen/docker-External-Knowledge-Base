@@ -3,7 +3,7 @@
 use_default_settings:
   engines:
     keep_only:
-      - duckduckgo
+      # - duckduckgo
       - google
       - bing
 
