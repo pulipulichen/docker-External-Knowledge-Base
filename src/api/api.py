@@ -18,6 +18,8 @@ from .python_packages.knowledge_base_config.knowledge_list import knowledge_list
 from .python_packages.upload_file.upload_file import upload_file_bp
 from .python_packages.update.update import update_bp
 from .python_packages.file_host.file_host import file_host_bp
+from .python_packages.search.search import search_bp
+from .python_packages.scrape.scrape import scrape_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -35,6 +37,8 @@ app.register_blueprint(knowledge_list_bp)
 app.register_blueprint(upload_file_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(file_host_bp)
+app.register_blueprint(search_bp)
+app.register_blueprint(scrape_bp)
 
 @app.route('/demo')
 def demo():
