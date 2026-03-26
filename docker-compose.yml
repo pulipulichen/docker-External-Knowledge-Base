@@ -6,6 +6,7 @@ services:
     volumes:
       - ./src/api:/app/api
       - ./knowledge_base:/app/knowledge_base
+      - ./src/searxng/settings.yml:/etc/searxng/settings.yml:ro
     tmpfs:
       - /tmp
     env_file:

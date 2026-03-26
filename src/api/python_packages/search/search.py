@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import yaml
 
 import requests
 from flask import Blueprint, Flask, jsonify, request
@@ -16,6 +17,23 @@ app = Flask(__name__)  # Keep a dummy app for local testing if __name__ == '__ma
 SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080").rstrip("/")
 SEARXNG_REQUEST_TIMEOUT = int(os.getenv("SEARXNG_REQUEST_TIMEOUT", "30"))
 
+# --- Load SearXNG Secret Key ---
+SEARXNG_SETTINGS_PATH = os.getenv("SEARXNG_SETTINGS_PATH", "/etc/searxng/settings.yml")
+SEARXNG_SECRET: str = os.getenv("SEARXNG_SECRET") or ""
+
+if not SEARXNG_SECRET and os.path.exists(SEARXNG_SETTINGS_PATH):
+    try:
+        with open(SEARXNG_SETTINGS_PATH, "r") as f:
+            _settings = yaml.safe_load(f)
+            SEARXNG_SECRET = _settings.get("server", {}).get("secret_key")
+            logging.debug(f"Loaded secret_key from {SEARXNG_SETTINGS_PATH}")
+    except Exception as _e:
+        logging.error(f"Failed to read SearXNG settings from {SEARXNG_SETTINGS_PATH}: {_e}")
+
+if not SEARXNG_SECRET:
+    # Fallback to default if everything else fails
+    SEARXNG_SECRET = "ultrasecretkey2ultrasecretkey"
+
 
 def _call_searxng(
     query: str,
@@ -27,7 +45,12 @@ def _call_searxng(
 ) -> tuple[int, dict]:
     """Call SearXNG JSON API synchronously (for use with asyncio.to_thread)."""
     endpoint = f"{SEARXNG_URL}/search"
-    params: dict[str, str] = {"q": query, "format": "json", "pageno": str(pageno)}
+    params: dict[str, str] = {
+        "q": query,
+        "format": "json",
+        "pageno": str(pageno),
+        "secret_key": SEARXNG_SECRET
+    }
     if categories:
         params["categories"] = categories
     if language:
