@@ -101,7 +101,7 @@ async def search_endpoint():
     if not isinstance(pageno, int) or pageno < 1:
         return jsonify({"error": "Field 'pageno' must be a positive integer"}), 400
 
-    safesearch = data.get("safesearch")
+    safesearch = data.get("safesearch", 1)
     if safesearch is not None and safesearch not in (0, 1, 2):
         return jsonify({"error": "Field 'safesearch' must be 0, 1, or 2 if provided"}), 400
 
