@@ -35,6 +35,6 @@ curl -X POST http://localhost:8080/scrape \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer <YOUR_API_KEY>" \
      -d '{
-       "url": "https://blog.pulipuli.info/2025/11/talk-deeply-felt-skypes-retirement.html"
+       "url": "https://www.bbc.com/news/articles/c747x7gz249o"
      }'
 ```
