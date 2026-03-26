@@ -8,4 +8,4 @@ use_default_settings:
       - bing
 
 server:
-  secret_key: "ultrasecretkey"
+  secret_key: "ultrasecretkey2ultrasecretkey"

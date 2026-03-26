@@ -10,3 +10,18 @@ rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_ba
   --vfs-read-wait 180s \
   --disable-http2
 ```
+
+# Usage Examples
+
+## Search API
+
+You can call the `/search` endpoint using `curl`:
+
+```bash
+curl -X POST http://localhost:8080/search \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -d '{
+       "query": "hello world"
+     }'
+```
