@@ -1,0 +1,9 @@
+[botdetection.ip_limit]
+activated = true
+max_requests = 2000
+window = 600
+block_duration = 86400
+
+[botdetection.captcha]
+# To use captcha, you need to configure a captchamapper
+# activated = false
