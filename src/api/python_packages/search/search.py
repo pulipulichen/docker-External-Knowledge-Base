@@ -62,7 +62,10 @@ def _call_searxng(
     if time_range:
         params["time_range"] = time_range
 
-    resp = requests.get(endpoint, params=params, timeout=SEARXNG_REQUEST_TIMEOUT)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()
     except ValueError:

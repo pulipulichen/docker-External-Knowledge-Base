@@ -9,3 +9,8 @@ use_default_settings:
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
+
+search:
+  formats:
+    - html
+    - json
