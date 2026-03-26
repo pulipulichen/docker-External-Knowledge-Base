@@ -49,7 +49,7 @@ async def scrape_endpoint():
     if not target_url or not isinstance(target_url, str):
         return jsonify({"error": "JSON body must include a string field 'url'"}), 400
 
-    content_type = data.get("contentType")
+    content_type = data.get("contentType", "markdown")
     if content_type is not None and not isinstance(content_type, str):
         return jsonify({"error": "Field 'contentType' must be a string"}), 400
 

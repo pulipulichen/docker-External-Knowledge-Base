@@ -165,7 +165,7 @@ services:
     environment:
       # 由專案根目錄 .env 做 Compose 變數替換即可，勿對 searxng 掛載整份 INI 風格 .env
       - SEARXNG_SECRET=${SEARXNG_SECRET:-ultrasecretkey2ultrasecretkey}
-      - SEARXNG_REDIS_URL=redis://redis:6379/1
+      - SEARXNG_VALKEY_URL=redis://redis:6379/1
     depends_on:
       - redis
     restart: unless-stopped
