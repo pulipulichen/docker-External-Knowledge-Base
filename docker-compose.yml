@@ -20,6 +20,10 @@ services:
         condition: service_started
       mcp_server:
         condition: service_started
+      mercury-parser:
+        condition: service_started
+      searxng:
+        condition: service_started
     networks:
       - docker_external_knowledge_base
     environment:
@@ -34,6 +38,12 @@ services:
       # 讓執行緒進入被動等待模式，不要佔用 CPU 空轉 (Spinning)
       # 這通常能解決 pthread_setaffinity_np 錯誤
       - OMP_WAIT_POLICY=PASSIVE
+      # Scrape (/scrape): Mercury Parser HTTP API (see .env.example)
+      - MERCURY_PARSER_URL=${MERCURY_PARSER_URL:-http://mercury-parser:3000}
+      - MERCURY_REQUEST_TIMEOUT=${MERCURY_REQUEST_TIMEOUT:-90}
+      # SearXNG (used by POST /search)
+      - SEARXNG_URL=${SEARXNG_URL:-http://searxng:8080}
+      - SEARXNG_REQUEST_TIMEOUT=${SEARXNG_REQUEST_TIMEOUT:-30}
 
   redis:
     image: "redis:7.0.12-alpine"
@@ -118,6 +128,8 @@ services:
     volumes:
       - ./src/mcp_server/mcp_server.py:/app/mcp_server.py
       - ./src/mcp_server/search_knowledge_base.py:/app/search_knowledge_base.py
+      - ./src/mcp_server/scrape_web_page.py:/app/scrape_web_page.py
+      - ./src/mcp_server/search_web.py:/app/search_web.py
       - ./knowledge_base/configs:/knowledge_base_configs
     networks:
       - docker_external_knowledge_base
@@ -137,14 +149,19 @@ services:
       resources:
         limits:
           memory: 512M
+    networks:
+      - docker_external_knowledge_base
 
   searxng:
     image: searxng/searxng:2026.3.25-fe1d6d9c4
     ports:
-      - "40001:8080"
+      # 避免與 tei 服務主機埠 40001 衝突
+      - "40002:8080"
     volumes:
       - "./searxng:/etc/searxng"
     restart: unless-stopped
+    networks:
+      - docker_external_knowledge_base
 
 volumes:
   redis_data:

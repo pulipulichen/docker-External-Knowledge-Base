@@ -10,6 +10,8 @@ from typing import Annotated
 from pydantic import Field  # 新增引用
 
 from search_knowledge_base import search_knowledge_base
+from scrape_web_page import scrape_web_page
+from search_web import search_web
 
 MCP_API_KEY=os.getenv("MCP_API_KEY")
 
@@ -112,6 +114,87 @@ for key, desc in knowledge_base_types:
     mcp.tool()(tool_func)
 
     print(f"已註冊工具: {tool_func.__name__}")
+
+# ===========================
+
+
+def scrape_web_page_tool(
+    url: Annotated[
+        str,
+        Field(
+            description="要擷取主要內容的網頁 URL（文章、新聞、部落格等）",
+        ),
+    ],
+    content_type: Annotated[
+        str | None,
+        Field(
+            description="選填：傳給 Mercury Parser 的 contentType 查詢參數",
+        ),
+    ] = None,
+    headers: Annotated[
+        str | None,
+        Field(
+            description="選填：URL 編碼後的 HTTP headers 字串（見 mercury-parser API 文件）",
+        ),
+    ] = None,
+) -> str:
+    """使用 Mercury Parser 擷取網頁主要內容（標題、正文 HTML、摘要等），適合閱讀與後續引用。"""
+    return scrape_web_page(url, content_type, headers)
+
+
+scrape_web_page_tool.__name__ = "scrape_web_page"
+mcp.tool()(scrape_web_page_tool)
+print(f"已註冊工具: {scrape_web_page_tool.__name__}")
+
+# ===========================
+
+
+def search_web_tool(
+    query: Annotated[
+        str,
+        Field(description="網路搜尋關鍵字或完整問句"),
+    ],
+    categories: Annotated[
+        str | None,
+        Field(
+            description="選填：SearXNG 分類（例如 general、images、news）",
+        ),
+    ] = None,
+    language: Annotated[
+        str | None,
+        Field(
+            description="選填：語言代碼（例如 zh-TW、en）",
+        ),
+    ] = None,
+    pageno: Annotated[
+        int,
+        Field(description="結果頁碼，從 1 開始"),
+    ] = 1,
+    safesearch: Annotated[
+        int | None,
+        Field(description="選填：安全搜尋 0=關、1=中、2=嚴格"),
+    ] = None,
+    time_range: Annotated[
+        str | None,
+        Field(
+            description="選填：時間範圍（例如 day、week、month、year）",
+        ),
+    ] = None,
+) -> str:
+    """透過 SearXNG 搜尋公開網頁，取得標題、URL、摘要等結果。"""
+    return search_web(
+        query,
+        categories=categories,
+        language=language,
+        pageno=pageno,
+        safesearch=safesearch,
+        time_range=time_range,
+    )
+
+
+search_web_tool.__name__ = "search_web"
+mcp.tool()(search_web_tool)
+print(f"已註冊工具: {search_web_tool.__name__}")
 
 # ===========================
 
