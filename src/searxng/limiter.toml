@@ -7,3 +7,5 @@ block_duration = 86400
 [botdetection.captcha]
 # To use captcha, you need to configure a captchamapper
 # activated = false
+
+# test
