@@ -6,12 +6,11 @@ use_default_settings:
       # - duckduckgo
       # - google
       # - bing
-      - google_news
+      - googlenews
     
 engines:
-  - name: google_news
-    engine: google_news
-    shortcut: gon
+  - name: googlenews
+    engine: googlenews
     disabled: false
 
 server:
