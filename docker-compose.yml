@@ -76,7 +76,7 @@ services:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.3
     environment:
       - MODEL_ID=google/embeddinggemma-300m
-      # ...
+      - HF_TOKEN=${HF_TOKEN}
     restart: on-failure
     ports:
       - 40001:80
