@@ -4,8 +4,10 @@ use_default_settings:
   engines:
     keep_only:
       # - duckduckgo
-      - google
-      - bing
+      # - google
+      # - bing
+      - google_news
+    
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
