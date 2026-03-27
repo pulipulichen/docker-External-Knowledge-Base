@@ -8,6 +8,11 @@ use_default_settings:
       # - bing
       - google_news
     
+engines:
+  - name: google_news
+    engine: google_news
+    shortcut: gon
+    disabled: false
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
