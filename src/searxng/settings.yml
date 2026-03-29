@@ -19,7 +19,7 @@ search:
 server:
   port: 8080
   bind_address: "0.0.0.0"
-  secret_key: "CHANGE_ME_RANDOM_STRING_CHANGE_ME_RANDOM_STRING"
+  secret_key: "ultrasecretkey2ultrasecretkey"
   limiter: true  # 防止你被濫用（建議開）
 
 ui:
