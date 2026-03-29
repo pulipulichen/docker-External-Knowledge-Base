@@ -6,7 +6,7 @@ use_default_settings:
       # - duckduckgo
       #- googlenews
       # - googlenews
-      - google
+      - google news rss
     
 # engines:
 #   - name: googlenews
@@ -22,13 +22,14 @@ search:
     - json
 
 engines:
-
-  # --- Google News（主力） ---
-  - name: googlenews
-    engine: google_news
-    shortcut: gon
-    timeout: 8.0
-    disabled: false
+  - name: google news rss
+    engine: rss
+    shortcut: gnrss
+    categories:
+      - news
+    paging: false
+    timeout: 6.0
+    url: https://news.google.com/rss/search?q={query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
 
 outgoing:
   request_timeout: 10.0
