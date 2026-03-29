@@ -5,8 +5,8 @@ use_default_settings:
     keep_only:
       # - duckduckgo
       #- googlenews
-      # - googlenews
-      - google
+      - googlenews
+      # - google
     
 # engines:
 #   - name: googlenews
