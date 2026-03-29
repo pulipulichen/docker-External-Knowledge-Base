@@ -82,10 +82,10 @@ def _call_searxng(
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
-    if client_ip:
-        # SearXNG 會檢查 X-Forwarded-For / X-Real-IP；本 API 在容器內直連時需主動帶上終端使用者 IP
-        headers["X-Real-IP"] = client_ip
-        headers["X-Forwarded-For"] = client_ip
+    # limiter.toml 將 Docker 網段視為 trusted proxy 時，SearXNG 要求一定要有這兩個 header
+    effective_ip = client_ip or "127.0.0.1"
+    headers["X-Real-IP"] = effective_ip
+    headers["X-Forwarded-For"] = effective_ip
     resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()

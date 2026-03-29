@@ -65,10 +65,13 @@ services:
     restart: on-failure
     ports:
       - "8080:80"
+      # SearXNG Web UI：經由此埠連線才會帶 X-Forwarded-For / X-Real-IP，符合 botdetection
+      - "40002:40002"
     volumes:
       - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
+      - searxng
     networks:
       - docker_external_knowledge_base
 
@@ -157,9 +160,9 @@ services:
   # 可選環境變數 SEARXNG_SECRET 覆寫 server.secret_key，見 .env.example。
   searxng:
     image: searxng/searxng:2026.3.25-fe1d6d9c4
-    ports:
-      # 避免與 tei 服務主機埠 40001 衝突
-      - "40002:8080"
+    # 僅內部連線；對外請用 nginx:40002 → 會補齊 X-Forwarded-For / X-Real-IP
+    expose:
+      - "8080"
     volumes:
       - "./src/searxng:/etc/searxng"
     environment:

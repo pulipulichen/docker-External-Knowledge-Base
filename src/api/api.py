@@ -20,6 +20,7 @@ from .python_packages.update.update import update_bp
 from .python_packages.file_host.file_host import file_host_bp
 from .python_packages.search.search import search_bp
 from .python_packages.scrape.scrape import scrape_bp
+from .python_packages.news.news import news_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -39,6 +40,7 @@ app.register_blueprint(update_bp)
 app.register_blueprint(file_host_bp)
 app.register_blueprint(search_bp)
 app.register_blueprint(scrape_bp)
+app.register_blueprint(news_bp)
 
 @app.route('/demo')
 def demo():

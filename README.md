@@ -39,4 +39,51 @@ curl -X POST http://localhost:8080/scrape \
      }'
 ```
 
+## News API
+
+`POST /news` fetches [Google News RSS search](https://news.google.com/rss/search) for the given parameters, converts the feed to **Markdown**, and returns it as JSON. The upstream request sends the client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them (same idea as `/search`).
+
+**Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as other API routes.
+
+**JSON body**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `query` | Yes | Search keywords. |
+| `hl` | No | UI / feed language (default: `zh-TW`). |
+| `gl` | No | Region code (default: `TW`). |
+| `ceid` | No | Google News `ceid` (default: `TW:zh-Hant`). |
+
+**Successful response (200)**
+
+- `markdown` (string): RSS content rendered as Markdown.
+- `cached` (boolean): `true` if served from Redis, `false` if freshly fetched from Google.
+
+Errors use the usual JSON `error` / `detail` fields (e.g. 401, 400, 502, 504).
+
+**Caching:** Results are stored in Redis under keys prefixed with `news:rss:`, keyed by `(query, hl, gl, ceid)`. TTL defaults to **24 hours**; override with `NEWS_CACHE_TTL_SECONDS`. Connection uses the same `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` as the rest of the API. Optional: `NEWS_REQUEST_TIMEOUT` (seconds, default `30`) for the Google RSS HTTP call.
+
+Example with `curl`:
+
+```bash
+curl -X POST http://localhost:8080/news \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -d '{
+       "query": "climate",
+       "hl": "zh-TW",
+       "gl": "TW",
+       "ceid": "TW:zh-Hant"
+     }'
+```
+
+Minimal body (defaults for `hl` / `gl` / `ceid`):
+
+```bash
+curl -X POST http://localhost:8080/news \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -d '{"query": "柯文哲"}'
+```
+
 
