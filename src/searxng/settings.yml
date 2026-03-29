@@ -30,14 +30,6 @@ engines:
     timeout: 8.0
     disabled: false
 
-# 防止被 abuse（你做 API 很重要）
-limiter:
-  real_ip:
-    header: X-Forwarded-For
-  rate_limit:
-    ip_limit: 5
-    ip_window: 10
-
 outgoing:
   request_timeout: 10.0
 
