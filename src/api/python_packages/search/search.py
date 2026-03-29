@@ -35,6 +35,22 @@ if not SEARXNG_SECRET:
     SEARXNG_SECRET = "ultrasecretkey2ultrasecretkey"
 
 
+def _client_ip_from_request(req) -> str | None:
+    """Upstream reverse proxy 常見會帶 X-Forwarded-For / X-Real-IP；否則用 Flask 看到的 remote_addr。"""
+    xff = req.headers.get("X-Forwarded-For")
+    if xff:
+        first = xff.split(",")[0].strip()
+        if first:
+            return first
+    xri = req.headers.get("X-Real-IP")
+    if xri:
+        s = xri.strip()
+        if s:
+            return s
+    ra = req.remote_addr
+    return ra if ra else None
+
+
 def _call_searxng(
     query: str,
     categories: str | None,
@@ -42,6 +58,7 @@ def _call_searxng(
     pageno: int,
     safesearch: int | None,
     time_range: str | None,
+    client_ip: str | None = None,
 ) -> tuple[int, dict]:
     """Call SearXNG JSON API synchronously (for use with asyncio.to_thread)."""
     endpoint = f"{SEARXNG_URL}/search"
@@ -65,6 +82,10 @@ def _call_searxng(
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
+    if client_ip:
+        # SearXNG 會檢查 X-Forwarded-For / X-Real-IP；本 API 在容器內直連時需主動帶上終端使用者 IP
+        headers["X-Real-IP"] = client_ip
+        headers["X-Forwarded-For"] = client_ip
     resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()
@@ -109,6 +130,8 @@ async def search_endpoint():
     if time_range is not None and not isinstance(time_range, str):
         return jsonify({"error": "Field 'time_range' must be a string"}), 400
 
+    client_ip = _client_ip_from_request(request)
+
     try:
         status, results = await asyncio.to_thread(
             _call_searxng,
@@ -118,6 +141,7 @@ async def search_endpoint():
             pageno,
             safesearch,
             time_range,
+            client_ip,
         )
     except requests.exceptions.Timeout:
         return jsonify({"error": "searxng request timed out"}), 504
