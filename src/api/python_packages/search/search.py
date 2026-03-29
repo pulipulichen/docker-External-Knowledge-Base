@@ -149,6 +149,9 @@ async def search_endpoint():
         logging.exception("searxng request failed")
         return jsonify({"error": "Failed to reach searxng", "detail": str(e)}), 502
 
+    if results is None:
+        return jsonify({"error": "searxng returned None"}), 500
+
     if status != 200:
         logging.exception("other fails:" + str(results))
         return jsonify(results), status
