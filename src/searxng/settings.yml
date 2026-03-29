@@ -14,6 +14,7 @@ use_default_settings:
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
+  limiter: true  # 防止你被濫用（建議開）
 
 search:
   formats:
@@ -36,3 +37,10 @@ limiter:
   rate_limit:
     ip_limit: 5
     ip_window: 10
+
+outgoing:
+  request_timeout: 10.0
+
+  # 關鍵：避免被 Google 擋
+  headers:
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
