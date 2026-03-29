@@ -31,6 +31,16 @@ verifier = StaticTokenVerifier(
 mcp = FastMCP(name="external-knowledge-base", auth=verifier)
 
 # ===========================
+# Gemini function-calling rejects JSON Schema anyOf/null unions (e.g. str | None).
+# Use plain str/int here and map sentinels to None when calling API helpers.
+
+
+def _optional_str(value: str) -> str | None:
+    s = value.strip()
+    return s if s else None
+
+
+# ===========================
 
 
 def load_knowledge_base_configs(directory):
@@ -119,20 +129,20 @@ def scrape_web_page_tool(
         ),
     ],
     content_type: Annotated[
-        str | None,
-        Field(
-            description="Optional contentType query parameter for Mercury Parser",
-        ),
-    ] = None,
+        str,
+        Field(description="Optional contentType for Mercury Parser; leave empty to omit"),
+    ] = "",
     headers: Annotated[
-        str | None,
+        str,
         Field(
-            description="Optional URL-encoded HTTP headers string (see mercury-parser API docs)",
+            description="Optional URL-encoded HTTP headers (mercury-parser API); leave empty to omit",
         ),
-    ] = None,
+    ] = "",
 ) -> str:
     """Extract main readable content (title, article HTML, excerpt, etc.) via Mercury Parser."""
-    return scrape_web_page(url, content_type, headers)
+    return scrape_web_page(
+        url, _optional_str(content_type), _optional_str(headers)
+    )
 
 
 scrape_web_page_tool.__name__ = "scrape_web_page"
@@ -148,40 +158,42 @@ def search_web_tool(
         Field(description="Web search keywords or a full question"),
     ],
     categories: Annotated[
-        str | None,
+        str,
         Field(
-            description="Optional SearXNG category (e.g. general, images, news)",
+            description="Optional SearXNG category (e.g. general, images, news); empty to omit",
         ),
-    ] = None,
+    ] = "",
     language: Annotated[
-        str | None,
-        Field(
-            description="Optional language code (e.g. zh-TW, en)",
-        ),
-    ] = None,
+        str,
+        Field(description="Optional language code (e.g. zh-TW, en); empty to omit"),
+    ] = "",
     pageno: Annotated[
         int,
         Field(description="Result page number, starting at 1"),
     ] = 1,
     safesearch: Annotated[
-        int | None,
-        Field(description="Optional safe search: 0 off, 1 moderate, 2 strict"),
-    ] = None,
-    time_range: Annotated[
-        str | None,
+        int,
         Field(
-            description="Optional time range (e.g. day, week, month, year)",
+            description=(
+                "Safe search: 0 off, 1 moderate, 2 strict; use -1 to omit (default)"
+            ),
         ),
-    ] = None,
+    ] = -1,
+    time_range: Annotated[
+        str,
+        Field(
+            description="Optional time range (e.g. day, week, month, year); empty to omit",
+        ),
+    ] = "",
 ) -> str:
     """Search the public web via SearXNG; returns titles, URLs, snippets, etc."""
     return search_web(
         query,
-        categories=categories,
-        language=language,
+        categories=_optional_str(categories),
+        language=_optional_str(language),
         pageno=pageno,
-        safesearch=safesearch,
-        time_range=time_range,
+        safesearch=safesearch if safesearch >= 0 else None,
+        time_range=_optional_str(time_range),
     )
 
 
@@ -198,26 +210,31 @@ def search_news_tool(
         Field(description="News search keywords or topic (Google News RSS)"),
     ],
     hl: Annotated[
-        str | None,
+        str,
         Field(
-            description="Optional feed language (default on API: zh-TW), e.g. en-US",
+            description="Optional feed language (API default zh-TW), e.g. en-US; empty to omit",
         ),
-    ] = None,
+    ] = "",
     gl: Annotated[
-        str | None,
+        str,
         Field(
-            description="Optional region code (default on API: TW), e.g. US",
+            description="Optional region code (API default TW), e.g. US; empty to omit",
         ),
-    ] = None,
+    ] = "",
     ceid: Annotated[
-        str | None,
+        str,
         Field(
-            description="Optional Google News ceid (default on API: TW:zh-Hant)",
+            description="Optional Google News ceid (API default TW:zh-Hant); empty to omit",
         ),
-    ] = None,
+    ] = "",
 ) -> str:
     """Fetch Google News as a JSON array of items (title, link, pubDate, description); description is Markdown without links."""
-    return search_news(query, hl=hl, gl=gl, ceid=ceid)
+    return search_news(
+        query,
+        hl=_optional_str(hl),
+        gl=_optional_str(gl),
+        ceid=_optional_str(ceid),
+    )
 
 
 search_news_tool.__name__ = "search_news"
