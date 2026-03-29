@@ -24,13 +24,21 @@ search:
 
 engines:
   - name: google news rss
-    engine: rss
+    engine: xpath  # 關鍵修正：使用 xpath 引擎來處理 RSS/XML
     shortcut: gnrss
     categories:
       - news
     paging: false
     timeout: 6.0
-    url: https://news.google.com/rss/search?q={query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
+    # 使用 base_url 並配合 search_url
+    base_url: https://news.google.com/rss/search?q={query}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant
+    # RSS 典型的 XPath 配置
+    search_url: ""
+    results_xpath: '//item'
+    title_xpath: './title/text()'
+    url_xpath: './link/text()'
+    content_xpath: './description/text()'
+    publishedDate_xpath: './pubDate/text()'
 
 outgoing:
   request_timeout: 10.0
