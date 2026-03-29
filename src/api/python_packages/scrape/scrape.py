@@ -1,9 +1,11 @@
 import asyncio
 import logging
 import os
+from urllib.parse import urlparse
 
 import requests
 from flask import Blueprint, Flask, jsonify, request
+from googlenewsdecoder import gnewsdecoder
 
 from ..auth.check_auth import check_auth  # Import check_auth from the new auth module
 
@@ -17,6 +19,21 @@ USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
 
 MERCURY_PARSER_URL = os.getenv("MERCURY_PARSER_URL", "http://mercury-parser:3000").rstrip("/")
 MERCURY_REQUEST_TIMEOUT = int(os.getenv("MERCURY_REQUEST_TIMEOUT", "90"))
+
+
+def _resolve_google_news_article_url(url: str) -> str:
+    """Turn news.google.com article wrapper URLs into the publisher URL (Mercury cannot follow JS redirects)."""
+    host = (urlparse(url).hostname or "").lower()
+    if host != "news.google.com":
+        return url
+    try:
+        out = gnewsdecoder(url, interval=0)
+        if out.get("status") and isinstance(out.get("decoded_url"), str):
+            return out["decoded_url"]
+        logging.warning("Google News decode failed for scrape url: %s — %s", url, out)
+    except Exception:
+        logging.exception("Google News decode raised for scrape url: %s", url)
+    return url
 
 
 def _call_mercury_parser(url: str, content_type: str | None, headers: str | None) -> tuple[int, dict]:
@@ -59,13 +76,12 @@ async def scrape_endpoint():
             "error": "Field 'headers' must be a URL-encoded string (see mercury-parser API docs)",
         }), 400
 
+    def _scrape_with_resolved_url() -> tuple[int, dict]:
+        resolved = _resolve_google_news_article_url(target_url)
+        return _call_mercury_parser(resolved, content_type, headers_param)
+
     try:
-        status, results = await asyncio.to_thread(
-            _call_mercury_parser,
-            target_url,
-            content_type,
-            headers_param,
-        )
+        status, results = await asyncio.to_thread(_scrape_with_resolved_url)
     except requests.exceptions.Timeout:
         return jsonify({"error": "mercury-parser request timed out"}), 504
     except requests.exceptions.RequestException as e:
