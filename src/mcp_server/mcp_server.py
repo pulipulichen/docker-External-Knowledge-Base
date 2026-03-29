@@ -11,6 +11,7 @@ from typing import Annotated
 
 from search_knowledge_base import search_knowledge_base
 from scrape_web_page import scrape_web_page
+from search_news import search_news
 from search_web import search_web
 
 MCP_API_KEY = os.getenv("MCP_API_KEY")
@@ -187,6 +188,41 @@ def search_web_tool(
 search_web_tool.__name__ = "search_web"
 mcp.tool()(search_web_tool)
 print(f"Registered tool: {search_web_tool.__name__}")
+
+# ===========================
+
+
+def search_news_tool(
+    query: Annotated[
+        str,
+        Field(description="News search keywords or topic (Google News RSS)"),
+    ],
+    hl: Annotated[
+        str | None,
+        Field(
+            description="Optional feed language (default on API: zh-TW), e.g. en-US",
+        ),
+    ] = None,
+    gl: Annotated[
+        str | None,
+        Field(
+            description="Optional region code (default on API: TW), e.g. US",
+        ),
+    ] = None,
+    ceid: Annotated[
+        str | None,
+        Field(
+            description="Optional Google News ceid (default on API: TW:zh-Hant)",
+        ),
+    ] = None,
+) -> str:
+    """Fetch Google News headlines/snippets for a query; returns Markdown text (and cache metadata) as JSON."""
+    return search_news(query, hl=hl, gl=gl, ceid=ceid)
+
+
+search_news_tool.__name__ = "search_news"
+mcp.tool()(search_news_tool)
+print(f"Registered tool: {search_news_tool.__name__}")
 
 # ===========================
 

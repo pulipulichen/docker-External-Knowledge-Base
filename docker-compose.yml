@@ -134,6 +134,7 @@ services:
       - ./src/mcp_server/search_knowledge_base.py:/app/search_knowledge_base.py
       - ./src/mcp_server/scrape_web_page.py:/app/scrape_web_page.py
       - ./src/mcp_server/search_web.py:/app/search_web.py
+      - ./src/mcp_server/search_news.py:/app/search_news.py
       - ./knowledge_base/configs:/knowledge_base_configs
     networks:
       - docker_external_knowledge_base
