@@ -4,7 +4,7 @@ use_default_settings:
   engines:
     keep_only:
       # - duckduckgo
-      - google_news
+      - googlenews
       # - googlenews
     
 # engines:
@@ -23,7 +23,7 @@ search:
 engines:
 
   # --- Google News（主力） ---
-  - name: google_news
+  - name: googlenews
     engine: google_news
     shortcut: gon
     timeout: 8.0
