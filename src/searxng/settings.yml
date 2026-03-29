@@ -6,6 +6,7 @@ use_default_settings:
       # - duckduckgo
       #- googlenews
       # - googlenews
+      # - google
       - google news rss
     
 # engines:
