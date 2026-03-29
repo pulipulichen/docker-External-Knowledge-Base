@@ -160,8 +160,8 @@ services:
     ports:
       # 避免與 tei 服務主機埠 40001 衝突
       - "40002:8080"
-    volumes:
-      - "./src/searxng:/etc/searxng"
+    # volumes:
+    #   - "./src/searxng:/etc/searxng"
     environment:
       # 由專案根目錄 .env 做 Compose 變數替換即可，勿對 searxng 掛載整份 INI 風格 .env
       - SEARXNG_SECRET=${SEARXNG_SECRET:-ultrasecretkey2ultrasecretkey}
