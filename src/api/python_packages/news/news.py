@@ -149,56 +149,12 @@ def _description_html_to_markdown_no_links(raw: str | None) -> str:
     return s
 
 
-def _channel_image_to_dict(image_el: ET.Element | None) -> dict[str, str] | None:
-    if image_el is None:
-        return None
-    out: dict[str, str] = {}
-    for child in image_el:
-        tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
-        if child.text:
-            out[tag] = child.text.strip()
-    return out or None
-
-
-def _guid_to_dict(guid_el: ET.Element | None) -> dict[str, str] | None:
-    if guid_el is None:
-        return None
-    text = (guid_el.text or "").strip()
-    perm = guid_el.get("isPermaLink")
-    d: dict[str, str] = {}
-    if text:
-        d["#text"] = text
-    if perm is not None:
-        d["isPermaLink"] = perm
-    return d or None
-
-
-def _parse_rss_like_payload(xml_bytes: bytes) -> dict:
-    """解析 RSS 2.0，回傳與 feed 結構對應的 JSON 物件（channel + 多筆 item）。"""
+def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
+    """解析 RSS 2.0，回傳 item 陣列（不含 guid）。"""
     root = ET.fromstring(xml_bytes)
     channel_el = root.find("channel")
     if channel_el is None:
-        return {"channel": {}, "items": []}
-
-    ch: dict = {}
-    simple_tags = (
-        "generator",
-        "title",
-        "link",
-        "language",
-        "webMaster",
-        "copyright",
-        "lastBuildDate",
-        "description",
-    )
-    for t in simple_tags:
-        el = channel_el.find(t)
-        if el is not None and el.text is not None:
-            ch[t] = el.text.strip()
-
-    img = _channel_image_to_dict(channel_el.find("image"))
-    if img:
-        ch["image"] = img
+        return []
 
     items_out: list[dict] = []
     for item in channel_el.findall("item"):
@@ -207,15 +163,12 @@ def _parse_rss_like_payload(xml_bytes: bytes) -> dict:
             el = item.find(t)
             if el is not None and el.text is not None:
                 entry[t] = el.text.strip()
-        g = _guid_to_dict(item.find("guid"))
-        if g:
-            entry["guid"] = g
         desc_el = item.find("description")
         raw_desc = desc_el.text if desc_el is not None else None
         entry["description"] = _description_html_to_markdown_no_links(raw_desc)
         items_out.append(entry)
 
-    return {"channel": ch, "items": items_out}
+    return items_out
 
 
 def _fetch_google_news_rss(
@@ -224,7 +177,7 @@ def _fetch_google_news_rss(
     gl: str,
     ceid: str,
     client_ip: str | None,
-) -> tuple[int, dict | str]:
+) -> tuple[int, list[dict] | str]:
     params = {"q": query, "hl": hl, "gl": gl, "ceid": ceid}
     headers = {
         "User-Agent": (
@@ -251,7 +204,7 @@ def _fetch_google_news_rss(
         return 502, "Google News 回應不是有效的 RSS/XML"
 
     try:
-        payload = _parse_rss_like_payload(resp.content)
+        payload = _parse_rss_items(resp.content)
     except ET.ParseError as e:
         return 502, f"無法解析 RSS：{e}"
 
@@ -282,8 +235,8 @@ async def news_endpoint():
     if cached_raw is not None:
         try:
             body = json.loads(cached_raw)
-            if isinstance(body, dict) and isinstance(body.get("items"), list):
-                return jsonify({"cached": True, **body})
+            if isinstance(body, list):
+                return jsonify(body)
         except json.JSONDecodeError:
             pass
 
@@ -307,12 +260,8 @@ async def news_endpoint():
     if status != 200:
         return jsonify({"error": "Google News RSS error", "detail": payload}), status
 
-    assert isinstance(payload, dict)
-    cache_str = json.dumps(
-        {"channel": payload.get("channel", {}), "items": payload.get("items", [])},
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
+    assert isinstance(payload, list)
+    cache_str = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     _news_cache_set(q, h, g, c, cache_str)
 
-    return jsonify({"cached": False, **payload})
+    return jsonify(payload)

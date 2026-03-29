@@ -36,9 +36,7 @@ def search_news(
         response = requests.post(url, headers=headers, json=payload, timeout=90)
         response.raise_for_status()
         result = response.json()
-        print("News search succeeded; response summary:")
-        n = len(result.get("items") or [])
-        print(json.dumps({"cached": result.get("cached"), "item_count": n}, ensure_ascii=False))
+        print("News search succeeded; item_count:", len(result) if isinstance(result, list) else 0)
         return json.dumps(result, ensure_ascii=False)
 
     except requests.exceptions.RequestException as e:
