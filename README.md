@@ -41,7 +41,7 @@ curl -X POST http://localhost:8080/scrape \
 
 ## News API
 
-`POST /news` fetches [Google News RSS search](https://news.google.com/rss/search) for the given parameters, converts the feed to **Markdown**, and returns it as JSON. The upstream request sends the client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them (same idea as `/search`).
+`POST /news` fetches [Google News RSS search](https://news.google.com/rss/search) and returns JSON shaped like the RSS feed: a **`channel`** object (title, link, language, lastBuildDate, `image`, etc.) and an **`items`** array. Each item includes `title`, `link`, `pubDate`, optional `guid`, and **`description`**: the original HTML description is turned into **Markdown** (numbered list when Google uses `<ol><li>…`), with **all hyperlinks removed** (anchor text kept; bare URLs stripped). Other fields keep RSS URLs as in the source feed. The upstream request sends the client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them (same idea as `/search`).
 
 **Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as other API routes.
 
@@ -56,7 +56,8 @@ curl -X POST http://localhost:8080/scrape \
 
 **Successful response (200)**
 
-- `markdown` (string): RSS content rendered as Markdown.
+- `channel` (object): RSS `<channel>` fields (e.g. `title`, `link`, `language`, `lastBuildDate`, `description`, `image`).
+- `items` (array): one object per RSS `<item>`; `description` is Markdown without links as described above.
 - `cached` (boolean): `true` if served from Redis, `false` if freshly fetched from Google.
 
 Errors use the usual JSON `error` / `detail` fields (e.g. 401, 400, 502, 504).

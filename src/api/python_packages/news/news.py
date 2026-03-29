@@ -80,61 +80,142 @@ def _news_cache_get(q: str, h: str, g: str, c: str) -> str | None:
         return None
 
 
-def _news_cache_set(q: str, h: str, g: str, c: str, markdown: str) -> None:
+def _news_cache_set(q: str, h: str, g: str, c: str, payload_json: str) -> None:
     r = _get_news_redis()
     if not r:
         return
     key = _news_redis_cache_key(q, h, g, c)
     try:
-        r.setex(key, NEWS_CACHE_TTL_SECONDS, markdown)
+        r.setex(key, NEWS_CACHE_TTL_SECONDS, payload_json)
     except redis.exceptions.RedisError as e:
         logger.warning("News cache set failed: %s", e)
 
 
-def _strip_html(text: str | None) -> str:
-    if not text:
+def _unwrap_anchor_tags(s: str) -> str:
+    """移除 <a>…</a>，只保留內文（可巢狀多次）。"""
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(
+            r"<a\b[^>]*>(.*?)</a>",
+            r"\1",
+            s,
+            count=1,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+    return s
+
+
+def _remove_urls_from_text(s: str) -> str:
+    return re.sub(r"https?://\S+", "", s)
+
+
+def _li_inner_to_plain(fragment: str) -> str:
+    fragment = re.sub(
+        r"<font\b[^>]*>(.*?)</font>",
+        r" \1 ",
+        fragment,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    fragment = re.sub(r"<[^>]+>", " ", fragment)
+    fragment = html.unescape(fragment)
+    return " ".join(fragment.split())
+
+
+def _description_html_to_markdown_no_links(raw: str | None) -> str:
+    """
+    Google News 的 <description> 常為 HTML（如 ol/li + a + font）。
+    轉成 Markdown 編號列表，並移除所有超連結（含裸 URL）。
+    """
+    if not raw:
         return ""
-    t = re.sub(r"<[^>]+>", " ", text)
-    t = html.unescape(t)
-    return " ".join(t.split())
+    s = html.unescape(raw)
+    s = _unwrap_anchor_tags(s)
+    s = _remove_urls_from_text(s)
 
-
-def _rss_to_markdown(xml_bytes: bytes) -> str:
-    root = ET.fromstring(xml_bytes)
-    channel = root.find("channel")
-    if channel is None:
-        return ""
-
-    ch_title = (channel.findtext("title") or "").strip()
-    ch_link = (channel.findtext("link") or "").strip()
     lines: list[str] = []
+    for m in re.finditer(r"<li\b[^>]*>(.*?)</li>", s, re.DOTALL | re.IGNORECASE):
+        line = _li_inner_to_plain(m.group(1))
+        if line:
+            lines.append(line)
 
-    if ch_title:
-        lines.append(f"# {ch_title}")
-    if ch_link:
-        lines.append(f"")
-        lines.append(f"來源：<{ch_link}>")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
+    if lines:
+        return "\n".join(f"{i}. {t}" for i, t in enumerate(lines, start=1))
 
-    items = channel.findall("item")
-    for i, item in enumerate(items, start=1):
-        title = (item.findtext("title") or "").strip()
-        link = (item.findtext("link") or "").strip()
-        pub = (item.findtext("pubDate") or "").strip()
-        desc = _strip_html(item.findtext("description"))
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = html.unescape(s)
+    s = _remove_urls_from_text(s)
+    s = " ".join(s.split())
+    return s
 
-        lines.append(f"## {i}. {title or '(無標題)'}")
-        if link:
-            lines.append(f"- [閱讀全文]({link})")
-        if pub:
-            lines.append(f"- 發布時間：{pub}")
-        if desc:
-            lines.append(f"- 摘要：{desc}")
-        lines.append("")
 
-    return "\n".join(lines).rstrip() + "\n"
+def _channel_image_to_dict(image_el: ET.Element | None) -> dict[str, str] | None:
+    if image_el is None:
+        return None
+    out: dict[str, str] = {}
+    for child in image_el:
+        tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+        if child.text:
+            out[tag] = child.text.strip()
+    return out or None
+
+
+def _guid_to_dict(guid_el: ET.Element | None) -> dict[str, str] | None:
+    if guid_el is None:
+        return None
+    text = (guid_el.text or "").strip()
+    perm = guid_el.get("isPermaLink")
+    d: dict[str, str] = {}
+    if text:
+        d["#text"] = text
+    if perm is not None:
+        d["isPermaLink"] = perm
+    return d or None
+
+
+def _parse_rss_like_payload(xml_bytes: bytes) -> dict:
+    """解析 RSS 2.0，回傳與 feed 結構對應的 JSON 物件（channel + 多筆 item）。"""
+    root = ET.fromstring(xml_bytes)
+    channel_el = root.find("channel")
+    if channel_el is None:
+        return {"channel": {}, "items": []}
+
+    ch: dict = {}
+    simple_tags = (
+        "generator",
+        "title",
+        "link",
+        "language",
+        "webMaster",
+        "copyright",
+        "lastBuildDate",
+        "description",
+    )
+    for t in simple_tags:
+        el = channel_el.find(t)
+        if el is not None and el.text is not None:
+            ch[t] = el.text.strip()
+
+    img = _channel_image_to_dict(channel_el.find("image"))
+    if img:
+        ch["image"] = img
+
+    items_out: list[dict] = []
+    for item in channel_el.findall("item"):
+        entry: dict = {}
+        for t in ("title", "link", "pubDate"):
+            el = item.find(t)
+            if el is not None and el.text is not None:
+                entry[t] = el.text.strip()
+        g = _guid_to_dict(item.find("guid"))
+        if g:
+            entry["guid"] = g
+        desc_el = item.find("description")
+        raw_desc = desc_el.text if desc_el is not None else None
+        entry["description"] = _description_html_to_markdown_no_links(raw_desc)
+        items_out.append(entry)
+
+    return {"channel": ch, "items": items_out}
 
 
 def _fetch_google_news_rss(
@@ -143,7 +224,7 @@ def _fetch_google_news_rss(
     gl: str,
     ceid: str,
     client_ip: str | None,
-) -> tuple[int, str]:
+) -> tuple[int, dict | str]:
     params = {"q": query, "hl": hl, "gl": gl, "ceid": ceid}
     headers = {
         "User-Agent": (
@@ -170,11 +251,11 @@ def _fetch_google_news_rss(
         return 502, "Google News 回應不是有效的 RSS/XML"
 
     try:
-        md = _rss_to_markdown(resp.content)
+        payload = _parse_rss_like_payload(resp.content)
     except ET.ParseError as e:
         return 502, f"無法解析 RSS：{e}"
 
-    return 200, md
+    return 200, payload
 
 
 @news_bp.route("/news", methods=["POST"])
@@ -197,9 +278,14 @@ async def news_endpoint():
 
     q, h, g, c = query.strip(), hl.strip(), gl.strip(), ceid.strip()
 
-    cached_md = _news_cache_get(q, h, g, c)
-    if cached_md is not None:
-        return jsonify({"markdown": cached_md, "cached": True})
+    cached_raw = _news_cache_get(q, h, g, c)
+    if cached_raw is not None:
+        try:
+            body = json.loads(cached_raw)
+            if isinstance(body, dict) and isinstance(body.get("items"), list):
+                return jsonify({"cached": True, **body})
+        except json.JSONDecodeError:
+            pass
 
     client_ip = _client_ip_from_request(request)
 
@@ -221,5 +307,12 @@ async def news_endpoint():
     if status != 200:
         return jsonify({"error": "Google News RSS error", "detail": payload}), status
 
-    _news_cache_set(q, h, g, c, payload)
-    return jsonify({"markdown": payload, "cached": False})
+    assert isinstance(payload, dict)
+    cache_str = json.dumps(
+        {"channel": payload.get("channel", {}), "items": payload.get("items", [])},
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    _news_cache_set(q, h, g, c, cache_str)
+
+    return jsonify({"cached": False, **payload})

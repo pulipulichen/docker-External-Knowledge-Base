@@ -216,7 +216,7 @@ def search_news_tool(
         ),
     ] = None,
 ) -> str:
-    """Fetch Google News headlines/snippets for a query; returns Markdown text (and cache metadata) as JSON."""
+    """Fetch Google News RSS as JSON: channel metadata plus many items; each item's description is Markdown without links."""
     return search_news(query, hl=hl, gl=gl, ceid=ceid)
 
 
