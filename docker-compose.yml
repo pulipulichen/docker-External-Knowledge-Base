@@ -42,6 +42,8 @@ services:
       # Scrape (/scrape): Mercury Parser HTTP API (see .env.example)
       - MERCURY_PARSER_URL=${MERCURY_PARSER_URL:-http://mercury-parser:3000}
       - MERCURY_REQUEST_TIMEOUT=${MERCURY_REQUEST_TIMEOUT:-90}
+      # POST /scrape：Redis 快取 TTL（秒），預設 24 小時
+      - SCRAPE_CACHE_TTL_SECONDS=${SCRAPE_CACHE_TTL_SECONDS:-86400}
       # SearXNG (used by POST /search)
       - SEARXNG_URL=${SEARXNG_URL:-http://searxng:8080}
       - SEARXNG_REQUEST_TIMEOUT=${SEARXNG_REQUEST_TIMEOUT:-30}

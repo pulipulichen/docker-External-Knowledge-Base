@@ -1,8 +1,12 @@
 import asyncio
+import hashlib
+import json
 import logging
 import os
+import threading
 from urllib.parse import urlparse
 
+import redis
 import requests
 from flask import Blueprint, Flask, jsonify, request
 from googlenewsdecoder import gnewsdecoder
@@ -19,6 +23,74 @@ USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
 
 MERCURY_PARSER_URL = os.getenv("MERCURY_PARSER_URL", "http://mercury-parser:3000").rstrip("/")
 MERCURY_REQUEST_TIMEOUT = int(os.getenv("MERCURY_REQUEST_TIMEOUT", "90"))
+
+SCRAPE_CACHE_TTL_SECONDS = int(os.getenv("SCRAPE_CACHE_TTL_SECONDS", str(24 * 3600)))
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+
+_scrape_redis: redis.StrictRedis | None = None
+_scrape_redis_failed = False
+_scrape_redis_lock = threading.Lock()
+
+
+def _get_scrape_redis() -> redis.StrictRedis | None:
+    global _scrape_redis, _scrape_redis_failed
+    if _scrape_redis_failed:
+        return None
+    if _scrape_redis is not None:
+        return _scrape_redis
+    with _scrape_redis_lock:
+        if _scrape_redis_failed:
+            return None
+        if _scrape_redis is not None:
+            return _scrape_redis
+        try:
+            client = redis.StrictRedis(
+                host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True
+            )
+            client.ping()
+            _scrape_redis = client
+            return client
+        except redis.exceptions.RedisError as e:
+            logging.error("Scrape cache: Redis unavailable (%s); caching disabled.", e)
+            _scrape_redis_failed = True
+            return None
+
+
+def _scrape_cache_key(url: str, content_type: str | None, headers: str | None) -> str:
+    """以查詢網址為主體，並納入會影響 Mercury 結果的參數。"""
+    ct = content_type if content_type is not None else "markdown"
+    hp = headers if headers is not None else ""
+    payload = json.dumps([url, ct, hp], ensure_ascii=False, separators=(",", ":"))
+    digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return f"scrape:mercury:{digest}"
+
+
+def _scrape_cache_get(url: str, content_type: str | None, headers: str | None) -> dict | None:
+    r = _get_scrape_redis()
+    if not r:
+        return None
+    key = _scrape_cache_key(url, content_type, headers)
+    try:
+        raw = r.get(key)
+        if raw is None:
+            return None
+        return json.loads(raw)
+    except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
+        logging.warning("Scrape cache get failed: %s", e)
+        return None
+
+
+def _scrape_cache_set(url: str, content_type: str | None, headers: str | None, body: dict) -> None:
+    r = _get_scrape_redis()
+    if not r:
+        return
+    key = _scrape_cache_key(url, content_type, headers)
+    try:
+        r.setex(key, SCRAPE_CACHE_TTL_SECONDS, json.dumps(body, ensure_ascii=False))
+    except (redis.exceptions.RedisError, TypeError) as e:
+        logging.warning("Scrape cache set failed: %s", e)
 
 
 def _resolve_google_news_article_url(url: str) -> str:
@@ -76,6 +148,10 @@ async def scrape_endpoint():
             "error": "Field 'headers' must be a URL-encoded string (see mercury-parser API docs)",
         }), 400
 
+    cached = _scrape_cache_get(target_url, content_type, headers_param)
+    if cached is not None:
+        return jsonify(cached)
+
     def _scrape_with_resolved_url() -> tuple[int, dict]:
         resolved = _resolve_google_news_article_url(target_url)
         return _call_mercury_parser(resolved, content_type, headers_param)
@@ -91,6 +167,7 @@ async def scrape_endpoint():
     if status != 200:
         return jsonify(results), status
 
+    _scrape_cache_set(target_url, content_type, headers_param, results)
     return jsonify(results)
 
 if __name__ == '__main__':
