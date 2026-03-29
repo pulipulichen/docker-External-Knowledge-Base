@@ -1,22 +1,80 @@
-# 只保留三個一般網頁引擎；其餘預設引擎都不載入
-# https://docs.searxng.org/admin/settings/settings.html#engines-keep-only
-use_default_settings:
-  engines:
-    keep_only:
-      # - duckduckgo
-      - google
-      - bing
-      # - googlenews
-    
-# engines:
-#   - name: googlenews
-#     engine: googlenews
-#     disabled: false
+use_default_settings: false
 
-server:
-  secret_key: "ultrasecretkey2ultrasecretkey"
+general:
+  instance_name: "SearXNG News API"
+  enable_metrics: true
 
 search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "zh-TW"
   formats:
-    - html
     - json
+
+  # 預設直接用新聞
+  default_engines:
+    - google_news
+    - bing_news
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: ultrasecretkey2ultrasecretkey
+  limiter: true  # 防止你被濫用（建議開）
+
+ui:
+  static_use_hash: true
+  default_theme: simple
+
+outgoing:
+  request_timeout: 10.0
+
+  # 關鍵：避免被 Google 擋
+  headers:
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+  # 如果你之後要加 proxy，可以這樣：
+  # proxies:
+  #   http: http://proxy:3128
+  #   https: http://proxy:3128
+
+engines:
+
+  # --- Google News（主力） ---
+  - name: google_news
+    engine: google_news
+    shortcut: gon
+    timeout: 8.0
+    disabled: false
+
+  # --- Bing News（備援） ---
+  - name: bing_news
+    engine: bing_news
+    shortcut: bin
+    disabled: false
+
+  # --- DuckDuckGo News（低封鎖率） ---
+  - name: duckduckgo_news
+    engine: duckduckgo
+    shortcut: ddgn
+    categories: news
+    disabled: false
+
+  # --- 一般搜尋（備用，非必要） ---
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: true   # API模式建議關掉
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: true
+
+# 防止被 abuse（你做 API 很重要）
+limiter:
+  real_ip:
+    header: X-Forwarded-For
+  rate_limit:
+    ip_limit: 5
+    ip_window: 10
