@@ -13,6 +13,7 @@ import requests
 from flask import Blueprint, jsonify, request
 
 from ..auth.check_auth import check_auth
+from ..google_news_url import resolve_google_news_article_url
 from ..search.search import _client_ip_from_request
 
 news_bp = Blueprint("news", __name__)
@@ -163,9 +164,8 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
             el = item.find(t)
             if el is not None and el.text is not None:
                 entry[t] = el.text.strip()
-        # desc_el = item.find("description")
-        # raw_desc = desc_el.text if desc_el is not None else None
-        # entry["description"] = _description_html_to_markdown_no_links(raw_desc)
+        if "link" in entry:
+            entry["link"] = resolve_google_news_article_url(entry["link"])
         items_out.append(entry)
 
     return items_out

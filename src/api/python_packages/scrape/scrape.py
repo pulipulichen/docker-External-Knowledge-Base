@@ -4,14 +4,13 @@ import json
 import logging
 import os
 import threading
-from urllib.parse import urlparse
 
 import redis
 import requests
 from flask import Blueprint, Flask, jsonify, request
-from googlenewsdecoder import gnewsdecoder
 
 from ..auth.check_auth import check_auth  # Import check_auth from the new auth module
+from ..google_news_url import resolve_google_news_article_url
 
 scrape_bp = Blueprint('scrape', __name__)
 
@@ -93,21 +92,6 @@ def _scrape_cache_set(url: str, content_type: str | None, headers: str | None, b
         logging.warning("Scrape cache set failed: %s", e)
 
 
-def _resolve_google_news_article_url(url: str) -> str:
-    """Turn news.google.com article wrapper URLs into the publisher URL (Mercury cannot follow JS redirects)."""
-    host = (urlparse(url).hostname or "").lower()
-    if host != "news.google.com":
-        return url
-    try:
-        out = gnewsdecoder(url, interval=0)
-        if out.get("status") and isinstance(out.get("decoded_url"), str):
-            return out["decoded_url"]
-        logging.warning("Google News decode failed for scrape url: %s — %s", url, out)
-    except Exception:
-        logging.exception("Google News decode raised for scrape url: %s", url)
-    return url
-
-
 def _call_mercury_parser(url: str, content_type: str | None, headers: str | None) -> tuple[int, dict]:
     """Call Mercury Parser API synchronously (for use with asyncio.to_thread)."""
     endpoint = f"{MERCURY_PARSER_URL}/parser"
@@ -153,7 +137,7 @@ async def scrape_endpoint():
         return jsonify(cached)
 
     def _scrape_with_resolved_url() -> tuple[int, dict]:
-        resolved = _resolve_google_news_article_url(target_url)
+        resolved = resolve_google_news_article_url(target_url)
         return _call_mercury_parser(resolved, content_type, headers_param)
 
     try:
