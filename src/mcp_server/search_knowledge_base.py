@@ -29,8 +29,8 @@ def search_knowledge_base(
         "retrieval_setting": {
             "top_k": top_k,
             "score_threshold": score_threshold,
-            "file_mode": file_mode,
         },
+        "file_mode": file_mode,
     }
 
     print(json.dumps(payload, indent=4, ensure_ascii=False))
