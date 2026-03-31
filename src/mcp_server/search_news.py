@@ -8,9 +8,9 @@ import requests
 
 def search_news(
     query: str,
-    hl: str | None = None,
-    gl: str | None = None,
-    ceid: str | None = None,
+    hl: str = "zh-TW",
+    gl: str = "TW",
+    ceid: str = "TW:zh-Hant",
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/news"
