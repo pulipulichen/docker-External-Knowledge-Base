@@ -193,12 +193,17 @@ def _fetch_google_news_rss(
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
 
+    logging.info(f"Before Google News RSS request: Query: {query}, HL: {hl}, GL: {gl}, CEID: {ceid}")
+
     resp = requests.get(
         GOOGLE_NEWS_RSS_BASE,
         params=params,
         headers=headers,
         timeout=NEWS_REQUEST_TIMEOUT,
     )
+
+    logging.info(f"After Google News RSS request")
+
     if resp.status_code != 200:
         return resp.status_code, (resp.text or "")[:2000]
 
@@ -236,7 +241,7 @@ async def news_endpoint():
 
     client_ip = _client_ip_from_request(request)
 
-    logging.info(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
+    # logging.info(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
 
     async with _NEWS_LOCK:
         response = None
