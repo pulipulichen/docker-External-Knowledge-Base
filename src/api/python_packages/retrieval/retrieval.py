@@ -48,7 +48,7 @@ async def retrieval_endpoint():
     # ==============================
     if USE_MOCK_DB:
         results = get_mock_results(knowledge_id, section_name, query, top_k, score_threshold)
-    elif file_mode is False:
+    elif file_mode is False or file_mode is None:
         results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
         results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
