@@ -34,6 +34,9 @@ if not SEARXNG_SECRET:
     # Fallback to default if everything else fails
     SEARXNG_SECRET = "ultrasecretkey2ultrasecretkey"
 
+# 一次只允許一個查詢進行（跨所有 worker/請求共享於同一個 Python process）
+_SEARCH_LOCK = asyncio.Lock()
+
 
 def _client_ip_from_request(req) -> str | None:
     """Upstream reverse proxy 常見會帶 X-Forwarded-For / X-Real-IP；否則用 Flask 看到的 remote_addr。"""
@@ -132,31 +135,42 @@ async def search_endpoint():
 
     client_ip = _client_ip_from_request(request)
 
-    try:
-        status, results = await asyncio.to_thread(
-            _call_searxng,
-            query,
-            categories,
-            language,
-            pageno,
-            safesearch,
-            time_range,
-            client_ip,
-        )
-    except requests.exceptions.Timeout:
-        return jsonify({"error": "searxng request timed out"}), 504
-    except requests.exceptions.RequestException as e:
-        logging.exception("searxng request failed")
-        return jsonify({"error": "Failed to reach searxng", "detail": str(e)}), 502
+    async with _SEARCH_LOCK:
+        response = None
+        status_code = None
+        try:
+            status, results = await asyncio.to_thread(
+                _call_searxng,
+                query,
+                categories,
+                language,
+                pageno,
+                safesearch,
+                time_range,
+                client_ip,
+            )
+        except requests.exceptions.Timeout:
+            response = jsonify({"error": "searxng request timed out"})
+            status_code = 504
+        except requests.exceptions.RequestException as e:
+            logging.exception("searxng request failed")
+            response = jsonify({"error": "Failed to reach searxng", "detail": str(e)})
+            status_code = 502
+        else:
+            if results is None:
+                response = jsonify({"error": "searxng returned None"})
+                status_code = 500
+            elif status != 200:
+                logging.exception("other fails:" + str(results))
+                response = jsonify(results)
+                status_code = status
+            else:
+                response = jsonify(results)
+                status_code = 200
 
-    if results is None:
-        return jsonify({"error": "searxng returned None"}), 500
-
-    if status != 200:
-        logging.exception("other fails:" + str(results))
-        return jsonify(results), status
-
-    return jsonify(results)
+        # 每個查詢結束後等待 1 秒鐘才回傳
+        await asyncio.sleep(1)
+        return response, status_code
 
 if __name__ == '__main__':
     # This block is for local testing of the retrieval blueprint

@@ -62,6 +62,9 @@ DEFAULT_HL = "zh-TW"
 DEFAULT_GL = "TW"
 DEFAULT_CEID = "TW:zh-Hant"
 
+# 一次只允許一個 /news 查詢進行（同一 Python process 內）
+_NEWS_LOCK = asyncio.Lock()
+
 
 def _news_redis_cache_key(q: str, h: str, g: str, c: str) -> str:
     payload = json.dumps([q, h, g, c], ensure_ascii=False, separators=(",", ":"))
@@ -231,37 +234,53 @@ async def news_endpoint():
 
     q, h, g, c = query.strip(), hl.strip(), gl.strip(), ceid.strip()
 
-    cached_raw = _news_cache_get(q, h, g, c)
-    if cached_raw is not None:
-        try:
-            body = json.loads(cached_raw)
-            if isinstance(body, list):
-                return jsonify(body)
-        except json.JSONDecodeError:
-            pass
-
     client_ip = _client_ip_from_request(request)
 
-    try:
-        status, payload = await asyncio.to_thread(
-            _fetch_google_news_rss,
-            q,
-            h,
-            g,
-            c,
-            client_ip,
-        )
-    except requests.exceptions.Timeout:
-        return jsonify({"error": "Google News RSS request timed out"}), 504
-    except requests.exceptions.RequestException as e:
-        logging.exception("Google News RSS request failed")
-        return jsonify({"error": "Failed to reach Google News RSS", "detail": str(e)}), 502
+    async with _NEWS_LOCK:
+        response = None
+        status_code = None
 
-    if status != 200:
-        return jsonify({"error": "Google News RSS error", "detail": payload}), status
+        cached_raw = _news_cache_get(q, h, g, c)
+        if cached_raw is not None:
+            try:
+                body = json.loads(cached_raw)
+                if isinstance(body, list):
+                    response = jsonify(body)
+                    status_code = 200
+            except json.JSONDecodeError:
+                pass
 
-    assert isinstance(payload, list)
-    cache_str = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    _news_cache_set(q, h, g, c, cache_str)
+        if response is None:
+            try:
+                status, payload = await asyncio.to_thread(
+                    _fetch_google_news_rss,
+                    q,
+                    h,
+                    g,
+                    c,
+                    client_ip,
+                )
+            except requests.exceptions.Timeout:
+                response = jsonify({"error": "Google News RSS request timed out"})
+                status_code = 504
+            except requests.exceptions.RequestException as e:
+                logging.exception("Google News RSS request failed")
+                response = jsonify(
+                    {"error": "Failed to reach Google News RSS", "detail": str(e)}
+                )
+                status_code = 502
+            else:
+                if status != 200:
+                    response = jsonify({"error": "Google News RSS error", "detail": payload})
+                    status_code = status
+                else:
+                    assert isinstance(payload, list)
+                    cache_str = json.dumps(
+                        payload, ensure_ascii=False, separators=(",", ":")
+                    )
+                    _news_cache_set(q, h, g, c, cache_str)
+                    response = jsonify(payload)
+                    status_code = 200
 
-    return jsonify(payload)
+        await asyncio.sleep(1)
+        return response, status_code
