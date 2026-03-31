@@ -76,7 +76,7 @@ knowledge_base_types = load_knowledge_base_configs(BASE_DIR)
 # ===========================
 
 
-def make_tool_function(reg_key, reg_desc):
+def make_tool_function(reg_key, reg_desc, file_mode: bool = False):
     """Build a tool function with reg_key closed over (one tool per knowledge base config)."""
 
     def dynamic_tool(
@@ -102,10 +102,13 @@ def make_tool_function(reg_key, reg_desc):
             ),
         ] = 0.1,
     ) -> str:
-        return search_knowledge_base(reg_key, query, top_k, score_threshold)
+        return search_knowledge_base(reg_key, query, top_k, score_threshold, file_mode)
 
     # MCP uses the Python function name as the tool id; must be unique per tool
-    dynamic_tool.__name__ = f"search_{reg_key}_rules"
+    if file_mode is False:
+        dynamic_tool.__name__ = f"search_{reg_key}_chunks"
+    else:
+        dynamic_tool.__name__ = f"search_{reg_key}_files"
 
     dynamic_tool.__doc__ = f"{reg_desc} Pass a query or keywords to search this knowledge base."
 
@@ -113,7 +116,13 @@ def make_tool_function(reg_key, reg_desc):
 
 
 for key, desc in knowledge_base_types:
-    tool_func = make_tool_function(key, desc)
+    tool_func = make_tool_function(key, desc, False)
+    mcp.tool()(tool_func)
+
+    print(f"Registered tool: {tool_func.__name__}")
+
+for key, desc in knowledge_base_types:
+    tool_func = make_tool_function(key, desc, True)
     mcp.tool()(tool_func)
 
     print(f"Registered tool: {tool_func.__name__}")
