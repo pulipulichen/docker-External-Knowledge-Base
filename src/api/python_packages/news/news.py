@@ -236,7 +236,7 @@ async def news_endpoint():
 
     client_ip = _client_ip_from_request(request)
 
-    # print(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
+    logging.info(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
 
     async with _NEWS_LOCK:
         response = None
