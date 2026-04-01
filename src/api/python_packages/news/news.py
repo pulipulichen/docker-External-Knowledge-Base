@@ -163,12 +163,14 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
     items_out: list[dict] = []
     for item in channel_el.findall("item"):
         entry: dict = {}
-        for t in ("title", "link", "pubDate"):
+        for t in ("title", "pubDate"):
             el = item.find(t)
             if el is not None and el.text is not None:
                 entry[t] = el.text.strip()
         # if "link" in entry:
         #     entry["link"] = resolve_google_news_article_url(entry["link"])
+        if t is "link":
+            entry["url"] = item.find("link").text.strip()
         items_out.append(entry)
 
     return items_out

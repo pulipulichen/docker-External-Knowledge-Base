@@ -37,6 +37,25 @@ if not SEARXNG_SECRET:
 # 一次只允許一個查詢進行（跨所有 worker/請求共享於同一個 Python process）
 _SEARCH_LOCK = asyncio.Lock()
 
+# SearXNG 每筆結果只對外保留的欄位
+_SEARXNG_RESULT_KEYS = ("content", "publishedDate", "score", "title", "url")
+
+
+def _trim_searxng_result_items(body: dict) -> dict:
+    """從 SearXNG JSON 回應中，將 results 內每筆只保留指定欄位；其餘頂層鍵不變。"""
+    raw = body.get("results")
+    if not isinstance(raw, list):
+        return body
+    trimmed = []
+    for item in raw:
+        if isinstance(item, dict):
+            trimmed.append({k: item.get(k) for k in _SEARXNG_RESULT_KEYS})
+        else:
+            trimmed.append(item)
+    out = dict(body)
+    out["results"] = trimmed
+    return out
+
 
 def _client_ip_from_request(req) -> str | None:
     """Upstream reverse proxy 常見會帶 X-Forwarded-For / X-Real-IP；否則用 Flask 看到的 remote_addr。"""
@@ -165,6 +184,8 @@ async def search_endpoint():
                 response = jsonify(results)
                 status_code = status
             else:
+                if isinstance(results, dict):
+                    results = _trim_searxng_result_items(results)
                 response = jsonify(results)
                 status_code = 200
 
