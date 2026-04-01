@@ -76,13 +76,3 @@ curl -X POST http://localhost:8080/news \
      }'
 ```
 
-Minimal body (defaults for `hl` / `gl` / `ceid`):
-
-```bash
-curl -X POST http://localhost:8080/news \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer <YOUR_API_KEY>" \
-     -d '{"query": "柯文哲"}'
-```
-
-
