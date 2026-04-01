@@ -167,8 +167,8 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
             el = item.find(t)
             if el is not None and el.text is not None:
                 entry[t] = el.text.strip()
-        if "link" in entry:
-            entry["link"] = resolve_google_news_article_url(entry["link"])
+        # if "link" in entry:
+        #     entry["link"] = resolve_google_news_article_url(entry["link"])
         items_out.append(entry)
 
     return items_out
@@ -202,19 +202,27 @@ def _fetch_google_news_rss(
         timeout=NEWS_REQUEST_TIMEOUT,
     )
 
-    logging.info(f"After Google News RSS request: {resp.status_code}")
+    logging.info(f"1 After Google News RSS request: {resp.status_code}")
  
     if resp.status_code != 200:
         return resp.status_code, (resp.text or "")[:2000]
+
+    logging.info(f"2 After Google News RSS request: {resp.status_code}")
 
     ct = (resp.headers.get("Content-Type") or "").lower()
     if "xml" not in ct and not (resp.content or b"").lstrip().startswith(b"<?xml"):
         return 502, "Google News 回應不是有效的 RSS/XML"
 
+    logging.info(f"3 After Google News RSS request: {resp.status_code}")
+
     try:
         payload = _parse_rss_items(resp.content)
     except ET.ParseError as e:
         return 502, f"無法解析 RSS：{e}"
+    except Exception as e:
+        return 502, f"發生無法處理的錯誤：{e}"
+
+    logging.info(f"4 After Google News RSS request: {resp.status_code}")
 
     return 200, payload
 
