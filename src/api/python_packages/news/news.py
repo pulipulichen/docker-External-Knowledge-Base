@@ -202,8 +202,8 @@ def _fetch_google_news_rss(
         timeout=NEWS_REQUEST_TIMEOUT,
     )
 
-    logging.info(f"After Google News RSS request")
-
+    logging.info(f"After Google News RSS request: {resp.status_code}")
+ 
     if resp.status_code != 200:
         return resp.status_code, (resp.text or "")[:2000]
 
