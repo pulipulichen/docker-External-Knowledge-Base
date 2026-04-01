@@ -125,6 +125,26 @@ services:
     # logging:
     #   driver: "none"
 
+  # 啟動時跑 MCP 整合測試（Bearer + search_news）；本機不需安裝 Python 套件
+  # 用法：./run-mcp-test-docker.sh 或 docker compose --profile mcp-test up --build --abort-on-container-exit
+  mcp_test:
+    profiles:
+      - mcp-test
+    build:
+      context: ./src/mcp_test
+      dockerfile: Dockerfile
+    environment:
+      - MCP_URL=http://mcp_server/mcp
+      - MCP_API_KEY=${API_KEY}
+      - MCP_TEST_NEWS_QUERY=${MCP_TEST_NEWS_QUERY:-未來一週 天氣 預報}
+    depends_on:
+      api:
+        condition: service_started
+      mcp_server:
+        condition: service_started
+    networks:
+      - docker_external_knowledge_base
+
   mcp_server:
     build:
       context: ./src/mcp_server/
