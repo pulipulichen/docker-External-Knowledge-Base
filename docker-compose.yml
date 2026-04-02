@@ -142,7 +142,7 @@ services:
       - MCP_TEST_WEB_QUERY=${MCP_TEST_WEB_QUERY:-hello world}
       - MCP_TEST_WEB_FULLTEXT=${MCP_TEST_WEB_FULLTEXT:-false}
       - MCP_TEST_WEB_LIMIT=${MCP_TEST_WEB_LIMIT:-5}
-      - MCP_TEST_SCRAPE_URL=${MCP_TEST_SCRAPE_URL:-https://example.com/}
+      - MCP_TEST_SCRAPE_URL=${MCP_TEST_SCRAPE_URL:-https://blog.pulipuli.info/2025/11/talk-deeply-felt-skypes-retirement.html}
       - MCP_TEST_SCRAPE_CONTENT_TYPE=${MCP_TEST_SCRAPE_CONTENT_TYPE:-}
       - MCP_TEST_SCRAPE_HEADERS=${MCP_TEST_SCRAPE_HEADERS:-}
       - MCP_TEST_KB_ID=${MCP_TEST_KB_ID:-example}

@@ -160,7 +160,7 @@ async def _run() -> None:
         )
     else:
         mcp_tool_name = "scrape_web_page"
-        url = (os.environ.get("MCP_TEST_SCRAPE_URL") or "").strip() or "https://example.com/"
+        url = (os.environ.get("MCP_TEST_SCRAPE_URL") or "").strip() or "https://blog.pulipuli.info/2025/11/talk-deeply-felt-skypes-retirement.html"
         content_type = (os.environ.get("MCP_TEST_SCRAPE_CONTENT_TYPE") or "").strip()
         headers = (os.environ.get("MCP_TEST_SCRAPE_HEADERS") or "").strip()
         args = {"url": url}
