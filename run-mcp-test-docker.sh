@@ -4,4 +4,5 @@
 # 若 stack 已在背景執行，可改為：docker compose --profile mcp-test run --rm mcp_test
 set -euo pipefail
 cd "$(dirname "$0")"
+clear
 sudo docker compose --profile mcp-test up --build --abort-on-container-exit

@@ -190,28 +190,6 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
     return items_out
 
 
-def _enrich_items_fulltext(items: list[dict]) -> None:
-    """以 RSS <link> 解析出的 url 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
-    content_type = "markdown"
-    headers_param = None
-    for entry in items:
-        item_url = entry.get("url")
-        if not item_url:
-            entry["content"] = None
-            continue
-        cached = _scrape_cache_get(item_url, content_type, headers_param)
-        if cached is not None:
-            entry["content"] = cached.get("content")
-            continue
-        resolved = resolve_google_news_article_url(item_url)
-        status, body = _call_mercury_parser(resolved, content_type, headers_param)
-        if status == 200:
-            _scrape_cache_set(item_url, content_type, headers_param, body)
-            entry["content"] = body.get("content")
-        else:
-            entry["content"] = None
-
-
 def _fetch_google_news_rss(
     query: str,
     hl: str,
@@ -231,7 +209,13 @@ def _fetch_google_news_rss(
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
 
-    logging.info(f"Before Google News RSS request: Query: {query}, HL: {hl}, GL: {gl}, CEID: {ceid}")
+    logging.info(
+        "Before Google News RSS request: Query: %s, HL: %s, GL: %s, CEID: %s",
+        query,
+        hl,
+        gl,
+        ceid,
+    )
 
     resp = requests.get(
         GOOGLE_NEWS_RSS_BASE,
@@ -240,18 +224,18 @@ def _fetch_google_news_rss(
         timeout=NEWS_REQUEST_TIMEOUT,
     )
 
-    logging.info(f"1 After Google News RSS request: {resp.status_code}")
- 
+    logging.info("1 After Google News RSS request: %s", resp.status_code)
+
     if resp.status_code != 200:
         return resp.status_code, (resp.text or "")[:2000]
 
-    logging.info(f"2 After Google News RSS request: {resp.status_code}")
+    logging.info("2 After Google News RSS request: %s", resp.status_code)
 
     ct = (resp.headers.get("Content-Type") or "").lower()
     if "xml" not in ct and not (resp.content or b"").lstrip().startswith(b"<?xml"):
         return 502, "Google News 回應不是有效的 RSS/XML"
 
-    logging.info(f"3 After Google News RSS request: {resp.status_code}")
+    logging.info("3 After Google News RSS request: %s", resp.status_code)
 
     try:
         payload = _parse_rss_items(resp.content)
@@ -260,9 +244,35 @@ def _fetch_google_news_rss(
     except Exception as e:
         return 502, f"發生無法處理的錯誤：{e}"
 
-    logging.info(f"4 After Google News RSS request: {resp.status_code}")
+    logging.info("4 After Google News RSS request: %s", resp.status_code)
 
     return 200, payload
+
+
+def _enrich_items_fulltext(items: list[dict]) -> None:
+    """以 RSS <link> 解析出的 url 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
+    content_type = "markdown"
+    headers_param = None
+    for entry in items:
+        item_url = entry.get("url")
+        if not item_url:
+            entry["content"] = None
+            continue
+        cached = _scrape_cache_get(item_url, content_type, headers_param)
+        if cached is not None:
+            entry["content"] = cached.get("content")
+            continue
+        resolved = resolve_google_news_article_url(item_url)
+        status, body = _call_mercury_parser(resolved, content_type, headers_param)
+        if status == 200:
+            _scrape_cache_set(item_url, content_type, headers_param, body)
+            content = body.get("content")
+            if content is not None and len(content.strip()) > 0:
+                entry["content"] = content.strip()
+            else:
+                entry["content"] = None
+        else:
+            entry["content"] = None
 
 
 @news_bp.route("/news", methods=["POST"])

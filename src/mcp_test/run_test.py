@@ -40,7 +40,8 @@ async def _run() -> None:
 
     query = os.environ.get(
         "MCP_TEST_NEWS_QUERY",
-        "未來一週 天氣 預報",
+        # "未來一週 天氣 預報",
+        "伊朗 戰爭 美國 結果",
     )
 
     _ft = os.environ.get("MCP_TEST_NEWS_FULLTEXT", "true").strip().lower()

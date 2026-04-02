@@ -136,7 +136,7 @@ services:
     environment:
       - MCP_URL=http://mcp_server/mcp
       - MCP_API_KEY=${API_KEY}
-      - MCP_TEST_NEWS_QUERY=${MCP_TEST_NEWS_QUERY:-未來一週 天氣 預報}
+      - MCP_TEST_NEWS_QUERY=${MCP_TEST_NEWS_QUERY:-伊朗 戰爭 美國}
     depends_on:
       api:
         condition: service_started
