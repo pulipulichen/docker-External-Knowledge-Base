@@ -14,6 +14,11 @@ from flask import Blueprint, jsonify, request
 
 from ..auth.check_auth import check_auth
 from ..google_news_url import resolve_google_news_article_url
+from ..scrape.scrape import (
+    _call_mercury_parser,
+    _scrape_cache_get,
+    _scrape_cache_set,
+)
 from ..search.search import _client_ip_from_request
 
 news_bp = Blueprint("news", __name__)
@@ -66,17 +71,19 @@ DEFAULT_CEID = "TW:zh-Hant"
 _NEWS_LOCK = asyncio.Lock()
 
 
-def _news_redis_cache_key(q: str, h: str, g: str, c: str) -> str:
-    payload = json.dumps([q, h, g, c], ensure_ascii=False, separators=(",", ":"))
+def _news_redis_cache_key(q: str, h: str, g: str, c: str, fulltext: bool) -> str:
+    payload = json.dumps(
+        [q, h, g, c, fulltext], ensure_ascii=False, separators=(",", ":")
+    )
     digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
     return f"news:rss:{digest}"
 
 
-def _news_cache_get(q: str, h: str, g: str, c: str) -> str | None:
+def _news_cache_get(q: str, h: str, g: str, c: str, fulltext: bool) -> str | None:
     r = _get_news_redis()
     if not r:
         return None
-    key = _news_redis_cache_key(q, h, g, c)
+    key = _news_redis_cache_key(q, h, g, c, fulltext)
     try:
         return r.get(key)
     except redis.exceptions.RedisError as e:
@@ -84,11 +91,13 @@ def _news_cache_get(q: str, h: str, g: str, c: str) -> str | None:
         return None
 
 
-def _news_cache_set(q: str, h: str, g: str, c: str, payload_json: str) -> None:
+def _news_cache_set(
+    q: str, h: str, g: str, c: str, fulltext: bool, payload_json: str
+) -> None:
     r = _get_news_redis()
     if not r:
         return
-    key = _news_redis_cache_key(q, h, g, c)
+    key = _news_redis_cache_key(q, h, g, c, fulltext)
     try:
         r.setex(key, NEWS_CACHE_TTL_SECONDS, payload_json)
     except redis.exceptions.RedisError as e:
@@ -163,17 +172,38 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
     items_out: list[dict] = []
     for item in channel_el.findall("item"):
         entry: dict = {}
-        for t in ("title", "pubDate"):
-            el = item.find(t)
+        for tag in ("title", "pubDate"):
+            el = item.find(tag)
             if el is not None and el.text is not None:
-                entry[t] = el.text.strip()
-        # if "link" in entry:
-        #     entry["link"] = resolve_google_news_article_url(entry["link"])
-        if t is "link":
-            entry["url"] = item.find("link").text.strip()
+                entry[tag] = el.text.strip()
+        link_el = item.find("link")
+        if link_el is not None and link_el.text:
+            entry["link"] = link_el.text.strip()
         items_out.append(entry)
 
     return items_out
+
+
+def _enrich_items_fulltext(items: list[dict]) -> None:
+    """以 RSS 的 link 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
+    content_type = "markdown"
+    headers_param = None
+    for entry in items:
+        link = entry.get("link")
+        if not link:
+            entry["content"] = None
+            continue
+        cached = _scrape_cache_get(link, content_type, headers_param)
+        if cached is not None:
+            entry["content"] = cached.get("content")
+            continue
+        resolved = resolve_google_news_article_url(link)
+        status, body = _call_mercury_parser(resolved, content_type, headers_param)
+        if status == 200:
+            _scrape_cache_set(link, content_type, headers_param, body)
+            entry["content"] = body.get("content")
+        else:
+            entry["content"] = None
 
 
 def _fetch_google_news_rss(
@@ -249,6 +279,13 @@ async def news_endpoint():
 
     q, h, g, c = query.strip(), hl.strip(), gl.strip(), ceid.strip()
 
+    fulltext = data.get("fulltext", False)
+    if not isinstance(fulltext, bool):
+        return (
+            jsonify({"error": "Field 'fulltext' must be a boolean if provided"}),
+            400,
+        )
+
     client_ip = _client_ip_from_request(request)
 
     # logging.info(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
@@ -257,7 +294,7 @@ async def news_endpoint():
         response = None
         status_code = None
 
-        cached_raw = _news_cache_get(q, h, g, c)
+        cached_raw = _news_cache_get(q, h, g, c, fulltext)
         if cached_raw is not None:
             try:
                 body = json.loads(cached_raw)
@@ -292,12 +329,37 @@ async def news_endpoint():
                     status_code = status
                 else:
                     assert isinstance(payload, list)
-                    cache_str = json.dumps(
-                        payload, ensure_ascii=False, separators=(",", ":")
-                    )
-                    _news_cache_set(q, h, g, c, cache_str)
-                    response = jsonify(payload)
-                    status_code = 200
+                    if fulltext:
+                        try:
+                            await asyncio.to_thread(_enrich_items_fulltext, payload)
+                        except requests.exceptions.Timeout:
+                            response = jsonify(
+                                {"error": "Full article fetch (mercury-parser) timed out"}
+                            )
+                            status_code = 504
+                        except requests.exceptions.RequestException as e:
+                            logging.exception("News fulltext scrape failed")
+                            response = jsonify(
+                                {
+                                    "error": "Failed to fetch full article text",
+                                    "detail": str(e),
+                                }
+                            )
+                            status_code = 502
+                        else:
+                            cache_str = json.dumps(
+                                payload, ensure_ascii=False, separators=(",", ":")
+                            )
+                            _news_cache_set(q, h, g, c, fulltext, cache_str)
+                            response = jsonify(payload)
+                            status_code = 200
+                    else:
+                        cache_str = json.dumps(
+                            payload, ensure_ascii=False, separators=(",", ":")
+                        )
+                        _news_cache_set(q, h, g, c, fulltext, cache_str)
+                        response = jsonify(payload)
+                        status_code = 200
 
         await asyncio.sleep(1)
         return response, status_code

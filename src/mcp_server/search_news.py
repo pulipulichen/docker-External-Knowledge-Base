@@ -11,6 +11,7 @@ def search_news(
     hl: str = "zh-TW",
     gl: str = "TW",
     ceid: str = "TW:zh-Hant",
+    fulltext: bool = False,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/news"
@@ -22,7 +23,7 @@ def search_news(
         "Content-Type": "application/json",
     }
 
-    payload: dict = {"query": query}
+    payload: dict = {"query": query, "fulltext": fulltext}
     if hl is not None:
         payload["hl"] = hl
     if gl is not None:
@@ -32,8 +33,9 @@ def search_news(
 
     print(json.dumps(payload, indent=4, ensure_ascii=False))
 
+    timeout = 300 if fulltext else 90
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
         response.raise_for_status()
         result = response.json()
         print("News search succeeded; item_count:", len(result) if isinstance(result, list) else 0)

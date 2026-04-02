@@ -236,13 +236,23 @@ def search_news_tool(
             description="Optional Google News ceid (API default TW:zh-Hant); empty to omit",
         ),
     ] = "",
+    fulltext: Annotated[
+        bool,
+        Field(
+            description=(
+                "If true, follow each item's link and extract article body via Mercury "
+                "into a content field (markdown); slower and heavier upstream load"
+            ),
+        ),
+    ] = False,
 ) -> str:
-    """Fetch Google News as a JSON array of items (title, link, pubDate, description); description is Markdown without links."""
+    """Fetch Google News as a JSON array of items (title, link, pubDate); with fulltext, each item also has content from Mercury."""
     return search_news(
         query,
         hl=_optional_str(hl),
         gl=_optional_str(gl),
         ceid=_optional_str(ceid),
+        fulltext=fulltext,
     )
 
 
