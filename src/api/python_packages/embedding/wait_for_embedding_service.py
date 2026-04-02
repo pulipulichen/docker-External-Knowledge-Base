@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 TEI_ENDPOINT = os.getenv("TEI_ENDPOINT", "http://tei:80")
+EMBEDDING_ENGINE = os.getenv("EMBEDDING_ENGINE", "tei").strip().lower()
 SERVICE_CHECK_INTERVAL = int(os.getenv("SERVICE_CHECK_INTERVAL", 5)) # seconds
 
 # *** 建議 1: 增加 Timeout ***
@@ -19,8 +20,12 @@ IS_SERVICE_ALIVE = False
 async def wait_for_embedding_service():
     """
     Waits until the embedding service (TEI_ENDPOINT) is available.
+    Skips waiting when EMBEDDING_ENGINE is gemini (remote API).
     """
     global IS_SERVICE_ALIVE
+    if EMBEDDING_ENGINE == "gemini":
+        IS_SERVICE_ALIVE = True
+        return True
     if IS_SERVICE_ALIVE is True:
         return True
 

@@ -12,6 +12,7 @@ def search_news(
     gl: str = "TW",
     ceid: str = "TW:zh-Hant",
     fulltext: bool = False,
+    limit: int = 5,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/news"
@@ -23,7 +24,7 @@ def search_news(
         "Content-Type": "application/json",
     }
 
-    payload: dict = {"query": query, "fulltext": fulltext}
+    payload: dict = {"query": query, "fulltext": fulltext, "limit": limit}
     if hl is not None:
         payload["hl"] = hl
     if gl is not None:

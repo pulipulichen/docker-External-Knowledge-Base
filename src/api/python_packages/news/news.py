@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 GOOGLE_NEWS_RSS_BASE = "https://news.google.com/rss/search"
 NEWS_REQUEST_TIMEOUT = int(os.getenv("NEWS_REQUEST_TIMEOUT", "30"))
 NEWS_CACHE_TTL_SECONDS = int(os.getenv("NEWS_CACHE_TTL_SECONDS", str(24 * 3600)))
+DEFAULT_NEWS_RESULT_LIMIT = 5
+MAX_NEWS_RESULT_LIMIT = int(os.getenv("NEWS_MAX_RESULT_LIMIT", "50"))
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
@@ -71,19 +73,23 @@ DEFAULT_CEID = "TW:zh-Hant"
 _NEWS_LOCK = asyncio.Lock()
 
 
-def _news_redis_cache_key(q: str, h: str, g: str, c: str, fulltext: bool) -> str:
+def _news_redis_cache_key(
+    q: str, h: str, g: str, c: str, fulltext: bool, limit: int
+) -> str:
     payload = json.dumps(
-        [q, h, g, c, fulltext], ensure_ascii=False, separators=(",", ":")
+        [q, h, g, c, fulltext, limit], ensure_ascii=False, separators=(",", ":")
     )
     digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
     return f"news:rss:{digest}"
 
 
-def _news_cache_get(q: str, h: str, g: str, c: str, fulltext: bool) -> str | None:
+def _news_cache_get(
+    q: str, h: str, g: str, c: str, fulltext: bool, limit: int
+) -> str | None:
     r = _get_news_redis()
     if not r:
         return None
-    key = _news_redis_cache_key(q, h, g, c, fulltext)
+    key = _news_redis_cache_key(q, h, g, c, fulltext, limit)
     try:
         return r.get(key)
     except redis.exceptions.RedisError as e:
@@ -92,12 +98,12 @@ def _news_cache_get(q: str, h: str, g: str, c: str, fulltext: bool) -> str | Non
 
 
 def _news_cache_set(
-    q: str, h: str, g: str, c: str, fulltext: bool, payload_json: str
+    q: str, h: str, g: str, c: str, fulltext: bool, limit: int, payload_json: str
 ) -> None:
     r = _get_news_redis()
     if not r:
         return
-    key = _news_redis_cache_key(q, h, g, c, fulltext)
+    key = _news_redis_cache_key(q, h, g, c, fulltext, limit)
     try:
         r.setex(key, NEWS_CACHE_TTL_SECONDS, payload_json)
     except redis.exceptions.RedisError as e:
@@ -286,6 +292,30 @@ async def news_endpoint():
             400,
         )
 
+    limit_raw = data.get("limit", DEFAULT_NEWS_RESULT_LIMIT)
+    if isinstance(limit_raw, bool):
+        return (
+            jsonify({"error": "Field 'limit' must be an integer if provided"}),
+            400,
+        )
+    if not isinstance(limit_raw, int):
+        return (
+            jsonify({"error": "Field 'limit' must be an integer if provided"}),
+            400,
+        )
+    if limit_raw < 1 or limit_raw > MAX_NEWS_RESULT_LIMIT:
+        return (
+            jsonify(
+                {
+                    "error": (
+                        f"Field 'limit' must be between 1 and {MAX_NEWS_RESULT_LIMIT}"
+                    ),
+                }
+            ),
+            400,
+        )
+    limit = limit_raw
+
     client_ip = _client_ip_from_request(request)
 
     # logging.info(f"Query: {q}, HL: {h}, GL: {g}, CEID: {c}")
@@ -294,7 +324,7 @@ async def news_endpoint():
         response = None
         status_code = None
 
-        cached_raw = _news_cache_get(q, h, g, c, fulltext)
+        cached_raw = _news_cache_get(q, h, g, c, fulltext, limit)
         if cached_raw is not None:
             try:
                 body = json.loads(cached_raw)
@@ -329,6 +359,7 @@ async def news_endpoint():
                     status_code = status
                 else:
                     assert isinstance(payload, list)
+                    payload = payload[:limit]
                     if fulltext:
                         try:
                             await asyncio.to_thread(_enrich_items_fulltext, payload)
@@ -350,14 +381,14 @@ async def news_endpoint():
                             cache_str = json.dumps(
                                 payload, ensure_ascii=False, separators=(",", ":")
                             )
-                            _news_cache_set(q, h, g, c, fulltext, cache_str)
+                            _news_cache_set(q, h, g, c, fulltext, limit, cache_str)
                             response = jsonify(payload)
                             status_code = 200
                     else:
                         cache_str = json.dumps(
                             payload, ensure_ascii=False, separators=(",", ":")
                         )
-                        _news_cache_set(q, h, g, c, fulltext, cache_str)
+                        _news_cache_set(q, h, g, c, fulltext, limit, cache_str)
                         response = jsonify(payload)
                         status_code = 200
 

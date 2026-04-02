@@ -22,6 +22,8 @@ app = Flask(__name__)  # Keep a dummy app for local testing if __name__ == '__ma
 
 SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080").rstrip("/")
 SEARXNG_REQUEST_TIMEOUT = int(os.getenv("SEARXNG_REQUEST_TIMEOUT", "30"))
+DEFAULT_SEARCH_RESULT_LIMIT = 5
+MAX_SEARCH_RESULT_LIMIT = int(os.getenv("SEARCH_MAX_RESULT_LIMIT", "50"))
 
 # --- Load SearXNG Secret Key ---
 SEARXNG_SETTINGS_PATH = os.getenv("SEARXNG_SETTINGS_PATH", "/etc/searxng/settings.yml")
@@ -47,13 +49,13 @@ _SEARCH_LOCK = asyncio.Lock()
 _SEARXNG_RESULT_KEYS = ("content", "publishedDate", "score", "title", "url")
 
 
-def _trim_searxng_result_items(body: dict) -> dict:
+def _trim_searxng_result_items(body: dict, limit: int) -> dict:
     """從 SearXNG JSON 回應中，將 results 內每筆只保留指定欄位；其餘頂層鍵不變。"""
     raw = body.get("results")
     if not isinstance(raw, list):
         return body
     trimmed = []
-    for item in raw:
+    for item in raw[:limit]:
         if isinstance(item, dict):
             trimmed.append({k: item.get(k) for k in _SEARXNG_RESULT_KEYS})
         else:
@@ -199,6 +201,30 @@ async def search_endpoint():
             400,
         )
 
+    limit_raw = data.get("limit", DEFAULT_SEARCH_RESULT_LIMIT)
+    if isinstance(limit_raw, bool):
+        return (
+            jsonify({"error": "Field 'limit' must be an integer if provided"}),
+            400,
+        )
+    if not isinstance(limit_raw, int):
+        return (
+            jsonify({"error": "Field 'limit' must be an integer if provided"}),
+            400,
+        )
+    if limit_raw < 1 or limit_raw > MAX_SEARCH_RESULT_LIMIT:
+        return (
+            jsonify(
+                {
+                    "error": (
+                        f"Field 'limit' must be between 1 and {MAX_SEARCH_RESULT_LIMIT}"
+                    ),
+                }
+            ),
+            400,
+        )
+    limit = limit_raw
+
     client_ip = _client_ip_from_request(request)
 
     async with _SEARCH_LOCK:
@@ -232,7 +258,7 @@ async def search_endpoint():
                 status_code = status
             else:
                 if isinstance(results, dict):
-                    results = _trim_searxng_result_items(results)
+                    results = _trim_searxng_result_items(results, limit)
                 if fulltext and isinstance(results, dict):
                     try:
                         await asyncio.to_thread(

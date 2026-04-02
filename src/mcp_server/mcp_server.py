@@ -203,6 +203,15 @@ def search_web_tool(
             ),
         ),
     ] = False,
+    limit: Annotated[
+        int,
+        Field(
+            description=(
+                "Maximum number of search hits to return in results (default 5; "
+                "API caps at SEARCH_MAX_RESULT_LIMIT, typically 50)"
+            ),
+        ),
+    ] = 5,
 ) -> str:
     """Search the public web via SearXNG; with fulltext, each result has snippet + Mercury content."""
     return search_web(
@@ -213,6 +222,7 @@ def search_web_tool(
         safesearch=safesearch if safesearch >= 0 else None,
         time_range=_optional_str(time_range),
         fulltext=fulltext,
+        limit=limit,
     )
 
 
@@ -255,6 +265,14 @@ def search_news_tool(
             ),
         ),
     ] = False,
+    limit: Annotated[
+        int,
+        Field(
+            description=(
+                "Maximum number of news items to return (default 5; API caps at NEWS_MAX_RESULT_LIMIT, typically 50)"
+            ),
+        ),
+    ] = 5,
 ) -> str:
     """Fetch Google News as a JSON array of items (title, url, pubDate); with fulltext, each item also has content from Mercury."""
     return search_news(
@@ -263,6 +281,7 @@ def search_news_tool(
         gl=_optional_str(gl),
         ceid=_optional_str(ceid),
         fulltext=fulltext,
+        limit=limit,
     )
 
 

@@ -1,4 +1,8 @@
-"""容器內 MCP 測試：Bearer 登入後呼叫 search_news（查未來一週天氣相關新聞）。"""
+"""容器內 MCP 測試：Bearer 登入後呼叫 search_news（查未來一週天氣相關新聞）。
+
+預設會帶 fulltext=true（經 API 以 Mercury 抓全文）；若要只測 RSS 列表、加快執行，請設
+環境變數 MCP_TEST_NEWS_FULLTEXT=false（或 0、no、off）。
+"""
 
 from __future__ import annotations
 
@@ -39,6 +43,9 @@ async def _run() -> None:
         "未來一週 天氣 預報",
     )
 
+    _ft = os.environ.get("MCP_TEST_NEWS_FULLTEXT", "true").strip().lower()
+    news_fulltext = _ft not in ("0", "false", "no", "off", "")
+
     parsed = urlparse(mcp_url if "://" in mcp_url else f"http://{mcp_url}")
     mcp_host = parsed.hostname or "mcp_server"
     mcp_port = parsed.port or 80
@@ -56,10 +63,15 @@ async def _run() -> None:
     )
     client = Client(transport)
 
+    print(
+        f"search_news: query={query!r}, fulltext={news_fulltext}",
+        file=sys.stderr,
+    )
+
     async with client:
         result = await client.call_tool(
             "search_news",
-            {"query": query},
+            {"query": query, "fulltext": news_fulltext},
         )
 
     if getattr(result, "is_error", False):

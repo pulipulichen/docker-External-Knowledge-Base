@@ -14,6 +14,7 @@ def search_web(
     safesearch: int | None = None,
     time_range: str | None = None,
     fulltext: bool = False,
+    limit: int = 5,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/search"
@@ -25,7 +26,12 @@ def search_web(
         "Content-Type": "application/json",
     }
 
-    payload: dict = {"query": query, "pageno": pageno, "fulltext": fulltext}
+    payload: dict = {
+        "query": query,
+        "pageno": pageno,
+        "fulltext": fulltext,
+        "limit": limit,
+    }
     if categories is not None:
         payload["categories"] = categories
     if language is not None:
