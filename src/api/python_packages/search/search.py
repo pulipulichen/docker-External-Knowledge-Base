@@ -7,6 +7,12 @@ import requests
 from flask import Blueprint, Flask, jsonify, request
 
 from ..auth.check_auth import check_auth  # Import check_auth from the new auth module
+from ..google_news_url import resolve_google_news_article_url
+from ..scrape.scrape import (
+    _call_mercury_parser,
+    _scrape_cache_get,
+    _scrape_cache_set,
+)
 
 search_bp = Blueprint('search', __name__)
 
@@ -119,6 +125,40 @@ def _call_searxng(
     return resp.status_code, body
 
 
+def _enrich_searxng_results_fulltext(body: dict) -> None:
+    """
+    對 results 內每筆以 url 經 Mercury 取全文寫入 content（與 /scrape 相同快取）。
+    原先 SearXNG 的摘要欄 content 先複製到 snippet 再覆寫 content。
+    """
+    raw = body.get("results")
+    if not isinstance(raw, list):
+        return
+    content_type = "markdown"
+    headers_param = None
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        if "content" in item:
+            item["snippet"] = item["content"]
+        url = item.get("url")
+        if not url or not isinstance(url, str):
+            item["content"] = None
+            continue
+        cached = _scrape_cache_get(url, content_type, headers_param)
+        if cached is not None:
+            item["content"] = cached.get("content")
+            continue
+        resolved = resolve_google_news_article_url(url)
+        status, mercury_body = _call_mercury_parser(
+            resolved, content_type, headers_param
+        )
+        if status == 200:
+            _scrape_cache_set(url, content_type, headers_param, mercury_body)
+            item["content"] = mercury_body.get("content")
+        else:
+            item["content"] = None
+
+
 @search_bp.route('/search', methods=['POST'])
 async def search_endpoint():
     # Validate Bearer Token
@@ -151,6 +191,13 @@ async def search_endpoint():
     time_range = data.get("time_range")
     if time_range is not None and not isinstance(time_range, str):
         return jsonify({"error": "Field 'time_range' must be a string"}), 400
+
+    fulltext = data.get("fulltext", False)
+    if not isinstance(fulltext, bool):
+        return (
+            jsonify({"error": "Field 'fulltext' must be a boolean if provided"}),
+            400,
+        )
 
     client_ip = _client_ip_from_request(request)
 
@@ -186,8 +233,33 @@ async def search_endpoint():
             else:
                 if isinstance(results, dict):
                     results = _trim_searxng_result_items(results)
-                response = jsonify(results)
-                status_code = 200
+                if fulltext and isinstance(results, dict):
+                    try:
+                        await asyncio.to_thread(
+                            _enrich_searxng_results_fulltext, results
+                        )
+                    except requests.exceptions.Timeout:
+                        response = jsonify(
+                            {
+                                "error": "Full article fetch (mercury-parser) timed out",
+                            }
+                        )
+                        status_code = 504
+                    except requests.exceptions.RequestException as e:
+                        logging.exception("Search fulltext scrape failed")
+                        response = jsonify(
+                            {
+                                "error": "Failed to fetch full article text",
+                                "detail": str(e),
+                            }
+                        )
+                        status_code = 502
+                    else:
+                        response = jsonify(results)
+                        status_code = 200
+                else:
+                    response = jsonify(results)
+                    status_code = 200
 
         # 每個查詢結束後等待 1 秒鐘才回傳
         await asyncio.sleep(1)

@@ -178,29 +178,29 @@ def _parse_rss_items(xml_bytes: bytes) -> list[dict]:
                 entry[tag] = el.text.strip()
         link_el = item.find("link")
         if link_el is not None and link_el.text:
-            entry["link"] = link_el.text.strip()
+            entry["url"] = link_el.text.strip()
         items_out.append(entry)
 
     return items_out
 
 
 def _enrich_items_fulltext(items: list[dict]) -> None:
-    """以 RSS 的 link 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
+    """以 RSS <link> 解析出的 url 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
     content_type = "markdown"
     headers_param = None
     for entry in items:
-        link = entry.get("link")
-        if not link:
+        item_url = entry.get("url")
+        if not item_url:
             entry["content"] = None
             continue
-        cached = _scrape_cache_get(link, content_type, headers_param)
+        cached = _scrape_cache_get(item_url, content_type, headers_param)
         if cached is not None:
             entry["content"] = cached.get("content")
             continue
-        resolved = resolve_google_news_article_url(link)
+        resolved = resolve_google_news_article_url(item_url)
         status, body = _call_mercury_parser(resolved, content_type, headers_param)
         if status == 200:
-            _scrape_cache_set(link, content_type, headers_param, body)
+            _scrape_cache_set(item_url, content_type, headers_param, body)
             entry["content"] = body.get("content")
         else:
             entry["content"] = None

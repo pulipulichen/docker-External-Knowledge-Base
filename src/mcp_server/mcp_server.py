@@ -194,8 +194,17 @@ def search_web_tool(
             description="Optional time range (e.g. day, week, month, year); empty to omit",
         ),
     ] = "",
+    fulltext: Annotated[
+        bool,
+        Field(
+            description=(
+                "If true, fetch each result URL through Mercury and put article markdown "
+                "in content (SearXNG excerpt moves to snippet); slower, heavier load"
+            ),
+        ),
+    ] = False,
 ) -> str:
-    """Search the public web via SearXNG; returns titles, URLs, snippets, etc."""
+    """Search the public web via SearXNG; with fulltext, each result has snippet + Mercury content."""
     return search_web(
         query,
         categories=_optional_str(categories),
@@ -203,6 +212,7 @@ def search_web_tool(
         pageno=pageno,
         safesearch=safesearch if safesearch >= 0 else None,
         time_range=_optional_str(time_range),
+        fulltext=fulltext,
     )
 
 
@@ -240,13 +250,13 @@ def search_news_tool(
         bool,
         Field(
             description=(
-                "If true, follow each item's link and extract article body via Mercury "
+                "If true, follow each item's url and extract article body via Mercury "
                 "into a content field (markdown); slower and heavier upstream load"
             ),
         ),
     ] = False,
 ) -> str:
-    """Fetch Google News as a JSON array of items (title, link, pubDate); with fulltext, each item also has content from Mercury."""
+    """Fetch Google News as a JSON array of items (title, url, pubDate); with fulltext, each item also has content from Mercury."""
     return search_news(
         query,
         hl=_optional_str(hl),
