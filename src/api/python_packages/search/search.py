@@ -65,6 +65,14 @@ def _trim_searxng_result_items(body: dict, limit: int) -> dict:
     return out
 
 
+def _searxng_results_list_only(body) -> list:
+    """成功時只對外回傳 SearXNG 的 results 陣列；其餘頂層鍵不帶出。"""
+    if isinstance(body, dict):
+        items = body.get("results")
+        return items if isinstance(items, list) else []
+    return []
+
+
 def _client_ip_from_request(req) -> str | None:
     """Upstream reverse proxy 常見會帶 X-Forwarded-For / X-Real-IP；否則用 Flask 看到的 remote_addr。"""
     xff = req.headers.get("X-Forwarded-For")
@@ -281,10 +289,10 @@ async def search_endpoint():
                         )
                         status_code = 502
                     else:
-                        response = jsonify(results)
+                        response = jsonify(_searxng_results_list_only(results))
                         status_code = 200
                 else:
-                    response = jsonify(results)
+                    response = jsonify(_searxng_results_list_only(results))
                     status_code = 200
 
         # 每個查詢結束後等待 1 秒鐘才回傳

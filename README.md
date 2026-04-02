@@ -134,6 +134,8 @@ These scripts run **inside Docker** (the `mcp_test` service installs `fastmcp` i
 
 **Prerequisites:** working Docker Compose setup, project `.env` with **`API_KEY`** (same token the MCP server expects). The scripts use `sudo docker compose`; adjust if your environment runs Docker without `sudo`.
 
+**Note:** `sudo` normally drops environment variables, so which MCP tool runs is passed with `sudo env MCP_TEST_TOOL=…` inside `mcp-test-docker-common.sh`. If you bypass that script, set `MCP_TEST_TOOL` in the project `.env` (Compose reads it for interpolation) or use `sudo -E` / `sudo env …` yourself.
+
 **Entry scripts** (from the repository root):
 
 | Script | MCP tool exercised |
