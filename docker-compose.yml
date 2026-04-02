@@ -125,8 +125,9 @@ services:
     # logging:
     #   driver: "none"
 
-  # 啟動時跑 MCP 整合測試（Bearer + search_news）；本機不需安裝 Python 套件
-  # 用法：./run-mcp-test-docker.sh 或 docker compose --profile mcp-test up --build --abort-on-container-exit
+  # 啟動時跑 MCP 整合測試（Bearer + 單一 tool）；本機不需安裝 Python 套件
+  # 用法：./test/run-mcp-test-docker-search-news.sh 等（見 test/run-mcp-test-docker-*.sh）
+  # 或 export MCP_TEST_TOOL=... 後 docker compose --profile mcp-test up --build --abort-on-container-exit
   mcp_test:
     profiles:
       - mcp-test
@@ -136,7 +137,18 @@ services:
     environment:
       - MCP_URL=http://mcp_server/mcp
       - MCP_API_KEY=${API_KEY}
+      - MCP_TEST_TOOL=${MCP_TEST_TOOL:-search_news}
       - MCP_TEST_NEWS_QUERY=${MCP_TEST_NEWS_QUERY:-伊朗 戰爭 美國}
+      - MCP_TEST_WEB_QUERY=${MCP_TEST_WEB_QUERY:-hello world}
+      - MCP_TEST_WEB_FULLTEXT=${MCP_TEST_WEB_FULLTEXT:-false}
+      - MCP_TEST_WEB_LIMIT=${MCP_TEST_WEB_LIMIT:-5}
+      - MCP_TEST_SCRAPE_URL=${MCP_TEST_SCRAPE_URL:-https://example.com/}
+      - MCP_TEST_SCRAPE_CONTENT_TYPE=${MCP_TEST_SCRAPE_CONTENT_TYPE:-}
+      - MCP_TEST_SCRAPE_HEADERS=${MCP_TEST_SCRAPE_HEADERS:-}
+      - MCP_TEST_KB_ID=${MCP_TEST_KB_ID:-example}
+      - MCP_TEST_KB_QUERY=${MCP_TEST_KB_QUERY:-webcam}
+      - MCP_TEST_KB_TOP_K=${MCP_TEST_KB_TOP_K:-5}
+      - MCP_TEST_KB_SCORE_THRESHOLD=${MCP_TEST_KB_SCORE_THRESHOLD:-0.1}
     depends_on:
       api:
         condition: service_started
