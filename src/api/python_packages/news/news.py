@@ -250,17 +250,21 @@ def _fetch_google_news_rss(
 
 
 def _enrich_items_fulltext(items: list[dict]) -> None:
-    """以 RSS <link> 解析出的 url 經 Mercury 取全文，寫入各項目的 content（與 /scrape 相同快取鍵邏輯）。"""
+    """以 RSS <link> 解析出的 url 經 Mercury 取全文；有全文時寫入 content，否則不帶 content 欄位（與 /scrape 相同快取鍵邏輯）。"""
     content_type = "markdown"
     headers_param = None
     for entry in items:
         item_url = entry.get("url")
         if not item_url:
-            entry["content"] = None
+            entry.pop("content", None)
             continue
         cached = _scrape_cache_get(item_url, content_type, headers_param)
         if cached is not None:
-            entry["content"] = cached.get("content")
+            content = cached.get("content")
+            if content is not None and len(content.strip()) > 0:
+                entry["content"] = content.strip()
+            else:
+                entry.pop("content", None)
             continue
         resolved = resolve_google_news_article_url(item_url)
         status, body = _call_mercury_parser(resolved, content_type, headers_param)
@@ -270,9 +274,9 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
             if content is not None and len(content.strip()) > 0:
                 entry["content"] = content.strip()
             else:
-                entry["content"] = None
+                entry.pop("content", None)
         else:
-            entry["content"] = None
+            entry.pop("content", None)
 
 
 @news_bp.route("/news", methods=["POST"])

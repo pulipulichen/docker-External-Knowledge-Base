@@ -32,7 +32,7 @@ def search_news(
     if ceid is not None:
         payload["ceid"] = ceid
 
-    print(json.dumps(payload, indent=4, ensure_ascii=False))
+    # print(json.dumps(payload, indent=4, ensure_ascii=False))
 
     timeout = 300 if fulltext else 90
     try:

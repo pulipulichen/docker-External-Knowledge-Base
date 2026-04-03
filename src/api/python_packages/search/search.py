@@ -137,8 +137,8 @@ def _call_searxng(
 
 def _enrich_searxng_results_fulltext(body: dict) -> None:
     """
-    對 results 內每筆以 url 經 Mercury 取全文寫入 content（與 /scrape 相同快取）。
-    原先 SearXNG 的摘要欄 content 先複製到 snippet 再覆寫 content。
+    對 results 內每筆以 url 經 Mercury 取全文；有全文時寫入 content，否則不帶 content 欄位（與 /scrape 相同快取）。
+    原先 SearXNG 的摘要欄 content 先複製到 snippet 再覆寫或移除 content。
     """
     raw = body.get("results")
     if not isinstance(raw, list):
@@ -152,11 +152,15 @@ def _enrich_searxng_results_fulltext(body: dict) -> None:
             item["snippet"] = item["content"]
         url = item.get("url")
         if not url or not isinstance(url, str):
-            item["content"] = None
+            item.pop("content", None)
             continue
         cached = _scrape_cache_get(url, content_type, headers_param)
         if cached is not None:
-            item["content"] = cached.get("content")
+            content = cached.get("content")
+            if content is not None and len(content.strip()) > 0:
+                item["content"] = content.strip()
+            else:
+                item.pop("content", None)
             continue
         resolved = resolve_google_news_article_url(url)
         status, mercury_body = _call_mercury_parser(
@@ -168,9 +172,9 @@ def _enrich_searxng_results_fulltext(body: dict) -> None:
             if content is not None and len(content.strip()) > 0:
                 item["content"] = content.strip()
             else:
-                item["content"] = None
+                item.pop("content", None)
         else:
-            item["content"] = None
+            item.pop("content", None)
 
 
 @search_bp.route('/search', methods=['POST'])
