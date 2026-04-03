@@ -209,13 +209,13 @@ def _fetch_google_news_rss(
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
 
-    logging.info(
-        "Before Google News RSS request: Query: %s, HL: %s, GL: %s, CEID: %s",
-        query,
-        hl,
-        gl,
-        ceid,
-    )
+    # logging.info(
+    #     "Before Google News RSS request: Query: %s, HL: %s, GL: %s, CEID: %s",
+    #     query,
+    #     hl,
+    #     gl,
+    #     ceid,
+    # )
 
     resp = requests.get(
         GOOGLE_NEWS_RSS_BASE,
@@ -224,18 +224,18 @@ def _fetch_google_news_rss(
         timeout=NEWS_REQUEST_TIMEOUT,
     )
 
-    logging.info("1 After Google News RSS request: %s", resp.status_code)
+    # logging.info("1 After Google News RSS request: %s", resp.status_code)
 
     if resp.status_code != 200:
         return resp.status_code, (resp.text or "")[:2000]
 
-    logging.info("2 After Google News RSS request: %s", resp.status_code)
+    # logging.info("2 After Google News RSS request: %s", resp.status_code)
 
     ct = (resp.headers.get("Content-Type") or "").lower()
     if "xml" not in ct and not (resp.content or b"").lstrip().startswith(b"<?xml"):
         return 502, "Google News 回應不是有效的 RSS/XML"
 
-    logging.info("3 After Google News RSS request: %s", resp.status_code)
+    # logging.info("3 After Google News RSS request: %s", resp.status_code)
 
     try:
         payload = _parse_rss_items(resp.content)
@@ -244,7 +244,7 @@ def _fetch_google_news_rss(
     except Exception as e:
         return 502, f"發生無法處理的錯誤：{e}"
 
-    logging.info("4 After Google News RSS request: %s", resp.status_code)
+    # logging.info("4 After Google News RSS request: %s", resp.status_code)
 
     return 200, payload
 
@@ -255,6 +255,7 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
     headers_param = None
     for entry in items:
         item_url = entry.get("url")
+        logging.info("item_url: %s", item_url)
         if not item_url:
             entry.pop("content", None)
             continue
