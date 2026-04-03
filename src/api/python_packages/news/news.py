@@ -270,6 +270,10 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
                 entry.pop("content", None)
             continue
         resolved = resolve_google_news_article_url(item_url)
+
+        if resolved != item_url:
+            entry["url"] = url
+            
         status, body = _call_mercury_parser(resolved, content_type, headers_param)
         if status == 200:
             _scrape_cache_set(item_url, content_type, headers_param, body)
