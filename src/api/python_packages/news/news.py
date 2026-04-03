@@ -260,6 +260,8 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
             entry.pop("content", None)
             continue
         cached = _scrape_cache_get(item_url, content_type, headers_param)
+        logging.info("cached: %s", cached)
+        cached = None
         if cached is not None:
             content = cached.get("content")
             if content is not None and len(content.strip()) > 0:
