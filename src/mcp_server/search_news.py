@@ -11,7 +11,7 @@ def search_news(
     hl: str = "zh-TW",
     gl: str = "TW",
     ceid: str = "TW:zh-Hant",
-    fulltext: bool = False,
+    fulltext: bool = True,
     limit: int = 5,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""

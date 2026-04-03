@@ -264,7 +264,7 @@ def search_news_tool(
                 "into a content field (markdown); slower and heavier upstream load"
             ),
         ),
-    ] = False,
+    ] = True,
     limit: Annotated[
         int,
         Field(
