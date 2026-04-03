@@ -126,7 +126,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
                     "error": "mercury-parser content too short after strip",
                     "detail": f"content length is {len(stripped)}, minimum is 10",
                 }
-            logging.info(f"scrape ${url} body length: %s", len(stripped))
+            logging.info(f"scrape %s body length: %s", url, len(stripped))
 
     logging.info("scrape body: %s", body)
 
