@@ -22,7 +22,7 @@ curl -X POST http://localhost:8080/news \
         -H "Authorization: Bearer $API_KEY" \
         -H "Content-Type: application/json" \
         -d '{
-            "query": "伊朗 戰爭 美國 結果",
+            "query": "伊朗 戰爭 美國 結果"
         }'
 
 # ===================
