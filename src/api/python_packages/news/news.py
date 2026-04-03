@@ -295,7 +295,7 @@ async def news_endpoint():
 
     q, h, g, c = query.strip(), hl.strip(), gl.strip(), ceid.strip()
 
-    fulltext = data.get("fulltext", False)
+    fulltext = data.get("fulltext", True)
     if not isinstance(fulltext, bool):
         return (
             jsonify({"error": "Field 'fulltext' must be a boolean if provided"}),

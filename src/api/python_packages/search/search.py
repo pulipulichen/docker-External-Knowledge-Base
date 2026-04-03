@@ -202,7 +202,7 @@ async def search_endpoint():
     if time_range is not None and not isinstance(time_range, str):
         return jsonify({"error": "Field 'time_range' must be a string"}), 400
 
-    fulltext = data.get("fulltext", False)
+    fulltext = data.get("fulltext", True)
     if not isinstance(fulltext, bool):
         return (
             jsonify({"error": "Field 'fulltext' must be a boolean if provided"}),
