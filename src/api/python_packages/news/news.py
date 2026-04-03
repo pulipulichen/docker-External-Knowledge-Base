@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import xml.etree.ElementTree as ET
 
 import redis
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 GOOGLE_NEWS_RSS_BASE = "https://news.google.com/rss/search"
 NEWS_REQUEST_TIMEOUT = int(os.getenv("NEWS_REQUEST_TIMEOUT", "30"))
 NEWS_CACHE_TTL_SECONDS = int(os.getenv("NEWS_CACHE_TTL_SECONDS", str(24 * 3600)))
+NEWS_FULLTEXT_MAX_WORKERS = max(1, int(os.getenv("NEWS_FULLTEXT_MAX_WORKERS", "8")))
 DEFAULT_NEWS_RESULT_LIMIT = 5
 MAX_NEWS_RESULT_LIMIT = int(os.getenv("NEWS_MAX_RESULT_LIMIT", "50"))
 
@@ -249,19 +251,44 @@ def _fetch_google_news_rss(
     return 200, payload
 
 
+def _fetch_one_fulltext_uncached(
+    entry: dict, content_type: str, headers_param: str | None
+) -> None:
+    """對單一 item 解析 Google News 連結、呼叫 Mercury、寫入 scrape 快取與 entry（快取鍵一律用 RSS 原始 url）。"""
+    original_url = entry.get("url")
+    if not original_url:
+        entry.pop("content", None)
+        return
+    resolved = resolve_google_news_article_url(original_url)
+    if resolved != original_url:
+        entry["url"] = resolved
+    status, body = _call_mercury_parser(resolved, content_type, headers_param)
+    if status == 200:
+        _scrape_cache_set(original_url, content_type, headers_param, body)
+        content = body.get("content")
+        if content is not None and len(content.strip()) > 0:
+            entry["content"] = content.strip()
+        else:
+            entry.pop("content", None)
+        url = body.get("url")
+        logging.info("url: %s", url)
+        if url is not None and url != original_url:
+            entry["url"] = url
+    else:
+        entry.pop("content", None)
+
+
 def _enrich_items_fulltext(items: list[dict]) -> None:
-    """以 RSS <link> 解析出的 url 經 Mercury 取全文；有全文時寫入 content，否則不帶 content 欄位（與 /scrape 相同快取鍵邏輯）。"""
+    """以 RSS <link> 解析出的 url 經 Mercury 取全文；有全文時寫入 content，否則不帶 content 欄位（與 /scrape 相同快取鍵邏輯）。未快取項目以執行緒池並行擷取。"""
     content_type = "markdown"
     headers_param = None
+    pending: list[dict] = []
     for entry in items:
         item_url = entry.get("url")
-        # logging.info("item_url: %s", item_url)
         if not item_url:
             entry.pop("content", None)
             continue
         cached = _scrape_cache_get(item_url, content_type, headers_param)
-        # logging.info("cached: %s", cached)
-        # cached = None
         if cached is not None:
             content = cached.get("content")
             if content is not None and len(content.strip()) > 0:
@@ -269,26 +296,16 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
             else:
                 entry.pop("content", None)
             continue
-        resolved = resolve_google_news_article_url(item_url)
+        pending.append(entry)
+    if not pending:
+        return
+    max_workers = min(len(pending), NEWS_FULLTEXT_MAX_WORKERS)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
 
-        if resolved != item_url:
-            entry["url"] = resolved
+        def _run(e: dict) -> None:
+            _fetch_one_fulltext_uncached(e, content_type, headers_param)
 
-        status, body = _call_mercury_parser(resolved, content_type, headers_param)
-        if status == 200:
-            _scrape_cache_set(item_url, content_type, headers_param, body)
-            content = body.get("content")
-            if content is not None and len(content.strip()) > 0:
-                entry["content"] = content.strip()
-            else:
-                entry.pop("content", None)
-
-            url = body.get("url")
-            logging.info("url: %s", url)
-            if url is not None and url != item_url:
-                entry["url"] = url
-        else:
-            entry.pop("content", None)
+        list(executor.map(_run, pending))
 
 
 @news_bp.route("/news", methods=["POST"])
