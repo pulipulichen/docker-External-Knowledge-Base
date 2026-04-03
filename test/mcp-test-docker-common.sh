@@ -7,5 +7,7 @@ MCP_TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$MCP_TEST_ROOT"
 clear
 # sudo 預設不保留 MCP_TEST_TOOL，compose 會誤用預設 search_news；須顯式傳入
+# 先 teardown，避免殘留容器仍掛在已刪除的網路上（daemon: network ... not found）
+sudo docker compose down --remove-orphans
 sudo env "MCP_TEST_TOOL=${MCP_TEST_TOOL:-search_news}" \
 	docker compose --profile mcp-test up --build --abort-on-container-exit
