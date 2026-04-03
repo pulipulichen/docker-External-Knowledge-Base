@@ -164,7 +164,11 @@ def _enrich_searxng_results_fulltext(body: dict) -> None:
         )
         if status == 200:
             _scrape_cache_set(url, content_type, headers_param, mercury_body)
-            item["content"] = mercury_body.get("content")
+            content = mercury_body.get("content")
+            if content is not None and len(content.strip()) > 0:
+                item["content"] = content.strip()
+            else:
+                item["content"] = None
         else:
             item["content"] = None
 
