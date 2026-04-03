@@ -255,13 +255,13 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
     headers_param = None
     for entry in items:
         item_url = entry.get("url")
-        logging.info("item_url: %s", item_url)
+        # logging.info("item_url: %s", item_url)
         if not item_url:
             entry.pop("content", None)
             continue
         cached = _scrape_cache_get(item_url, content_type, headers_param)
-        logging.info("cached: %s", cached)
-        cached = None
+        # logging.info("cached: %s", cached)
+        # cached = None
         if cached is not None:
             content = cached.get("content")
             if content is not None and len(content.strip()) > 0:
