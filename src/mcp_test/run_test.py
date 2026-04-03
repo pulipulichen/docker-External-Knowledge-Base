@@ -1,7 +1,7 @@
 """容器內 MCP 整合測試：Bearer 登入後依 MCP_TEST_TOOL 呼叫單一 tool。
 
 - search_news：查新聞（預設 fulltext=true；設 MCP_TEST_NEWS_FULLTEXT=false 可只測 RSS）。
-- search_web：網搜（預設 fulltext=false；見 MCP_TEST_WEB_*）。
+- search_web：網搜（預設 fulltext=true；見 MCP_TEST_WEB_*）。
 - scrape_web_page：單頁擷取（見 MCP_TEST_SCRAPE_URL）。
 - search_knowledge_base / kb_chunks：chunk 檢索，實際呼叫 search_{MCP_TEST_KB_ID}_chunks（見 MCP_TEST_KB_*）。
 - kb_files：file 模式，呼叫 search_{MCP_TEST_KB_ID}_files。
@@ -119,7 +119,7 @@ async def _run() -> None:
     elif tool == "search_web":
         mcp_tool_name = "search_web"
         query = os.environ.get("MCP_TEST_WEB_QUERY", "hello world")
-        web_fulltext = _truthy_env("MCP_TEST_WEB_FULLTEXT", "false")
+        web_fulltext = _truthy_env("MCP_TEST_WEB_FULLTEXT", "true")
         try:
             limit = int(os.environ.get("MCP_TEST_WEB_LIMIT", "5"))
         except ValueError:

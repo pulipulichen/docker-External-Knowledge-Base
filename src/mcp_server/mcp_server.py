@@ -198,11 +198,11 @@ def search_web_tool(
         bool,
         Field(
             description=(
-                "If true, fetch each result URL through Mercury and put article markdown "
-                "in content (SearXNG excerpt moves to snippet); slower, heavier load"
+                "If true (default), fetch each result URL through Mercury and put article markdown "
+                "in content (SearXNG excerpt moves to snippet); set false for snippet-only, faster"
             ),
         ),
-    ] = False,
+    ] = True,
     limit: Annotated[
         int,
         Field(
@@ -260,8 +260,8 @@ def search_news_tool(
         bool,
         Field(
             description=(
-                "If true, follow each item's url and extract article body via Mercury "
-                "into a content field (markdown); slower and heavier upstream load"
+                "If true (default), follow each item's url and extract article body via Mercury "
+                "into a content field (markdown); set false for RSS-only, faster"
             ),
         ),
     ] = True,

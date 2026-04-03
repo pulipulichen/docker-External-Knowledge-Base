@@ -13,7 +13,7 @@ def search_web(
     pageno: int = 1,
     safesearch: int | None = None,
     time_range: str | None = None,
-    fulltext: bool = False,
+    fulltext: bool = True,
     limit: int = 5,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
