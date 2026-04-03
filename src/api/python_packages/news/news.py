@@ -285,6 +285,7 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
     pending: list[dict] = []
     for entry in items:
         item_url = entry.get("url")
+        
         if not item_url:
             entry.pop("content", None)
             continue

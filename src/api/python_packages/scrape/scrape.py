@@ -95,6 +95,8 @@ def _scrape_cache_set(url: str, content_type: str | None, headers: str | None, b
 def _call_mercury_parser(url: str, content_type: str | None, headers: str | None) -> tuple[int, dict]:
     """Call Mercury Parser API synchronously (for use with asyncio.to_thread)."""
     endpoint = f"{MERCURY_PARSER_URL}/parser"
+
+    logging.info("call mercury parser url: %s", url)
     params = {"url": url}
     if content_type:
         params["contentType"] = content_type
@@ -116,6 +118,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
             stripped = ""
         else:
             stripped = None
+
         if stripped is not None:
             body = {**body, "content": stripped}
             if len(stripped) < 10:
@@ -123,6 +126,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
                     "error": "mercury-parser content too short after strip",
                     "detail": f"content length is {len(stripped)}, minimum is 10",
                 }
+            logging.info(f"scrape ${url} body length: %s", len(stripped))
 
     logging.info("scrape body: %s", body)
 
