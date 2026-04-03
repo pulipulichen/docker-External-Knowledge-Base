@@ -1,6 +1,7 @@
 """容器內 MCP 整合測試：Bearer 登入後依 MCP_TEST_TOOL 呼叫單一 tool。
 
 - search_news：查新聞（預設 fulltext=true；設 MCP_TEST_NEWS_FULLTEXT=false 可只測 RSS）。
+  設 MCP_TEST_NEWS_DISABLE_CACHE=true 可略過 /news 的 Redis 列表快取。
 - search_web：網搜（預設 fulltext=true；見 MCP_TEST_WEB_*）。
 - scrape_web_page：單頁擷取（見 MCP_TEST_SCRAPE_URL）。
 - search_knowledge_base / kb_chunks：chunk 檢索，實際呼叫 search_{MCP_TEST_KB_ID}_chunks（見 MCP_TEST_KB_*）。
@@ -111,9 +112,14 @@ async def _run() -> None:
             "伊朗 戰爭 美國 結果",
         )
         news_fulltext = _truthy_env("MCP_TEST_NEWS_FULLTEXT", "true")
-        args = {"query": query, "fulltext": news_fulltext}
+        news_disable_cache = _truthy_env("MCP_TEST_NEWS_DISABLE_CACHE", "false")
+        args = {
+            "query": query,
+            "fulltext": news_fulltext,
+            "disable_cache": news_disable_cache,
+        }
         print(
-            f"search_news: query={query!r}, fulltext={news_fulltext}",
+            f"search_news: query={query!r}, fulltext={news_fulltext}, disable_cache={news_disable_cache}",
             file=sys.stderr,
         )
     elif tool == "search_web":

@@ -273,6 +273,15 @@ def search_news_tool(
             ),
         ),
     ] = 5,
+    disable_cache: Annotated[
+        bool,
+        Field(
+            description=(
+                "If true, skip Redis cache for this news list (always refetch RSS and re-run fulltext); "
+                "does not disable per-URL Mercury scrape cache"
+            ),
+        ),
+    ] = False,
 ) -> str:
     """Fetch Google News as a JSON array of items (title, url, pubDate); with fulltext, each item also has content from Mercury."""
     return search_news(
@@ -282,6 +291,7 @@ def search_news_tool(
         ceid=_optional_str(ceid),
         fulltext=fulltext,
         limit=limit,
+        disable_cache=disable_cache,
     )
 
 

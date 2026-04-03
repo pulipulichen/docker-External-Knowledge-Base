@@ -90,6 +90,7 @@ curl -X POST http://localhost:8080/scrape \
 | `gl` | No | Region code (default: `TW`). |
 | `ceid` | No | Google News `ceid` (default: `TW:zh-Hant`). |
 | `fulltext` | No | Boolean, default `true` (`content` per item via Mercury; see above). Set `false` for titles/links only. Must be a JSON boolean. |
+| `disable_cache` | No | Boolean, default `false`. If `true`, skip Redis read/write for the **news list** (`news:rss:*`); still uses per-URL Mercury scrape cache unless you clear Redis separately. |
 
 **Successful response (200)**
 
@@ -98,9 +99,9 @@ curl -X POST http://localhost:8080/scrape \
 
 Errors use the usual JSON `error` / `detail` fields (e.g. 401, 400, 502, 504). With `fulltext: true` (the default), a Mercury failure after a successful RSS fetch may return **502** or **504** for the whole request.
 
-**Caching:** News results are stored in Redis under keys prefixed with `news:rss:`, keyed by **`(query, hl, gl, ceid, fulltext)`**. TTL defaults to **24 hours** (`NEWS_CACHE_TTL_SECONDS`). Full-text extraction reuses scrape cache keys (`scrape:mercury:…`, `SCRAPE_CACHE_TTL_SECONDS`). Connection uses the same `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` as the rest of the API. Optional: `NEWS_REQUEST_TIMEOUT` (seconds, default `30`) for the Google RSS HTTP call.
+**Caching:** News results are stored in Redis under keys prefixed with `news:rss:`, keyed by **`(query, hl, gl, ceid, fulltext, limit)`**. TTL defaults to **24 hours** (`NEWS_CACHE_TTL_SECONDS`). Full-text extraction reuses scrape cache keys (`scrape:mercury:…`, `SCRAPE_CACHE_TTL_SECONDS`). Connection uses the same `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` as the rest of the API. Optional: `NEWS_REQUEST_TIMEOUT` (seconds, default `30`) for the Google RSS HTTP call.
 
-**MCP:** The `search_news` tool accepts the same idea via a boolean **`fulltext`** argument (default `true`) and forwards it to this endpoint.
+**MCP:** The `search_news` tool forwards **`fulltext`** (default `true`) and **`disable_cache`** (default `false`) to this endpoint.
 
 Example with `curl`:
 

@@ -306,6 +306,13 @@ async def news_endpoint():
             400,
         )
 
+    disable_cache = data.get("disable_cache", False)
+    if not isinstance(disable_cache, bool):
+        return (
+            jsonify({"error": "Field 'disable_cache' must be a boolean if provided"}),
+            400,
+        )
+
     limit_raw = data.get("limit", DEFAULT_NEWS_RESULT_LIMIT)
     if isinstance(limit_raw, bool):
         return (
@@ -338,7 +345,11 @@ async def news_endpoint():
         response = None
         status_code = None
 
-        cached_raw = _news_cache_get(q, h, g, c, fulltext, limit)
+        cached_raw = (
+            None
+            if disable_cache
+            else _news_cache_get(q, h, g, c, fulltext, limit)
+        )
         if cached_raw is not None:
             try:
                 body = json.loads(cached_raw)
@@ -392,17 +403,19 @@ async def news_endpoint():
                             )
                             status_code = 502
                         else:
+                            if not disable_cache:
+                                cache_str = json.dumps(
+                                    payload, ensure_ascii=False, separators=(",", ":")
+                                )
+                                _news_cache_set(q, h, g, c, fulltext, limit, cache_str)
+                            response = jsonify(payload)
+                            status_code = 200
+                    else:
+                        if not disable_cache:
                             cache_str = json.dumps(
                                 payload, ensure_ascii=False, separators=(",", ":")
                             )
                             _news_cache_set(q, h, g, c, fulltext, limit, cache_str)
-                            response = jsonify(payload)
-                            status_code = 200
-                    else:
-                        cache_str = json.dumps(
-                            payload, ensure_ascii=False, separators=(",", ":")
-                        )
-                        _news_cache_set(q, h, g, c, fulltext, limit, cache_str)
                         response = jsonify(payload)
                         status_code = 200
 

@@ -13,6 +13,7 @@ def search_news(
     ceid: str = "TW:zh-Hant",
     fulltext: bool = True,
     limit: int = 5,
+    disable_cache: bool = False,
 ):
     """POST JSON to the internal API; Bearer token from MCP_API_KEY."""
     url = "http://api/news"
@@ -31,6 +32,8 @@ def search_news(
         payload["gl"] = gl
     if ceid is not None:
         payload["ceid"] = ceid
+    if disable_cache:
+        payload["disable_cache"] = True
 
     # print(json.dumps(payload, indent=4, ensure_ascii=False))
 
