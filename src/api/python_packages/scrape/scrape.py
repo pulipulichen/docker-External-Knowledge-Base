@@ -106,6 +106,24 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
         body = resp.json()
     except ValueError:
         body = {"error": "mercury-parser returned non-JSON body", "detail": (resp.text or "")[:500]}
+        return resp.status_code, body
+
+    if resp.status_code == 200 and isinstance(body, dict):
+        raw = body.get("content")
+        if isinstance(raw, str):
+            stripped = raw.strip()
+        elif raw is None:
+            stripped = ""
+        else:
+            stripped = None
+        if stripped is not None:
+            body = {**body, "content": stripped}
+            if len(stripped) < 10:
+                return 422, {
+                    "error": "mercury-parser content too short after strip",
+                    "detail": f"content length is {len(stripped)}, minimum is 10",
+                }
+
     return resp.status_code, body
 
 
