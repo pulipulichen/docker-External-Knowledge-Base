@@ -21,7 +21,7 @@ app = Flask(__name__)  # Keep a dummy app for local testing if __name__ == '__ma
 USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
 
 MERCURY_PARSER_URL = os.getenv("MERCURY_PARSER_URL", "http://mercury-parser:3000").rstrip("/")
-MERCURY_REQUEST_TIMEOUT = int(os.getenv("MERCURY_REQUEST_TIMEOUT", "90"))
+MERCURY_REQUEST_TIMEOUT = int(os.getenv("MERCURY_REQUEST_TIMEOUT", "10"))
 
 SCRAPE_CACHE_TTL_SECONDS = int(os.getenv("SCRAPE_CACHE_TTL_SECONDS", str(24 * 3600)))
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
