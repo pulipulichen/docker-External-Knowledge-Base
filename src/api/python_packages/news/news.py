@@ -278,6 +278,10 @@ def _enrich_items_fulltext(items: list[dict]) -> None:
                 entry["content"] = content.strip()
             else:
                 entry.pop("content", None)
+
+            url = body.get("url")
+            if url is not None and url != item_url:
+                entry["url"] = url
         else:
             entry.pop("content", None)
 
