@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import threading
+from pathlib import PurePosixPath
+from urllib.parse import urlparse
 
 import redis
 import requests
@@ -11,6 +13,7 @@ from flask import Blueprint, Flask, jsonify, request
 
 from ..auth.check_auth import check_auth  # Import check_auth from the new auth module
 from ..google_news_url import resolve_google_news_article_url
+from .non_web_page_extensions import NON_WEB_PAGE_EXTENSIONS
 
 scrape_bp = Blueprint('scrape', __name__)
 
@@ -31,6 +34,21 @@ REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 _scrape_redis: redis.StrictRedis | None = None
 _scrape_redis_failed = False
 _scrape_redis_lock = threading.Lock()
+
+
+def _url_path_looks_like_non_web_document(url: str) -> str | None:
+    """If the URL path ends with a known non-HTML extension, return that suffix (lowercase)."""
+    try:
+        path = urlparse(url).path or ""
+    except ValueError:
+        return None
+    path = path.rstrip("/")
+    if not path:
+        return None
+    suffix = PurePosixPath(path).suffix.lower().lstrip(".")
+    if suffix in NON_WEB_PAGE_EXTENSIONS:
+        return suffix
+    return None
 
 
 def _get_scrape_redis() -> redis.StrictRedis | None:
@@ -154,6 +172,13 @@ async def scrape_endpoint():
     if headers_param is not None and not isinstance(headers_param, str):
         return jsonify({
             "error": "Field 'headers' must be a URL-encoded string (see mercury-parser API docs)",
+        }), 400
+
+    bad_ext = _url_path_looks_like_non_web_document(target_url)
+    if bad_ext is not None:
+        return jsonify({
+            "error": "URL path looks like a non-web document (not supported for scrape)",
+            "detail": f"disallowed path suffix: .{bad_ext}",
         }), 400
 
     cached = _scrape_cache_get(target_url, content_type, headers_param)

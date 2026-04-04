@@ -73,6 +73,12 @@ curl -X POST http://localhost:8080/scrape \
      }'
 ```
 
+### Maintaining blocked URL path suffixes (`/scrape`)
+
+`POST /scrape` rejects requests when the **URL path** (not the query string) ends with a suffix listed as a non-web document (e.g. `.pdf`, `.docx`, `.csv`). Matching is **case-insensitive**. The API responds with **400** and JSON fields `error` / `detail` (including the disallowed suffix).
+
+To add or remove extensions, edit **`src/api/python_packages/scrape/non_web_page_extensions.py`** and update the `NON_WEB_PAGE_EXTENSIONS` set. Each entry must be **lowercase** and **without** a leading dot (use `"pdf"`, not `".pdf"`). After changing the file, redeploy or restart the API container so the change takes effect.
+
 ## News API
 
 `POST /news` fetches [Google News RSS search](https://news.google.com/rss/search) and returns a **JSON array** of items (same order as the RSS `<item>` elements). Each object includes **`title`**, **`pubDate`**, and **`url`** when the feed provides an item link (mapped from RSS `<link>`; typically a Google News redirect URL). There is no `guid` or `cached` field in the response body. The upstream RSS request sends the client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them (same idea as `/search`).
