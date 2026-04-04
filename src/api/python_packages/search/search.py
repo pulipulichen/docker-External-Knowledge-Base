@@ -49,15 +49,27 @@ _SEARCH_LOCK = asyncio.Lock()
 _SEARXNG_RESULT_KEYS = ("content", "publishedDate", "score", "title", "url")
 
 
+def _omit_searxng_field_value(v) -> bool:
+    """值為 null、False 或空字串時不輸出該鍵（數字 0 仍會輸出）。"""
+    if v is None or v is False:
+        return True
+    return v == ""
+
+
 def _trim_searxng_result_items(body: dict, limit: int) -> dict:
-    """從 SearXNG JSON 回應中，將 results 內每筆只保留指定欄位；其餘頂層鍵不變。"""
+    """從 SearXNG JSON 回應中，將 results 內每筆只保留指定欄位；略過 null / False / 空字串的鍵。其餘頂層鍵不變。"""
     raw = body.get("results")
     if not isinstance(raw, list):
         return body
     trimmed = []
     for item in raw[:limit]:
         if isinstance(item, dict):
-            trimmed.append({k: item.get(k) for k in _SEARXNG_RESULT_KEYS})
+            out_item = {}
+            for k in _SEARXNG_RESULT_KEYS:
+                v = item.get(k)
+                if not _omit_searxng_field_value(v):
+                    out_item[k] = v
+            trimmed.append(out_item)
         else:
             trimmed.append(item)
     out = dict(body)
