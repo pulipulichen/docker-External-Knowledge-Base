@@ -7,8 +7,9 @@ RUN mkdir /app
 WORKDIR /app
 
 # Install dependencies
-COPY ./requirements.txt /app/
-RUN pip install -r requirements.txt
+COPY pyproject.toml pyproject.toml
+COPY *.py ./
+RUN pip install --no-cache-dir -e .
 
 # Command to run the application
 CMD ["python3", "/app/mcp_server.py"]
