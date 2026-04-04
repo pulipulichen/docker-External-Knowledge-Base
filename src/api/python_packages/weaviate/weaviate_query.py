@@ -20,7 +20,7 @@ def weaviate_query(**kwargs):
 
   collection_name = kwargs.get("knowledge_id", None)
   if weaviate_ready(**kwargs) is False:
-    app.logger.info(f"not ready")
+    app.logger.info(f"{collection_name} is not ready")
     return {"records": []}
 
   # item_id = kwargs.get("item_id", kwargs.get("title", None))
