@@ -15,6 +15,8 @@ from .convert.convert_google_slide_url_to_md_download import convert_google_slid
 
 FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../', 'knowledge_base/files')
 
+logger = logging.getLogger(__name__)
+
 def get_knowledge_base_config(knowledge_id):
     """
     Retrieves and parses a knowledge base configuration file.
