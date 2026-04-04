@@ -41,7 +41,7 @@ def search_web(
     if time_range is not None:
         payload["time_range"] = time_range
 
-    print(json.dumps(payload, indent=4, ensure_ascii=False))
+    # print(json.dumps(payload, indent=4, ensure_ascii=False))
 
     timeout = 300 if fulltext else 90
     try:

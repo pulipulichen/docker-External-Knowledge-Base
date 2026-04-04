@@ -301,5 +301,8 @@ print(f"Registered tool: {search_news_tool.__name__}")
 
 # ===========================
 
+# ASGI app for gunicorn / uvicorn (after all tools are registered)
+http_app = mcp.http_app()
+
 if __name__ == "__main__":
     mcp.run(transport="http", port=80, host="0.0.0.0")
