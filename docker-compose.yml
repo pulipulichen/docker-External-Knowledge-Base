@@ -47,6 +47,12 @@ services:
       # SearXNG (used by POST /search)
       - SEARXNG_URL=${SEARXNG_URL:-http://searxng:8080}
       - SEARXNG_REQUEST_TIMEOUT=${SEARXNG_REQUEST_TIMEOUT:-30}
+    deploy:
+      mode: replicated
+      replicas: 3 # 在這裡控制你要幾台，想改 5 台就改這裡
+      resources:
+        limits:
+          memory: 512M
 
   redis:
     image: "redis:7.0.12-alpine"
@@ -115,7 +121,8 @@ services:
     ports:
       - 47777:7777
     depends_on:
-      - weaviate
+      weaviate:
+        condition: service_healthy
     environment:
       - WEAVIATE_URL=http://weaviate:8080
     env_file:
@@ -174,19 +181,27 @@ services:
       - ./knowledge_base/configs:/knowledge_base_configs
     networks:
       - docker_external_knowledge_base
+    deploy:
+      mode: replicated
+      replicas: 3 # 在這裡控制你要幾台，想改 5 台就改這裡
+      resources:
+        limits:
+          memory: 512M
     # Mercury Parser API 服務
     # 常用於將網頁內容轉換為乾淨的內容，適合閱讀與 RSS 整合
   mercury-parser:
     # image: wangqiru/mercury-parser-api:latest
     image: pudding/docker-scrape-web-page-to-markdown:20260404.040512
     restart: unless-stopped
-    ports:
-      - "43000:3000"
+    # ports:
+    #   - "43000:3000"
     environment:
       # 如果需要調整時區，可以取消註解
       - TZ=Asia/Taipei
     # 建議限制記憶體使用量，因為解析網頁有時較佔資源
     deploy:
+      mode: replicated
+      replicas: 3 # 在這裡控制你要幾台，想改 5 台就改這裡
       resources:
         limits:
           memory: 512M
@@ -199,8 +214,8 @@ services:
   searxng:
     image: searxng/searxng:2026.3.25-fe1d6d9c4
     # 僅內部連線；對外請用 nginx:40002 → 會補齊 X-Forwarded-For / X-Real-IP
-    expose:
-      - "8080"
+    # expose:
+    #   - "8080"
     volumes:
       - "./src/searxng:/etc/searxng"
     environment:
@@ -210,6 +225,12 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 3 # 在這裡控制你要幾台，想改 5 台就改這裡
+      resources:
+        limits:
+          memory: 512M
     networks:
       - docker_external_knowledge_base
 
