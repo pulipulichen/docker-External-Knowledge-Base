@@ -120,6 +120,8 @@ services:
     restart: on-failure
     ports:
       - 47777:7777
+    depends_on:
+      - weaviate
     environment:
       - WEAVIATE_URL=http://weaviate:8080
     env_file:
