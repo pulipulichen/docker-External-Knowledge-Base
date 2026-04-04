@@ -163,6 +163,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - MCP_API_KEY=${API_KEY}
+      # 1：uvicorn --reload（掛載的 .py 變更會重載，單 process）。0：gunicorn 四 worker（較適合併發）。
+      - MCP_DEV_RELOAD=${MCP_DEV_RELOAD:-0}
     volumes:
       - ./src/mcp_server/mcp_server.py:/app/mcp_server.py
       - ./src/mcp_server/search_knowledge_base.py:/app/search_knowledge_base.py
