@@ -101,8 +101,19 @@ def make_tool_function(reg_key, reg_desc, file_mode: bool = False):
                 ),
             ),
         ] = 0.1,
+        disable_metadata: Annotated[
+            bool,
+            Field(
+                description=(
+                    "If true (default), omit per-record metadata from retrieval results (smaller tool output); "
+                    "set false to include metadata"
+                ),
+            ),
+        ] = True,
     ) -> str:
-        return search_knowledge_base(reg_key, query, top_k, score_threshold, file_mode)
+        return search_knowledge_base(
+            reg_key, query, top_k, score_threshold, file_mode, disable_metadata
+        )
 
     # MCP uses the Python function name as the tool id; must be unique per tool
     if file_mode is False:

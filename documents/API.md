@@ -1,5 +1,58 @@
 # API usage examples
 
+## Knowledge base retrieval API
+
+`POST /retrieval` runs semantic retrieval against a configured knowledge base (chunk mode by default, or file mode when requested). Behavior depends on **`USE_MOCK_DB`**: when `true` (default in many setups), the handler returns **mock** results for local testing; when `false`, it queries **Weaviate** using the config under `knowledge_base/configs/`.
+
+**Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as `/search`, `/news`, and `/scrape`.
+
+**JSON body**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `knowledge_id` | Yes | Config stem: the YAML filename in `knowledge_base/configs/` without extension (e.g. `example` → `example.yml`). For spreadsheet-style sources you can pass `my_kb!SheetName` so the part after `!` is the section/sheet name (see `parse_knowledge_id` in the API). |
+| `query` | Yes | Natural language or keywords to retrieve against. |
+| `retrieval_setting` | No | Object with optional `top_k` (default **5**) and `score_threshold` (default **no filter** in the HTTP handler when omitted; MCP defaults **0.1** when calling the helper). |
+| `file_mode` | No | JSON boolean, default **`false`**. If **`true`**, use file-level retrieval instead of chunk retrieval. |
+| `disable_metadata` | No | JSON boolean, default **`false`** for direct HTTP calls. If **`true`**, each object in **`records`** is returned **without** a **`metadata`** field (smaller responses). The MCP helper `search_knowledge_base` sends **`true`** by default so tool output stays lean unless you opt in. |
+
+**MCP:** The server registers one pair of tools per config file: **`search_<knowledge_id>_chunks`** and **`search_<knowledge_id>_files`**. Both call the internal helper `search_knowledge_base`, which `POST`s to `http://api/retrieval` inside Compose with the same JSON shape (Bearer **`MCP_API_KEY`** must match your API key). Tool arguments map to `query`, `top_k`, `score_threshold`, `file_mode` on the files variant, and **`disable_metadata`** (default **`true`** on the tools, forwarded as the top-level JSON field). Direct HTTP callers who omit **`disable_metadata`** get **`false`** (metadata included).
+
+**curl** (host port **8080** maps to the API container; use **`API_KEY`** from `.env`):
+
+```bash
+curl -X POST http://localhost:8080/retrieval \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "knowledge_id": "example",
+       "query": "webcam",
+       "retrieval_setting": {
+         "top_k": 5,
+         "score_threshold": 0.1
+       }
+     }'
+```
+
+**File mode** (same endpoint, set `file_mode` to JSON boolean `true`):
+
+```bash
+curl -X POST http://localhost:8080/retrieval \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "knowledge_id": "example",
+       "query": "webcam",
+       "file_mode": true,
+       "retrieval_setting": {
+         "top_k": 5,
+         "score_threshold": 0.1
+       }
+     }'
+```
+
+**Smoke test:** `./test/run-test-search-knowledge-base.sh` sources `.env`, ensures Docker Compose is up, then posts the chunk-style payload above twice (10 seconds apart) against `http://localhost:8080/retrieval`.
+
 ## Search API
 
 `POST /search` proxies to **SearXNG** (JSON API) and returns a JSON object whose **`results`** array is trimmed to: `content` (snippet from SearXNG), `publishedDate`, `score`, `title`, `url`. The request forwards client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them.
@@ -121,55 +174,3 @@ curl -X POST http://localhost:8080/news \
        "fulltext": true
      }'
 ```
-
-## Knowledge base retrieval API
-
-`POST /retrieval` runs semantic retrieval against a configured knowledge base (chunk mode by default, or file mode when requested). Behavior depends on **`USE_MOCK_DB`**: when `true` (default in many setups), the handler returns **mock** results for local testing; when `false`, it queries **Weaviate** using the config under `knowledge_base/configs/`.
-
-**Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as `/search`, `/news`, and `/scrape`.
-
-**JSON body**
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `knowledge_id` | Yes | Config stem: the YAML filename in `knowledge_base/configs/` without extension (e.g. `example` → `example.yml`). For spreadsheet-style sources you can pass `my_kb!SheetName` so the part after `!` is the section/sheet name (see `parse_knowledge_id` in the API). |
-| `query` | Yes | Natural language or keywords to retrieve against. |
-| `retrieval_setting` | No | Object with optional `top_k` (default **5**) and `score_threshold` (default **no filter** in the HTTP handler when omitted; MCP defaults **0.1** when calling the helper). |
-| `file_mode` | No | JSON boolean, default **`false`**. If **`true`**, use file-level retrieval instead of chunk retrieval. |
-
-**MCP:** The server registers one pair of tools per config file: **`search_<knowledge_id>_chunks`** and **`search_<knowledge_id>_files`**. Both call the internal helper `search_knowledge_base`, which `POST`s to `http://api/retrieval` inside Compose with the same JSON shape (Bearer **`MCP_API_KEY`** must match your API key). Tool arguments map to `query`, `top_k`, `score_threshold`, and `file_mode` on the files variant.
-
-**curl** (host port **8080** maps to the API container; use **`API_KEY`** from `.env`):
-
-```bash
-curl -X POST http://localhost:8080/retrieval \
-     -H "Authorization: Bearer <YOUR_API_KEY>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "knowledge_id": "example",
-       "query": "webcam",
-       "retrieval_setting": {
-         "top_k": 5,
-         "score_threshold": 0.1
-       }
-     }'
-```
-
-**File mode** (same endpoint, set `file_mode` to JSON boolean `true`):
-
-```bash
-curl -X POST http://localhost:8080/retrieval \
-     -H "Authorization: Bearer <YOUR_API_KEY>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "knowledge_id": "example",
-       "query": "webcam",
-       "file_mode": true,
-       "retrieval_setting": {
-         "top_k": 5,
-         "score_threshold": 0.1
-       }
-     }'
-```
-
-**Smoke test:** `./test/run-test-search-knowledge-base.sh` sources `.env`, ensures Docker Compose is up, then posts the chunk-style payload above twice (10 seconds apart) against `http://localhost:8080/retrieval`.

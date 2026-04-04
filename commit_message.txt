@@ -1,1 +1,1 @@
-調整文件的寫法 -
+調整retrieval的metdata顯示時機 -
