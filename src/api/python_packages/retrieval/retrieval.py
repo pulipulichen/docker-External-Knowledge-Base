@@ -18,6 +18,17 @@ app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__mai
 
 USE_MOCK_DB = os.getenv("USE_MOCK_DB", "true").lower() == "true"
 
+
+def _strip_metadata_from_records(results):
+    """Remove metadata from each record when disable_metadata is requested."""
+    records = results.get("records")
+    if not records:
+        return
+    for rec in records:
+        if isinstance(rec, dict):
+            rec.pop("metadata", None)
+
+
 @retrieval_bp.route('/retrieval', methods=['POST'])
 async def retrieval_endpoint():
     # Validate Bearer Token
@@ -37,6 +48,7 @@ async def retrieval_endpoint():
     # app.logger.debug(f"Parsed knowledge_id: {knowledge_id}, section_name: {section_name}")
     
     query = data.get("query", "")
+    disable_metadata = data.get("disable_metadata", False)
     retrieval_setting = data.get("retrieval_setting", {})
     
     top_k = retrieval_setting.get("top_k", 5)
@@ -52,6 +64,9 @@ async def retrieval_endpoint():
         results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
         results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
+
+    if disable_metadata:
+        _strip_metadata_from_records(results)
 
     # results_json = jsonify({
     #     "records": results
