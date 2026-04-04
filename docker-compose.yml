@@ -115,6 +115,13 @@ services:
       - .env
     networks:
       - docker_external_knowledge_base
+    healthcheck:
+      test:
+        ["CMD", "curl", "-sf", "--max-time", "8", "http://weaviate:8080/v1/meta"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
   weaviate_ui:
     image: naaive/weaviate-ui:v1.0.3
     restart: on-failure
