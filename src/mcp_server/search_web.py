@@ -48,8 +48,8 @@ def search_web(
         response = requests.post(url, headers=headers, json=payload, timeout=timeout)
         response.raise_for_status()
         result = response.json()
-        print("Search succeeded; response:")
-        print(json.dumps(result, indent=4, ensure_ascii=False))
+        # print("Search succeeded; response:")
+        # print(json.dumps(result, indent=4, ensure_ascii=False))
         return json.dumps(result, ensure_ascii=False)
 
     except requests.exceptions.RequestException as e:
