@@ -182,7 +182,7 @@ services:
       - docker_external_knowledge_base
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
       resources:
         limits:
           memory: 512M
@@ -200,7 +200,7 @@ services:
     # 建議限制記憶體使用量，因為解析網頁有時較佔資源
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
       resources:
         limits:
           memory: 512M
@@ -226,7 +226,7 @@ services:
     restart: unless-stopped
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
       resources:
         limits:
           memory: 512M
