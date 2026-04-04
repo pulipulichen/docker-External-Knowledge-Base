@@ -9,7 +9,7 @@ curl -X POST http://localhost:8080/retrieval \
     -H "Authorization: Bearer $API_KEY" \
     -H "Content-Type: application/json" \
     -d '{
-        "knowledge_id": "prefer_terms",
+        "knowledge_id": "example",
         "query": "攝像頭",
         "retrieval_setting": {
             "top_k": 5,
