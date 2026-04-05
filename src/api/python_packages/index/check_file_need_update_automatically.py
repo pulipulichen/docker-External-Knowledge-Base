@@ -41,7 +41,7 @@ def check_file_need_update_automatically(knowledge_id):
         update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 
         if last_index_time is not None and time_difference < datetime.timedelta(seconds=update_delay_seconds):
-            logger.info("File is up to date. Skipping index.")
+            logger.info(f"Files are up to date. Skipping index. {file_mod_time} - {last_index_time} < {datetime.timedelta(seconds=update_delay_seconds)}")
             return False
 
     if not filename:

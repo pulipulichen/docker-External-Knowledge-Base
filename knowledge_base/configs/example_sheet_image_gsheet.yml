@@ -6,7 +6,6 @@ auto_update:
   enable: true
   # delay_seconds: 86400
   delay_seconds: 3
-embedding_model: bge-m3
 index: 
   mode: last
   length: 100
