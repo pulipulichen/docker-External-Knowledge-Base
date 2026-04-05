@@ -11,7 +11,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 # 2. 如果可以，設定這兩個變數來進一步抑制警告
 os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
 
-from flask import Flask, render_template
+from flask import Flask
 from .python_packages.retrieval.retrieval import retrieval_bp
 from .python_packages.knowledge_base_config.knowledge_list import knowledge_list_bp
 # from .python_packages.hello.hello_routes import hello_bp
@@ -21,6 +21,7 @@ from .python_packages.file_host.file_host import file_host_bp
 from .python_packages.search.search import search_bp
 from .python_packages.scrape.scrape import scrape_bp
 from .python_packages.news.news import news_bp
+from .python_packages.demo.demo import demo_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -41,19 +42,7 @@ app.register_blueprint(file_host_bp)
 app.register_blueprint(search_bp)
 app.register_blueprint(scrape_bp)
 app.register_blueprint(news_bp)
-
-@app.route('/demo')
-def demo():
-    # Scan knowledge IDs
-    configs_dir = os.path.join(os.path.dirname(__file__), '../../knowledge_base/configs')
-    knowledge_ids = []
-    if os.path.exists(configs_dir):
-        for f in os.listdir(configs_dir):
-            if f.endswith('.yml') or f.endswith('.yaml'):
-                knowledge_ids.append(f.rsplit('.', 1)[0])
-    knowledge_ids.sort()
-
-    return render_template('demo_query.html', knowledge_ids=knowledge_ids)
+app.register_blueprint(demo_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)

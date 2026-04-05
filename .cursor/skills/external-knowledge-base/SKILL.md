@@ -32,6 +32,7 @@ description: >-
 
 ## Tests and verification
 
+- **Do not run local Python import/module checks** in the user’s workspace (e.g. `python -c "from … import …"`, ad-hoc `pytest` on unchanged code) unless the user explicitly asks for it. Rely on static review, existing project tests/scripts, or the user’s remote/Docker verification instead.
 - Shell tests under `test/` (e.g. retrieval, MCP profile `mcp-test`). Prefer the project’s existing scripts over ad-hoc curls when validating behavior.
 - If the user validates on a **remote server** only (no local Docker), follow their remote-testing workflow when applicable.
 
