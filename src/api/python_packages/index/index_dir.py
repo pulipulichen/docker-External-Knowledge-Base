@@ -9,6 +9,9 @@ from ..weaviate.weaviate_clear_relative_path import weaviate_clear_relative_path
 from .chunk.get_chunks_from_markdown_file import get_relative_path
 from .mode.index_mode_file import index_mode_file
 
+from ..weaviate.weaviate_clear_relative_path import weaviate_clear_relative_path
+from ..weaviate.weaviate_collection_delete import weaviate_collection_delete
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -21,6 +24,9 @@ async def index_dir(knowledge_id, force_update: False):
     # force_update = True
 
     config = get_knowledge_base_config(knowledge_id)
+    weaviate_collection_delete(knowledge_id=knowledge_id)
+    return False
+
     update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 
     index_result = False
