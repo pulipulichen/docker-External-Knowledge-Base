@@ -76,18 +76,20 @@ async def index_dir(knowledge_id, force_update: False):
             markdown_file_path = os.path.join(root, file)
             
             # 把 markdown_file_path 的相對路徑，轉換成相對於 input_dir_path 的路徑，並移除 .md 後綴
-            relative_path = markdown_file_path[len(markdown_dir_path):-3]
+            metadata_path = markdown_file_path[len(markdown_dir_path):-3]
 
-            if relative_path.startswith('/'):
-                relative_path = relative_path[1:]
+            if metadata_path.startswith('/'):
+                metadata_path = metadata_path[1:]
 
+            relative_path = metadata_path
             # relative_path 只保留第一個目錄之後的字串
             if '/' in relative_path:
                 relative_path = relative_path[relative_path.find('/') + 1:]
 
             source_path = os.path.join(FILE_STORAGE_DIR, config.get('path'), relative_path)
             if not os.path.exists(source_path):
-                logger.info(f"Source file missing for indexed markdown; clearing Weaviate and cache: "
+                logger.info(f"Source file missing for indexed markdown; clearing Weaviate and cache: \n"
+                            f"metadata_path={metadata_path!r} \n" 
                             f"relative_path={relative_path!r} \n" 
                             f"markdown_file_path={markdown_file_path!r} \n"
                             f"source_path={source_path!r}")
