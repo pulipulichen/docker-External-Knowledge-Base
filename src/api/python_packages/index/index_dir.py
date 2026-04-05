@@ -5,6 +5,8 @@ import time # Import the time module
 
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 from ..ingest.convert_file_path_to_markdown_content import convert_file_path_to_markdown_content
+from ..weaviate.weaviate_clear_relative_path import weaviate_clear_relative_path
+from .chunk.get_chunks_from_markdown_file import get_relative_path
 from .mode.index_mode_file import index_mode_file
 
 logger = logging.getLogger(__name__)
@@ -58,11 +60,48 @@ async def index_dir(knowledge_id, force_update: False):
                         index_result = True
                     # logger.info(f"Processing file: {markdown_file_path}")
 
+        if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
+            index_result = True
+
         # logger.info(f"markdown_dir_path: '{markdown_dir_path}'")
         return index_result
 
     logger.error(f"File name not found in config for knowledge_id '{knowledge_id}'.")
     return False
+
+def cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
+    """
+    For each cached markdown under markdown_dir_path, if the corresponding source
+    file under input_dir_path no longer exists, delete Weaviate rows for that path
+    and remove the orphan markdown file.
+    """
+    if not os.path.isdir(markdown_dir_path):
+        return False
+
+    cleaned = False
+    for root, _dirs, files in os.walk(markdown_dir_path):
+        for name in files:
+            if not name.endswith('.md'):
+                continue
+            markdown_file_path = os.path.join(root, name)
+            relative_path = get_relative_path(markdown_file_path)
+            source_path = os.path.join(input_dir_path, relative_path)
+            if os.path.exists(source_path):
+                continue
+
+            logger.info(
+                "Source file missing for indexed markdown; clearing Weaviate and cache: "
+                f"relative_path={relative_path!r}"
+            )
+            weaviate_clear_relative_path(knowledge_id=knowledge_id, relative_path=relative_path)
+            cleaned = True
+            try:
+                os.remove(markdown_file_path)
+            except OSError as e:
+                logger.error(f"Failed to remove orphan markdown file {markdown_file_path!r}: {e}")
+
+    return cleaned
+
 
 def convert_to_markdown_file_path(file_path, markdown_dir_path):
     relative_file_path = file_path[len(FILE_STORAGE_DIR):]
