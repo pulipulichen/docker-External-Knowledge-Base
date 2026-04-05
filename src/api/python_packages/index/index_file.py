@@ -27,15 +27,15 @@ from .mode.index_mode_last import index_mode_last
 from .index_dir import index_dir
 
 # from ..weaviate.weaviate_add import weaviate_add
-from .check_file_need_update_automatically import check_file_need_update_automatically
+from .check_knowledge_base_need_update_automatically import check_knowledge_base_need_update_automatically
 
 async def index_file(knowledge_id, section_name, force_update: False):
 
     # force_update = True
 
-    # logger.info(f"index_file Knowledge ID: {knowledge_id} {force_update} {check_file_need_update_automatically(knowledge_id)}")
+    # logger.info(f"index_file Knowledge ID: {knowledge_id} {force_update} {check_knowledge_base_need_update_automatically(knowledge_id)}")
 
-    if force_update is False and check_file_need_update_automatically(knowledge_id) is False:
+    if force_update is False and check_knowledge_base_need_update_automatically(knowledge_id) is False:
         logger.info("File does not need to be updated automatically.")
         return False
 

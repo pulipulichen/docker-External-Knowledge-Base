@@ -39,7 +39,7 @@ def _latest_content_mtime(path: str) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(latest_ts)
 
 
-def check_file_need_update_automatically(knowledge_id):
+def check_knowledge_base_need_update_automatically(knowledge_id):
     # logger.info(f"Knowledge ID: {knowledge_id}")
 
     config = get_knowledge_base_config(knowledge_id)
