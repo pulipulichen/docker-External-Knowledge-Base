@@ -6,8 +6,9 @@ WORKDIR /app
 
 # Install dependencies
 COPY pyproject.toml pyproject.toml
-COPY *.py ./
 RUN pip install --no-cache-dir -e .
+
+COPY *.py ./
 
 # Command to run the application
 CMD ["python3", "/app/mcp_server.py"]
