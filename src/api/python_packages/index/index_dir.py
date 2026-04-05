@@ -72,7 +72,7 @@ async def index_dir(knowledge_id, force_update: False):
             markdown_file_path = os.path.join(root, file)
             
             # 把 markdown_file_path 的相對路徑，轉換成相對於 input_dir_path 的路徑，並移除 .md 後綴
-            relative_path = markdown_file_path[len(markdown_dir_path + '/' + config.get('path')):-3]
+            relative_path = markdown_file_path[len(markdown_dir_path):-3]
             if relative_path.startswith('/'):
                 relative_path = relative_path[1:]
             
