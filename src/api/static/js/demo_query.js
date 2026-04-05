@@ -75,69 +75,24 @@ function updateApiKeyStatus() {
     }
 }
 
-let loadKnowledgeIdsTimer = null;
-
-async function loadKnowledgeIds() {
-    const key = getApiKey();
+function restoreKnowledgeIdSelect() {
     const select = document.getElementById('knowledge_id');
     if (!select) return;
-
-    if (!key) {
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-        return;
-    }
-
-    try {
-        const response = await fetch('/knowledge-ids', {
-            headers: {
-                'Authorization': `Bearer ${key}`
-            }
-        });
-        if (response.ok) {
-            const ids = await response.json();
-            const currentValue = localStorage.getItem('retrieval_knowledge_id');
-
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
-
-            ids.forEach(id => {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = id;
-                select.appendChild(option);
-            });
-
-            if (currentValue && [...select.options].some((o) => o.value === currentValue)) {
-                select.value = currentValue;
-            }
-        }
-    } catch (error) {
-        console.error('Failed to fetch knowledge IDs:', error);
+    const currentValue = localStorage.getItem('retrieval_knowledge_id');
+    if (currentValue && [...select.options].some((o) => o.value === currentValue)) {
+        select.value = currentValue;
     }
 }
 
-function scheduleLoadKnowledgeIds() {
-    if (loadKnowledgeIdsTimer) {
-        clearTimeout(loadKnowledgeIdsTimer);
-    }
-    loadKnowledgeIdsTimer = setTimeout(() => {
-        loadKnowledgeIdsTimer = null;
-        loadKnowledgeIds();
-    }, 400);
-}
-
-// Load persisted values and fetch knowledge IDs
-window.addEventListener('DOMContentLoaded', async () => {
+// Load persisted values (knowledge list comes from server-rendered configs)
+window.addEventListener('DOMContentLoaded', () => {
     const apiKeyInput = document.getElementById('api_key');
     const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedKey !== null && apiKeyInput) {
         apiKeyInput.value = storedKey;
     }
     updateApiKeyStatus();
-    await loadKnowledgeIds();
+    restoreKnowledgeIdSelect();
 
     if (apiKeyInput) {
         apiKeyInput.addEventListener('input', () => {
@@ -148,7 +103,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 localStorage.removeItem(API_KEY_STORAGE_KEY);
             }
             updateApiKeyStatus();
-            scheduleLoadKnowledgeIds();
         });
     }
 
