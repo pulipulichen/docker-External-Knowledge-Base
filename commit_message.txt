@@ -1,1 +1,1 @@
-調整retrieval的metdata顯示時機 -
+重新構思檢查時間點的做法 -
