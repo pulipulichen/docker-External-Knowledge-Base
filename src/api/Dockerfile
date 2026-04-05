@@ -19,4 +19,8 @@ RUN pip install --no-cache-dir -e .
 EXPOSE 80
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--reload", "api.api:app", "--workers", "4", "--threads", "4", "--timeout", "120"]
+# CMD ["gunicorn", "--bind", "0.0.0.0:80", "--reload", "api.api:app", "--workers", "4", "--threads", "4", "--timeout", "120"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
