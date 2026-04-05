@@ -60,8 +60,8 @@ async def index_dir(knowledge_id, force_update: False):
                         index_result = True
                     # logger.info(f"Processing file: {markdown_file_path}")
 
-        if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
-            index_result = True
+        # if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
+        #     index_result = True
 
         # logger.info(f"markdown_dir_path: '{markdown_dir_path}'")
         return index_result
