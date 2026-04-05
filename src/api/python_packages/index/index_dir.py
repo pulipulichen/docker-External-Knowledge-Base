@@ -24,9 +24,7 @@ async def index_dir(knowledge_id, force_update: False):
     # force_update = True
 
     config = get_knowledge_base_config(knowledge_id)
-    weaviate_collection_delete(knowledge_id=knowledge_id)
-    return False
-
+    
     update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
 
     index_result = False
