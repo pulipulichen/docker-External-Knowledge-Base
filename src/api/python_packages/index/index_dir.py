@@ -24,50 +24,70 @@ async def index_dir(knowledge_id, force_update: False):
 
     index_result = False
 
-    if 'file_name' in config:
-        input_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
-        markdown_dir_path = os.path.join(FILE_STORAGE_DIR, '.md', config.get('file_name')) + '-index' # Define markdown_file_path directly
+    if 'file_name' not in config:
+        return False
 
-        include_ext = config.get('include_ext')
-        if isinstance(include_ext, str):
-            include_ext = [include_ext]
+    input_dir_path = os.path.join(FILE_STORAGE_DIR, config.get('path'))
+    markdown_dir_path = os.path.join(FILE_STORAGE_DIR, '.md', config.get('file_name')) + '-index' # Define markdown_file_path directly
+
+    include_ext = config.get('include_ext')
+    if isinstance(include_ext, str):
+        include_ext = [include_ext]
+    
+    # Ensure extensions start with a dot and are lowercase for comparison
+    if include_ext:
+        include_ext = [ext.lower() if ext.startswith('.') else f'.{ext.lower()}' for ext in include_ext]
+
+    for root, dirs, files in os.walk(input_dir_path):
         
-        # Ensure extensions start with a dot and are lowercase for comparison
-        if include_ext:
-            include_ext = [ext.lower() if ext.startswith('.') else f'.{ext.lower()}' for ext in include_ext]
-
-        for root, dirs, files in os.walk(input_dir_path):
+        for file in files:
+            logger.info(f'file: {file}')
+            file_path = os.path.join(root, file)
             
-            for file in files:
-                logger.info(f'file: {file}')
-                file_path = os.path.join(root, file)
-                
-                if include_ext:
-                    file_ext = os.path.splitext(file)[1].lower()
-                    if file_ext not in include_ext:
-                        logger.info(f'Skip: {file_path}')
-                        continue
-                
-                # logger.info(f"Processing file: {file_path}")
-                markdown_file_path = convert_to_markdown_file_path(file_path, markdown_dir_path)
-                
-                if force_update is True or check_need_update(file_path, markdown_file_path, update_delay_seconds):
-                    # 如果沒有 markdown_dir_path ，那就建立
-                    make_index_dir(markdown_dir_path)
+            if include_ext:
+                file_ext = os.path.splitext(file)[1].lower()
+                if file_ext not in include_ext:
+                    logger.info(f'Skip: {file_path}')
+                    continue
+            
+            # logger.info(f"Processing file: {file_path}")
+            markdown_file_path = convert_to_markdown_file_path(file_path, markdown_dir_path)
+            
+            if force_update is True or check_need_update(file_path, markdown_file_path, update_delay_seconds):
+                # 如果沒有 markdown_dir_path ，那就建立
+                make_index_dir(markdown_dir_path)
 
-                    convert_file_to_markdown(file_path, markdown_file_path)
-                    if await index_mode_file(knowledge_id, markdown_file_path) is True:
-                        index_result = True
-                    # logger.info(f"Processing file: {markdown_file_path}")
+                convert_file_to_markdown(file_path, markdown_file_path)
+                if await index_mode_file(knowledge_id, markdown_file_path) is True:
+                    index_result = True
+                # logger.info(f"Processing file: {markdown_file_path}")
 
-        # if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
-        #     index_result = True
+    # 在這裡檢查，如果 markdown_dir_path 底下，有 .md 檔案，但是沒有對應的 file_path ，那就刪除
+    for root, dirs, files in os.walk(markdown_dir_path):
+        for file in files:
+            if not file.endswith('.md'):
+                continue
 
-        # logger.info(f"markdown_dir_path: '{markdown_dir_path}'")
-        return index_result
+            markdown_file_path = os.path.join(root, file)
+            
+            # 把 markdown_file_path 的相對路徑，轉換成相對於 input_dir_path 的路徑，並移除 .md 後綴
+            relative_path = markdown_file_path[len(markdown_dir_path):-3]
+            if relative_path.startswith('/'):
+                relative_path = relative_path[1:]
+            
+            source_path = os.path.join(input_dir_path, relative_path)
+            if not os.path.exists(source_path):
+                logger.info(f"Source file missing for indexed markdown; clearing Weaviate and cache: "
+                            f"relative_path={relative_path!r}")
+                # weaviate_clear_relative_path(knowledge_id=knowledge_id, relative_path=relative_path)
+                # os.remove(markdown_file_path)
 
-    logger.error(f"File name not found in config for knowledge_id '{knowledge_id}'.")
-    return False
+    # if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
+    #     index_result = True
+
+    # logger.info(f"markdown_dir_path: '{markdown_dir_path}'")
+    return index_result
+
 
 def cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
     """
