@@ -47,12 +47,12 @@ services:
       # SearXNG (used by POST /search)
       - SEARXNG_URL=${SEARXNG_URL:-http://searxng:8080}
       - SEARXNG_REQUEST_TIMEOUT=${SEARXNG_REQUEST_TIMEOUT:-30}
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          memory: 512M
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+    #   resources:
+    #     limits:
+    #       memory: 512M
 
   redis:
     image: "redis:7.0.12-alpine"
