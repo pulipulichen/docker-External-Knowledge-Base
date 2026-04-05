@@ -56,22 +56,52 @@ const escapeHTMLTags = (content) => {
 
 // Fields to persist in localStorage
 const persistFields = ['knowledge_id', 'section_name', 'top_k', 'score_threshold', 'query'];
+const API_KEY_STORAGE_KEY = 'retrieval_api_key';
 
-// Load persisted values and fetch knowledge IDs
-window.addEventListener('DOMContentLoaded', async () => {
-    // 1. Fetch knowledge IDs first
+function getApiKey() {
+    const el = document.getElementById('api_key');
+    return el && el.value ? el.value.trim() : '';
+}
+
+function updateApiKeyStatus() {
+    const badge = document.getElementById('api-key-status');
+    if (!badge) return;
+    if (!getApiKey()) {
+        badge.textContent = 'Not set';
+        badge.className = 'status-badge status-muted';
+    } else {
+        badge.textContent = 'Saved locally';
+        badge.className = 'status-badge status-success';
+    }
+}
+
+let loadKnowledgeIdsTimer = null;
+
+async function loadKnowledgeIds() {
+    const key = getApiKey();
+    const select = document.getElementById('knowledge_id');
+    if (!select) return;
+
+    if (!key) {
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        return;
+    }
+
     try {
         const response = await fetch('/knowledge-ids', {
             headers: {
-                'Authorization': `Bearer ${API_KEY}`
+                'Authorization': `Bearer ${key}`
             }
         });
         if (response.ok) {
             const ids = await response.json();
-            const select = document.getElementById('knowledge_id');
             const currentValue = localStorage.getItem('retrieval_knowledge_id');
 
-            while (select.options.length > 1) { select.remove(1); }
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
 
             ids.forEach(id => {
                 const option = document.createElement('option');
@@ -80,14 +110,49 @@ window.addEventListener('DOMContentLoaded', async () => {
                 select.appendChild(option);
             });
 
-            if (currentValue) { select.value = currentValue; }
+            if (currentValue && [...select.options].some((o) => o.value === currentValue)) {
+                select.value = currentValue;
+            }
         }
     } catch (error) {
         console.error('Failed to fetch knowledge IDs:', error);
     }
+}
 
-    // 2. Load other persisted values
-    persistFields.forEach(field => {
+function scheduleLoadKnowledgeIds() {
+    if (loadKnowledgeIdsTimer) {
+        clearTimeout(loadKnowledgeIdsTimer);
+    }
+    loadKnowledgeIdsTimer = setTimeout(() => {
+        loadKnowledgeIdsTimer = null;
+        loadKnowledgeIds();
+    }, 400);
+}
+
+// Load persisted values and fetch knowledge IDs
+window.addEventListener('DOMContentLoaded', async () => {
+    const apiKeyInput = document.getElementById('api_key');
+    const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+    if (storedKey !== null && apiKeyInput) {
+        apiKeyInput.value = storedKey;
+    }
+    updateApiKeyStatus();
+    await loadKnowledgeIds();
+
+    if (apiKeyInput) {
+        apiKeyInput.addEventListener('input', () => {
+            const v = apiKeyInput.value;
+            if (v) {
+                localStorage.setItem(API_KEY_STORAGE_KEY, v);
+            } else {
+                localStorage.removeItem(API_KEY_STORAGE_KEY);
+            }
+            updateApiKeyStatus();
+            scheduleLoadKnowledgeIds();
+        });
+    }
+
+    persistFields.forEach((field) => {
         if (field === 'knowledge_id') return;
         const value = localStorage.getItem(`retrieval_${field}`);
         if (value !== null) {
@@ -112,7 +177,7 @@ function generateCurl(payload) {
     const baseUrl = window.location.origin;
     return `curl -X POST "${baseUrl}/retrieval" \\
 -H "Content-Type: application/json" \\
--H "Authorization: Bearer ${API_KEY}" \\
+-H "Authorization: Bearer ${getApiKey()}" \\
 -d '${JSON.stringify(payload, null, 2)}'`;
 }
 
@@ -125,6 +190,13 @@ function copyCurl() {
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (!getApiKey()) {
+        resultsList.innerHTML =
+            '<div class="empty-state" style="color: #ef4444;">Enter your API key first</div>';
+        statusContainer.innerHTML = '<span class="status-badge status-error">Missing API key</span>';
+        return;
+    }
 
     submitBtn.disabled = true;
     btnText.style.display = 'none';
@@ -169,7 +241,7 @@ form.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`
+                'Authorization': `Bearer ${getApiKey()}`
             },
             body: JSON.stringify(payload)
         });

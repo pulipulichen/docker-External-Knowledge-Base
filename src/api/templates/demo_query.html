@@ -35,11 +35,12 @@
             <div class="glass-panel" id="query-panel">
                 <div class="form-group"
                     style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-                    <label>Active API Key</label>
+                    <label for="api_key">API Key</label>
                     <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
-                        <code
-                            style="background: rgba(0,0,0,0.3); padding: 0.5rem 1rem; border-radius: 0.5rem; flex-grow: 1; font-size: 0.875rem;">{{ api_key }}</code>
-                        <span class="status-badge status-success">Authorized</span>
+                        <input type="password" id="api_key" name="api_key" autocomplete="off"
+                            placeholder="Paste your API key (saved only in this browser)"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: inherit; padding: 0.5rem 1rem; border-radius: 0.5rem; flex-grow: 1; font-size: 0.875rem; font-family: ui-monospace, monospace;">
+                        <span id="api-key-status" class="status-badge status-muted">Not set</span>
                     </div>
                 </div>
 
@@ -99,9 +100,6 @@
         </div>
     </main>
 
-    <script>
-        const API_KEY = "{{ api_key }}";
-    </script>
     <script src="/static/js/demo_query.js"></script>
 </body>
 

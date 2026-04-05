@@ -44,8 +44,6 @@ app.register_blueprint(news_bp)
 
 @app.route('/demo')
 def demo():
-    api_key = os.getenv('API_KEY', '')
-    
     # Scan knowledge IDs
     configs_dir = os.path.join(os.path.dirname(__file__), '../../knowledge_base/configs')
     knowledge_ids = []
@@ -55,7 +53,7 @@ def demo():
                 knowledge_ids.append(f.rsplit('.', 1)[0])
     knowledge_ids.sort()
 
-    return render_template('demo_query.html', api_key=api_key, knowledge_ids=knowledge_ids)
+    return render_template('demo_query.html', knowledge_ids=knowledge_ids)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)
