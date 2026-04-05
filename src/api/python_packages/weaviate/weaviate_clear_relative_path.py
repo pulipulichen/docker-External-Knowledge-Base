@@ -25,7 +25,6 @@ def weaviate_clear_relative_path(**kwargs):
 
   if relative_path == None:
     return False
-    
   
   filters = metadata_to_filters({
     "path": relative_path

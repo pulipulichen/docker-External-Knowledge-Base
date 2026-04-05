@@ -93,7 +93,8 @@ async def index_dir(knowledge_id, force_update: False):
                             f"relative_path={relative_path!r} \n" 
                             f"markdown_file_path={markdown_file_path!r} \n"
                             f"source_path={source_path!r}")
-                # weaviate_clear_relative_path(knowledge_id=knowledge_id, relative_path=relative_path)
+
+                weaviate_clear_relative_path(knowledge_id=knowledge_id, relative_path=metadata_path)
                 # os.remove(markdown_file_path)
 
     # if cleanup_orphan_indexed_files(knowledge_id, input_dir_path, markdown_dir_path):
