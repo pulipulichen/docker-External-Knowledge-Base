@@ -12,7 +12,8 @@ from .mode.index_mode_file import index_mode_file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../', 'knowledge_base/files')
+# FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../', 'knowledge_base/files')
+FILE_STORAGE_DIR = '/app/knowledge_base/files'
 
 async def index_dir(knowledge_id, force_update: False):
 
