@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 def _configs_dir() -> str:
     # demo.py -> .../src/api/python_packages/demo; repo root is four parents up
-    return os.path.join(
+    return os.path.resolve(
         os.path.dirname(__file__),
         '../../../../knowledge_base/configs',
     )
