@@ -54,6 +54,10 @@ def check_knowledge_base_need_update_automatically(knowledge_id):
         logger.error(f"File not found at path: {filepath}")
         return False
 
+    if os.path.isdir(filepath):
+        logger.info(f"Directory found at path: {filepath}, always be updated automatically.")
+        return True
+
     index_time_filepath = config.get('index_time_filepath')
     last_index_time = None
     if os.path.exists(index_time_filepath):
