@@ -46,7 +46,7 @@ async def index_dir(knowledge_id, force_update: False):
     for root, dirs, files in os.walk(input_dir_path):
         
         for file in files:
-            logger.info(f'file: {file}')
+            # logger.info(f'file: {file}')
             file_path = os.path.join(root, file)
             
             if include_ext:
