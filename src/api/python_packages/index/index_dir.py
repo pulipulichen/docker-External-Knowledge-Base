@@ -82,11 +82,11 @@ async def index_dir(knowledge_id, force_update: False):
                 relative_path = relative_path[relative_path.find('/') + 1:]
 
             source_path = os.path.join(FILE_STORAGE_DIR, config.get('path'), relative_path)
-            # if not os.path.exists(source_path):
-            logger.info(f"Source file missing for indexed markdown; clearing Weaviate and cache: "
-                        f"relative_path={relative_path!r} \n" 
-                        f"markdown_file_path={markdown_file_path!r} \n"
-                        f"source_path={source_path!r}")
+            if not os.path.exists(source_path):
+                logger.info(f"Source file missing for indexed markdown; clearing Weaviate and cache: "
+                            f"relative_path={relative_path!r} \n" 
+                            f"markdown_file_path={markdown_file_path!r} \n"
+                            f"source_path={source_path!r}")
                 # weaviate_clear_relative_path(knowledge_id=knowledge_id, relative_path=relative_path)
                 # os.remove(markdown_file_path)
 
