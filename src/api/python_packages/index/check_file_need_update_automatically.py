@@ -8,6 +8,37 @@ from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
+def _latest_content_mtime(path: str) -> datetime.datetime:
+    """
+    Return the latest modification time for indexing freshness checks.
+    For a regular file (or non-directory path), uses that path's mtime.
+    For a directory, uses the maximum mtime among all files under path,
+    recursively, skipping dotfiles and not descending into dot-prefixed
+    directories. If no eligible files exist, falls back to the directory's mtime.
+    """
+    if not os.path.isdir(path):
+        return datetime.datetime.fromtimestamp(os.path.getmtime(path))
+
+    latest_ts: float | None = None
+    for dirpath, dirnames, filenames in os.walk(path, followlinks=False):
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        for name in filenames:
+            if name.startswith("."):
+                continue
+            fp = os.path.join(dirpath, name)
+            try:
+                ts = os.path.getmtime(fp)
+            except OSError:
+                continue
+            if latest_ts is None or ts > latest_ts:
+                latest_ts = ts
+
+    if latest_ts is None:
+        return datetime.datetime.fromtimestamp(os.path.getmtime(path))
+    return datetime.datetime.fromtimestamp(latest_ts)
+
+
 def check_file_need_update_automatically(knowledge_id):
     # logger.info(f"Knowledge ID: {knowledge_id}")
 
@@ -35,7 +66,7 @@ def check_file_need_update_automatically(knowledge_id):
             logger.error(f"Error reading index time from {index_time_filepath}: {e}")
 
     if last_index_time is not None:
-        file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
+        file_mod_time = _latest_content_mtime(filepath)
         time_difference = file_mod_time - last_index_time
 
         update_delay_seconds = config.get('auto_update', {}).get('delay_seconds', 30 * 60)
