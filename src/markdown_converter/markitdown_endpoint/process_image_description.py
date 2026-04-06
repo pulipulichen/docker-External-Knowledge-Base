@@ -47,6 +47,6 @@ def process_image_description(markdown_content: str) -> str:
             return ""
         description = image_describe(base64_data)
         logger.info("image description: %s", len(description))
-        return f'\n\n```image{description}\n```\n\n'
+        return f'\n\n```image\n{description}\n```\n\n'
 
     return re.sub(pattern, replacer, markdown_content)
