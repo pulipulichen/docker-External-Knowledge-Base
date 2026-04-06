@@ -16,7 +16,7 @@ def _configs_dir() -> str:
 def list_knowledge_ids_from_configs() -> list[str]:
     configs_dir = _configs_dir()
 
-    logger.info(f"configs_dir: {configs_dir}")
+    # logger.info(f"configs_dir: {configs_dir}")
 
     knowledge_ids: list[str] = []
     if os.path.exists(configs_dir):

@@ -22,7 +22,7 @@ GEMINI_EMBEDDING_BASE_URL = os.getenv(
     "GEMINI_EMBEDDING_BASE_URL",
     "https://generativelanguage.googleapis.com",
 ).rstrip("/")
-GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2-preview")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_TASK_QUERY = os.getenv("GEMINI_EMBEDDING_TASK_TYPE_QUERY", "RETRIEVAL_QUERY").strip()
 GEMINI_TASK_DOCUMENT = os.getenv("GEMINI_EMBEDDING_TASK_TYPE_DOCUMENT", "RETRIEVAL_DOCUMENT").strip()

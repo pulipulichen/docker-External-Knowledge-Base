@@ -17,7 +17,7 @@ def convert_str_to_chunks(markdown_content: str, max_tokens: int) -> List:
 
     # 我要移除掉 markdown_content 裡面，有用到base64嵌入圖片的地方。就是我的RAG索引不要包含那些base64圖片
     # 移除 ![alt](data:image/png;base64,...) 格式
-    markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
+    # markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
     
     sections = split(markdown_content, model="gpt-4", limit=max_tokens)
 
