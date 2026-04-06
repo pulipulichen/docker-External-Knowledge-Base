@@ -118,7 +118,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
         
         # 將結果包裝成物件回傳
         final_markdown_documents.append({
-            "path": target_path,
+            # "path": target_path,
+            "title": seed_doc.get("title"),
             "score": seed_doc.get("score"),
             "content": full_content
         })
