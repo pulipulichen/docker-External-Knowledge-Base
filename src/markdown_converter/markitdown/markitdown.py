@@ -103,6 +103,9 @@ def convert_file_path_route():
     """POST JSON body: {\"file_path\": \"/absolute/path/on/converter\"}."""
     data = request.get_json(silent=True) or {}
     file_path = data.get("file_path")
+
+    logger.info(f"file_path: {file_path}")
+
     if not file_path or not isinstance(file_path, str):
         return jsonify(ok=False, error="file_path is required and must be a string"), 400
 
