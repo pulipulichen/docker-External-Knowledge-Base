@@ -71,6 +71,7 @@ services:
       - root-caches:/root/.cache
     networks:
       - docker_external_knowledge_base
+      
   redis:
     image: "redis:7.0.12-alpine"
     restart: on-failure

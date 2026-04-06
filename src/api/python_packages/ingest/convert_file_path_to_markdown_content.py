@@ -9,9 +9,9 @@ logger.setLevel(logging.DEBUG)
 MARKDOWN_CONVERTER_URL = os.environ.get(
     "MARKDOWN_CONVERTER_URL", "http://markdown_converter:80"
 ).rstrip("/")
-MARKDOWN_CONVERTER_TIMEOUT = int(
-    os.environ.get("MARKDOWN_CONVERTER_TIMEOUT", "125")
-)
+# MARKDOWN_CONVERTER_TIMEOUT = int(
+#     os.environ.get("MARKDOWN_CONVERTER_TIMEOUT", "125")
+# )
 
 
 def convert_file_path_to_markdown_content(file_path):
@@ -20,7 +20,7 @@ def convert_file_path_to_markdown_content(file_path):
         response = requests.post(
             url,
             json={"file_path": file_path},
-            timeout=MARKDOWN_CONVERTER_TIMEOUT,
+            # timeout=MARKDOWN_CONVERTER_TIMEOUT,
         )
     except requests.RequestException as exc:
         logger.error(
