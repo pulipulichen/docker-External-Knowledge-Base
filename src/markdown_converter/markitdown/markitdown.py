@@ -18,7 +18,7 @@ def get_markitdown():
     """Lazy-init MarkItDown in the current worker process."""
     global _md_instance
     if _md_instance is None:
-        from markitdown.markitdown import MarkItDown
+        from markitdown import MarkItDown
         _md_instance = MarkItDown()
     return _md_instance
 
