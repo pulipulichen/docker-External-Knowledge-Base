@@ -17,7 +17,7 @@ High-level map of **docker-External-Knowledge-Base**: a Docker Compose stack wit
 
 | Path | Role |
 |------|------|
-| `src/api/` | Main API container: Dockerfile, `pyproject.toml`, app entry, `static/`, `templates/`. |
+| `src/api/` | Main API container: Dockerfile, `pyproject.toml`, app entry (`api.py`). |
 | `src/api/python_packages/` | Feature packages imported by the API (see below). |
 | `src/mcp_server/` | MCP server image: tools that call the API (`search_web`, `search_news`, etc.). |
 | `src/mcp_test/` | Image and runner used by Compose profile **`mcp-test`** for one-shot MCP smoke tests. |
@@ -42,6 +42,7 @@ Packages are grouped by concern. Names reflect typical responsibilities (exact e
 | `embedding/` | Embedding client and embedding-service readiness helpers. |
 | `ingest/` / `index/` / `update/` | Ingestion and indexing pipelines toward the vector store. |
 | `upload_file/` / `file_host/` | File upload and serving helpers where used by routes. |
+| `demo/` | `/demo` HTML UI; `static/` and `templates/` for the retrieval demo page. |
 | `image_describe/` | Image description integration if exposed by the API. |
 
 ## `knowledge_base/` — data and config

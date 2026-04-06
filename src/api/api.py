@@ -32,7 +32,14 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpx_logger").setLevel(logging.WARNING)
 logging.getLogger("weaviate").setLevel(logging.WARNING)
 
-app = Flask(__name__, static_folder='static', static_url_path='/static')
+_API_DIR = os.path.dirname(os.path.abspath(__file__))
+_DEMO_DIR = os.path.join(_API_DIR, 'python_packages', 'demo')
+app = Flask(
+    __name__,
+    static_folder=os.path.join(_DEMO_DIR, 'static'),
+    static_url_path='/static',
+    template_folder=os.path.join(_DEMO_DIR, 'templates'),
+)
 # app.register_blueprint(hello_bp)
 app.register_blueprint(retrieval_bp)
 app.register_blueprint(knowledge_list_bp)
