@@ -15,7 +15,7 @@ MARKDOWN_CONVERTER_TIMEOUT = int(
 
 
 def convert_file_path_to_markdown_content(file_path):
-    url = f"{MARKDOWN_CONVERTER_URL}/markitdown"
+    url = f"{MARKDOWN_CONVERTER_URL}/marker_pdf"
     try:
         response = requests.post(
             url,
