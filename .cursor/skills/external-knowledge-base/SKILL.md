@@ -13,6 +13,7 @@ description: >-
 
 - **Code comments and docstrings**: English only.
 - **User-facing strings** returned by the API (JSON `error`, `detail`, and similar), **log messages**, and **inline help in scripts**: English only.
+- **Project documentation** (Markdown under `documents/`, root `README.md`, and similar developer-facing docs in this repo): **English only**, unless a file is explicitly maintained as a localized variant.
 - The **user may write prompts in any language**; still keep repository-facing text (code, docs meant for developers) in English unless a file is explicitly localized.
 
 ## Stack (mental model)

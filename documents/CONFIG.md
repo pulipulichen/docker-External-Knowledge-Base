@@ -1,70 +1,70 @@
-# 知識庫設定檔（`knowledge_base/configs/*.yml`）
+# Knowledge base configuration (`knowledge_base/configs/*.yml`)
 
-每個知識庫對應**一個** YAML 檔，檔名（不含副檔名）就是 API／檢索時使用的 **`knowledge_id`**。例如 `example.yml` → `knowledge_id` 為 `example`。
+Each knowledge base maps to **one** YAML file. The filename (without extension) is the **`knowledge_id`** used by the API and retrieval. For example, `example.yml` → `knowledge_id` is `example`.
 
-服務會掃描此目錄下所有 `.yml` / `.yaml`，`GET /knowledge-ids` 回傳的即為這些檔名主檔名。
+The service scans all `.yml` / `.yaml` files in this directory; `GET /knowledge-ids` returns those basenames.
 
 ---
 
-## 與 `knowledge_id` 相關的兩件事
+## Two things tied to `knowledge_id`
 
-### 1. 檔名 = 設定的主鍵
+### 1. Filename = primary key for config
 
-程式會讀取：
+The code loads config from:
 
 `src/api/python_packages/knowledge_base_config/get_knowledge_base_config.py`
 
-路徑規則：`knowledge_base/configs/{knowledge_id}.yml`（若無則嘗試 `.yaml`）。
+Path rule: `knowledge_base/configs/{knowledge_id}.yml` (falls back to `.yaml` if missing).
 
-### 2. 試算表：用 `!` 指定工作表（分頁）
+### 2. Spreadsheets: use `!` to pick a worksheet (tab)
 
-若資料來源是 **ODS／XLSX／Google 試算表**（轉成 xlsx 下載），每一個工作表名稱會對應一組向量索引。呼叫檢索時可以用：
+If the source is **ODS / XLSX / Google Sheets** (downloaded as xlsx), each worksheet name maps to its own vector index. At query time you can use:
 
-`{設定檔主檔名}!{工作表名稱}`
+`{config_basename}!{worksheet_name}`
 
-例如：`example!Sheet1`。
+Example: `example!Sheet1`.
 
-解析邏輯在 `parse_knowledge_id`：只會依**最後一個** `!` 切開。
+Parsing is in `parse_knowledge_id`: only the **last** `!` splits the string.
 
-- `my_kb!庫存` → `knowledge_id = my_kb`，`section_name = 庫存`
-- 若 ID 裡本身有多個 `!`，只有**最後一段**當工作表名稱，其餘仍屬於檔名主鍵的一部分（例如 `a!b!Sheet2` → `knowledge_id = a!b`，`section_name = Sheet2`）
+- `my_kb!Inventory` → `knowledge_id = my_kb`, `section_name = Inventory`
+- If the ID contains multiple `!`, only the **final segment** is the worksheet name; the rest stays part of the basename key (e.g. `a!b!Sheet2` → `knowledge_id = a!b`, `section_name = Sheet2`)
 
-若請求裡**沒有**帶 `!`，則工作表名稱取自設定里的 **`section`** 鍵；若也沒設，則由程式從檔案推斷第一個工作表（見 `get_section_name`）。
-
----
-
-## 必填／核心欄位：`path`
-
-`path` 描述「資料從哪裡來」，行為由 `get_knowledge_base_config` 整理後，會衍生 `file_name`、`file_path`、`is_url`、`is_file`、`markdown_convertable` 等內部欄位。
-
-| `path` 型態 | 說明 |
-|-------------|------|
-| `http://` 或 `https://` | 視為網址。若為 **Google 試算表**連結，會改成可下載的 **xlsx** URL，本地儲存檔名變成 `{knowledge_id}.xlsx`。**Google 文件／簡報**會改成可下載的 **Markdown** 流程。一般網址則不轉換。 |
-| 以 `.md`、`.ods`、`.xlsx` 結尾 | 視為放在 `knowledge_base/files/` 底下的**檔名**（`file_name` 等於此字串）。 |
-| 其他字串 | 若 `knowledge_base/files/{path}` **不是**已存在的檔案，則視為**資料夾路徑**（`is_file` 為 false），走目錄索引流程（搭配 `include_ext`）。若是已存在的檔案則依檔案處理。 |
-
-實際儲存與索引用的檔案路徑多在 `knowledge_base/files/` 下；下載或轉換後的檔名會依上面規則決定。
+If the request **does not** include `!`, the worksheet name comes from the **`section`** key in the config; if unset, the code infers the first sheet from the file (see `get_section_name`).
 
 ---
 
-## 常用選填欄位
+## Required / core field: `path`
+
+`path` describes where data comes from. After `get_knowledge_base_config` normalizes it, internal fields such as `file_name`, `file_path`, `is_url`, `is_file`, and `markdown_convertable` are derived.
+
+| `path` shape | Behavior |
+|--------------|----------|
+| `http://` or `https://` | Treated as a URL. **Google Sheets** links are rewritten to a downloadable **xlsx** URL; the local filename becomes `{knowledge_id}.xlsx`. **Google Docs / Slides** use a downloadable **Markdown** flow. Ordinary URLs are left as-is. |
+| Ends with `.md`, `.ods`, or `.xlsx` | Treated as a **filename** under `knowledge_base/files/` (`file_name` equals this string). |
+| Any other string | If `knowledge_base/files/{path}` is **not** an existing file, it is treated as a **directory path** (`is_file` is false) and the directory-indexing flow runs (with `include_ext`). If it is an existing file, it is handled as a file. |
+
+Indexed files usually live under `knowledge_base/files/`; downloaded or converted filenames follow the rules above.
+
+---
+
+## Common optional fields
 
 ### `description`
 
-人類可讀說明。MCP 服務載入設定列表時會用來當工具描述；不影響索引邏輯。
+Human-readable text. The MCP service uses it as the tool description when loading the config list; it does not affect indexing logic.
 
-### `section`（試算表／多工作表情境）
+### `section` (spreadsheets / multi-sheet)
 
-- 當 API **沒有**使用 `knowledge_id!工作表` 語法時，預設要讀的工作表名稱可寫在這裡。
-- 若設了 `section`，Weaviate 里的集合／物件 ID 會固定成 **`{knowledge_id}`**（不再附加 `_工作表名`），與「每工作表一個 `knowledge_id_工作表`」的模式不同。專案里 `goods_item.yml` 即為固定 `section` 的範例。
+- When the API **does not** use `knowledge_id!worksheet` syntax, the default sheet name can be set here.
+- If `section` is set, Weaviate collection / object IDs stay **`{knowledge_id}`** (no `_worksheet` suffix), unlike the “one `knowledge_id_worksheet` per sheet” pattern. The project’s `goods_item.yml` is an example of a fixed `section`.
 
-### `include_fileds`（注意拼字）
+### `include_fileds` (spelling note)
 
-僅在從 **ODS／XLSX** 轉成列資料時有效。列出要保留的**欄位名稱**（需與試算表第一列標題一致）。程式里讀取的鍵名是 **`include_fileds`**（`filed` 為既有拼字，請與程式一致）。
+Only applies when converting **ODS / XLSX** to row records. Lists **column names** to keep (must match the first-row headers). The key in code is **`include_fileds`** (`filed` is the legacy spelling—match the code).
 
 ### `include_ext`
 
-當 `path` 指向**資料夾**（目錄索引）時，列出要納入的副檔名，例如：
+When `path` points at a **folder** (directory indexing), list extensions to include, for example:
 
 ```yaml
 include_ext:
@@ -73,40 +73,40 @@ include_ext:
 
 ### `auto_update`
 
-巢狀物件，目前程式**實際會讀**的主要是：
+Nested object. What the code **actually reads** today is mainly:
 
-- **`delay_seconds`**：節流「多久內不要重複下載／轉檔／視為不需重建索引」。預設邏輯里若缺省，多處會退回 **30 分鐘（1800 秒）**。
-- 設為 **`-1`** 且本機目標檔已存在時，下載流程會直接略過（見 `download_file`）。
+- **`delay_seconds`**: Throttle “how long before we skip redundant download / conversion / index rebuild.” If omitted, many call sites default to **30 minutes (1800 seconds)**.
+- Set to **`-1`** when the local target file already exists to skip download (see `download_file`).
 
-設定檔里常見的 **`enable: true`** 在目前程式碼中**沒有被讀取**，不會單獨關閉自動更新；實際是否重跑仍依 `force_update` 與上述時間間隔判斷。
+The common **`enable: true`** in YAML is **not read** by current code and does not toggle auto-update alone; whether a run happens still depends on `force_update` and the interval above.
 
 ### `index`
 
-巢狀物件，控制索引寫入 Weaviate 的方式。
+Nested object; controls how chunks are written to Weaviate.
 
-| 子鍵 | 說明 |
-|------|------|
-| **`mode`** | `all`（預設）：每次把本輪取得的 chunks **全部**寫入。`last`：只取「最後一段」chunks 再寫入（段落長度由 `length` 決定）。若 Weaviate 端尚未就緒，`last` 會退回與 `all` 類似的行為（見 `index_mode_last`）。 |
-| **`length`** | 搭配 `mode: last` 時，取 chunks 清單的**最後**幾筆（預設 100）。 |
-| **`max_tokens`** | 範例 YAML 中放在 `index` 底下，意圖是限制 Markdown 分段時的 token 上限；但目前 `get_chunks_from_markdown` 使用 `config.get('index.max_tokens', …)` 的寫法**無法**讀到巢狀的 `index: max_tokens`，實際上會一直使用程式內建預設值。若未來修正為讀取 `index.max_tokens` 巢狀鍵，此欄位才會生效。 |
-
----
-
-## 資料如何變成 chunks（對照 `path`）
-
-- **`.ods` / `.xlsx`（含 Google 表轉成 xlsx）**：列 = 一筆 chunk，內容為該列欄位 JSON；工作表由 `!工作表名` 或 `section` 或預設第一張表決定。
-- **`.md`**：由 Markdown 檔分段（token 相關見上節 `max_tokens` 說明）。
-- **資料夾**：透過目錄索引與 `include_ext` 等流程轉成可索引內容。
+| Sub-key | Description |
+|---------|-------------|
+| **`mode`** | `all` (default): write **all** chunks from the current run. `last`: write only the **last** chunk segment (segment size from `length`). If Weaviate is not ready, `last` falls back to behavior similar to `all` (see `index_mode_last`). |
+| **`length`** | With `mode: last`, take the **last** N chunks from the list (default 100). |
+| **`max_tokens`** | Example YAMLs nest this under `intent` to cap tokens when splitting Markdown; but `get_chunks_from_markdown` uses `config.get('index.max_tokens', …)`, which **does not** read nested `index: max_tokens`, so the built-in default always applies until the code is fixed to read `index.max_tokens`. |
 
 ---
 
-## 最小範例
+## How data becomes chunks (by `path`)
 
-**Google 試算表（常見）：**
+- **`.ods` / `.xlsx` (including Google Sheets as xlsx)**: One row = one chunk, payload is that row as JSON; sheet comes from `!sheet`, `section`, or the first sheet by default.
+- **`.md`**: Split from the Markdown file (token limits: see `max_tokens` above).
+- **Folder**: Directory indexing with `include_ext` (and related logic) produces indexable content.
+
+---
+
+## Minimal examples
+
+**Google Sheets (common):**
 
 ```yaml
 path: https://docs.google.com/spreadsheets/d/…/edit
-description: 說明文字
+description: Human-readable summary
 auto_update:
   enable: true
   delay_seconds: 86400
@@ -116,24 +116,24 @@ index:
   length: 100
 ```
 
-**本機試算表檔：**
+**Local spreadsheet file:**
 
 ```yaml
 path: mydata.ods
-description: 說明
-section: 工作表1
+description: Summary
+section: Sheet1
 include_fileds:
-  - 欄位A
-  - 欄位B
+  - ColumnA
+  - ColumnB
 auto_update:
   delay_seconds: 30
 ```
 
-**本機目錄（HTML 等）：**
+**Local directory (HTML, etc.):**
 
 ```yaml
 path: my_docs_folder
-description: 說明
+description: Summary
 auto_update:
   delay_seconds: 30
 include_ext:
@@ -142,15 +142,15 @@ include_ext:
 
 ---
 
-## 想再深入時可對照的程式位置
+## Code references for deeper reading
 
-| 主題 | 檔案 |
-|------|------|
-| 載入 YAML、解析 `path` | `src/api/python_packages/knowledge_base_config/get_knowledge_base_config.py` |
+| Topic | File |
+|-------|------|
+| Load YAML, resolve `path` | `src/api/python_packages/knowledge_base_config/get_knowledge_base_config.py` |
 | `knowledge_id!section` | `src/api/python_packages/knowledge_base_config/parse_knowledge_id.py` |
-| 預設工作表名稱 | `src/api/python_packages/knowledge_base_config/get_section_name.py` |
-| 試算表 → chunks | `src/api/python_packages/index/chunk/get_chunks_from_sheet.py` |
-| 索引模式 all / last | `src/api/python_packages/index/mode/index_mode_all.py`、`index_mode_last.py` |
-| 檢索時 Weaviate 的 `item_id` | `src/api/python_packages/retrieval/db_retrieval.py`（與 `section`、`is_file` 有關） |
+| Default worksheet name | `src/api/python_packages/knowledge_base_config/get_section_name.py` |
+| Spreadsheet → chunks | `src/api/python_packages/index/chunk/get_chunks_from_sheet.py` |
+| Index modes all / last | `src/api/python_packages/index/mode/index_mode_all.py`, `index_mode_last.py` |
+| Weaviate `item_id` at retrieval | `src/api/python_packages/retrieval/db_retrieval.py` (related to `section`, `is_file`) |
 
-HTTP 請求格式仍以 [documents/API.md](./API.md) 為準。
+HTTP request shapes are defined in [documents/API.md](./API.md).

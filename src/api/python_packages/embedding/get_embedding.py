@@ -26,7 +26,7 @@ GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_TASK_QUERY = os.getenv("GEMINI_EMBEDDING_TASK_TYPE_QUERY", "RETRIEVAL_QUERY").strip()
 GEMINI_TASK_DOCUMENT = os.getenv("GEMINI_EMBEDDING_TASK_TYPE_DOCUMENT", "RETRIEVAL_DOCUMENT").strip()
-_GEMINI_OUT_DIM_RAW = os.getenv("GEMINI_OUTPUT_DIMENSIONALITY", "").strip()
+_GEMINI_OUT_DIM_RAW = os.getenv("GEMINI_EMBEDDING_OUTPUT_DIMENSIONALITY", "").strip()
 
 
 def _cache_key(text: str, for_query: bool) -> str:
