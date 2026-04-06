@@ -3,27 +3,6 @@ import os
 import re
 import fcntl
 
-# from google import genai
-
-# # 初始化 Gemini
-# genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-
-# 定義一個簡單的描述函數（模擬 MarkItDown 需要的 client 介面）
-class GeminiWrapper:
-    def chat(self, model, messages):
-        # # 這裡簡化處理，將 MarkItDown 傳來的圖片與 Prompt 轉給 Gemini
-        # response = genai_client.models.generate_content(
-        #     model=model,
-        #     contents=[messages[-1]["content"]] # 取得最後一個包含圖片與指令的內容
-        # )
-        # # 回傳符合 OpenAI 格式的 Mock 對象
-        class Choice:
-            def __init__(self, text): self.message = type('obj', (object,), {'content': text})
-        class Response:
-            def __init__(self, text): self.choices = [Choice(text)]
-        return Response("成功")
-
 
 md_instance = None
 def get_markitdown():
@@ -31,11 +10,7 @@ def get_markitdown():
     global md_instance
     if md_instance is None:
         from markitdown import MarkItDown
-        md_instance = MarkItDown(
-            enable_plugins=True,
-            llm_client=GeminiWrapper(),
-            llm_model="gpt-4o"
-        )
+        md_instance = MarkItDown()
     return md_instance
 
 # md = MarkItDown(enable_plugins=False) # Set to True to enable plugins

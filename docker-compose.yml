@@ -54,6 +54,15 @@ services:
     #     limits:
     #       memory: 512M
 
+  markdown_converter:
+    build:
+      context: ./src/markdown_converter/
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./src/markdown_converter:/app/markdown_converter
+      - ./knowledge_base:/app/knowledge_base
   redis:
     image: "redis:7.0.12-alpine"
     restart: on-failure

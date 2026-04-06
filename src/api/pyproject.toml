@@ -1,5 +1,5 @@
 [project]
-name = "docker-external-knowledge-base"
+name = "docker-external-knowledge-base-api"
 version = "0.1.0"
 dependencies = [
     "Flask[async]==2.3.3",
