@@ -3,21 +3,13 @@ import logging
 import os
 
 from flask import Blueprint, jsonify, request
-from markitdown import MarkItDown
+
+from .converter import convert_file_path_to_markdown_content
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 _md_instance = None
-
-
-def get_markitdown():
-    """Lazy-init MarkItDown in the current worker process."""
-    global _md_instance
-    if _md_instance is None:
-        _md_instance = MarkItDown()
-    return _md_instance
-
 
 def convert_file_path_to_markdown_content(file_path):
     """
@@ -36,8 +28,6 @@ def convert_file_path_to_markdown_content(file_path):
         fcntl.flock(lock_file, fcntl.LOCK_EX)
 
         try:
-            md = get_markitdown()
-
             file_size = os.path.getsize(file_path)
             if file_size == 0:
                 logger.info("read: %s", file_path)
@@ -54,7 +44,7 @@ def convert_file_path_to_markdown_content(file_path):
 
             # =============
 
-            markdown_content = md.convert(file_path).text_content
+            markdown_content = convert_file_path_to_markdown_content(file_path)
 
             # =============
 
