@@ -31,7 +31,11 @@ def get_markitdown():
     global md_instance
     if md_instance is None:
         from markitdown import MarkItDown
-        md_instance = MarkItDown()
+        md_instance = MarkItDown(
+            enable_plugins=True,
+            llm_client=GeminiWrapper(),
+            llm_model="gpt-4o"
+        )
     return md_instance
 
 # md = MarkItDown(enable_plugins=False) # Set to True to enable plugins
