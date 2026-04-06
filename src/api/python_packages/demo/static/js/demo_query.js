@@ -3,6 +3,7 @@ const resultsList = document.getElementById('results-list');
 const sidebarNav = document.getElementById('sidebar-nav');
 const navQueryItem = document.getElementById('nav-query-item');
 const submitBtn = document.getElementById('submit-btn');
+const sidebarExecuteBtn = document.getElementById('sidebar-execute-btn');
 const btnText = document.getElementById('btn-text');
 const loading = document.getElementById('loading');
 const statusContainer = document.getElementById('status-container');
@@ -142,6 +143,10 @@ function copyCurl() {
     });
 }
 
+if (sidebarExecuteBtn && form) {
+    sidebarExecuteBtn.addEventListener('click', () => form.requestSubmit());
+}
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -153,6 +158,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     submitBtn.disabled = true;
+    if (sidebarExecuteBtn) sidebarExecuteBtn.disabled = true;
     btnText.style.display = 'none';
     loading.style.display = 'block';
     resultsList.innerHTML = '<div class="empty-state">Fetching records...</div>';
@@ -217,6 +223,7 @@ form.addEventListener('submit', async (e) => {
         statusContainer.innerHTML = `<span class="status-badge status-error">Error</span>`;
     } finally {
         submitBtn.disabled = false;
+        if (sidebarExecuteBtn) sidebarExecuteBtn.disabled = false;
         btnText.style.display = 'block';
         loading.style.display = 'none';
     }

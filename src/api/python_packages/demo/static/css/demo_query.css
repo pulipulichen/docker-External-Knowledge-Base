@@ -62,6 +62,20 @@ body {
     padding: 1rem 0.75rem;
 }
 
+.sidebar-execute-btn {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.sidebar-execute-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .nav-item {
     display: block;
     padding: 0.75rem 1rem;
