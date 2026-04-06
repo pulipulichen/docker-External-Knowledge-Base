@@ -54,6 +54,8 @@ def convert_file_path_to_markdown_content(file_path):
 
                 markdown_content = markdown_content.text_content
 
+                logger.info(f'markdown_content: {markdown_content}')
+
                 # 移除 ![alt](data:image/png;base64,...) 格式
                 # 20260406-1142 改成保留圖片，因為有些圖片是重要的資訊
                 # markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
