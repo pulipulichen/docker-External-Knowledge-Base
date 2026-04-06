@@ -8,6 +8,10 @@ sudo docker compose down
 
 git pull
 
+sudo docker compose down
+
+sleep 2
+
 sudo docker compose up --build -d &
 
 sleep 5
