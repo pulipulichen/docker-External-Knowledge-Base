@@ -6,6 +6,8 @@ import sys
 
 from flask import Blueprint, jsonify, request
 
+from markitdown.markitdown import MarkItDown
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -18,7 +20,7 @@ def get_markitdown():
     """Lazy-init MarkItDown in the current worker process."""
     global _md_instance
     if _md_instance is None:
-        from markitdown import MarkItDown
+        
         _md_instance = MarkItDown()
     return _md_instance
 
