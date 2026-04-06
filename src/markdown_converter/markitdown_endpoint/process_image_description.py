@@ -9,6 +9,10 @@ from .image_describe import image_describe
 
 _MIN_EDGE_PX = int(os.getenv("IMAGE_DESCRIBE_MIN_EDGE_PX", "128"))
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 def _image_size_from_base64(base64_data: str) -> tuple[int, int] | None:
     raw = base64_data.strip()
     try:
@@ -36,8 +40,10 @@ def process_image_description(markdown_content: str) -> str:
             return ""
         w, h = size
         if w <= _MIN_EDGE_PX or h <= _MIN_EDGE_PX:
+            logger.info("image size is too small: %s", size)
             return ""
         description = image_describe(base64_data)
+        logger.info("image description: %s", len(description))
         return f'`IMAGE: {description}`'
 
     return re.sub(pattern, replacer, markdown_content)
