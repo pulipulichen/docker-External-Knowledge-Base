@@ -68,6 +68,7 @@ services:
     volumes:
       - ./src/markdown_converter:/app/markdown_converter
       - ./knowledge_base:/app/knowledge_base
+      - root-caches:/root/.cache
     networks:
       - docker_external_knowledge_base
   redis:
@@ -252,7 +253,7 @@ services:
 volumes:
   redis_data:
   weaviate_data:
-
+  root-caches:
 
 networks:
   docker_external_knowledge_base:
