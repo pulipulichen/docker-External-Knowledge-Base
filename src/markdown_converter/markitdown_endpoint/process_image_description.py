@@ -6,8 +6,8 @@ from PIL import Image
 
 from .image_describe import image_describe
 
-_MIN_EDGE_PX = 128
-
+# _MIN_EDGE_PX = 128
+_MIN_EDGE_PX = 1
 
 def _image_size_from_base64(base64_data: str) -> tuple[int, int] | None:
     raw = base64_data.strip()
