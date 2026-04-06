@@ -67,10 +67,10 @@ def convert_file_path_to_markdown_content(file_path):
         lock_file.close()
 
 
-convert_bp = Blueprint("markdown_convert", __name__)
+marker_pdf_convert_bp = Blueprint("marker_pdf_convert", __name__)
 
 
-@convert_bp.route("/marker_pdf", methods=["POST"])
+@marker_pdf_convert_bp.route("/marker_pdf", methods=["POST"])
 def convert_file_path_route():
     """POST JSON body: {\"file_path\": \"/absolute/path/on/converter\"}."""
     data = request.get_json(silent=True) or {}

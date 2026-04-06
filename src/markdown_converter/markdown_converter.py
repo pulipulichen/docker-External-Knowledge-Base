@@ -11,12 +11,14 @@ os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
 
 from flask import Flask
 
-from markitdown_endpoint.routes import convert_bp
+from markitdown_endpoint.routes import markitdown_convert_bp
+from marker_pdf_endpoint.routes import marker_pdf_convert_bp
 
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.register_blueprint(convert_bp)
+app.register_blueprint(markitdown_convert_bp)
+app.register_blueprint(marker_pdf_convert_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=80)
