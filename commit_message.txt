@@ -1,1 +1,1 @@
-變更markdown converter的功能：改用marker -
+變更markdown converter的功能：放棄marker -
