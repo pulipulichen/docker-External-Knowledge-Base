@@ -14,29 +14,11 @@ _md_instance = None
 # This package lives at .../markitdown/; skip it when resolving the PyPI `markitdown` install.
 _LOCAL_MARKITDOWN_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-def _load_mark_it_down_class():
-    """Import MarkItDown from site-packages; local package name would shadow pip otherwise."""
-    for entry in sys.path:
-        if not entry:
-            entry = os.getcwd()
-        candidate = os.path.join(os.path.abspath(entry), "markitdown")
-        if os.path.abspath(candidate) == os.path.abspath(_LOCAL_MARKITDOWN_PKG_DIR):
-            continue
-        init_py = os.path.join(candidate, "__init__.py")
-        if os.path.isfile(init_py):
-            spec = importlib.util.spec_from_file_location("_markitdown_pypi", init_py)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            return mod.MarkItDown
-    raise ImportError("MarkItDown not found in sys.path (site-packages)")
-
-
 def get_markitdown():
     """Lazy-init MarkItDown in the current worker process."""
     global _md_instance
     if _md_instance is None:
-        MarkItDown = _load_mark_it_down_class()
+        from markitdown.markitdown import MarkItDown
         _md_instance = MarkItDown()
     return _md_instance
 
