@@ -2,14 +2,14 @@ import os
 
 from flask import Blueprint, render_template
 
-demo_bp = Blueprint('demo', __name__)
+retrieval_demo_bp = Blueprint('retrieval_demo', __name__)
 
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 def _configs_dir() -> str:
-    # demo.py -> .../src/api/python_packages/demo; repo root is four parents up
+    # retrieval_demo.py -> .../src/api/python_packages/retrieval_demo
     return '/app/knowledge_base/configs/'
 
 
@@ -27,7 +27,7 @@ def list_knowledge_ids_from_configs() -> list[str]:
     return knowledge_ids
 
 
-@demo_bp.route('/demo')
-def demo():
+@retrieval_demo_bp.route('/demo/retrieval')
+def retrieval_demo_page():
     knowledge_ids = list_knowledge_ids_from_configs()
     return render_template('demo_query.html', knowledge_ids=knowledge_ids)

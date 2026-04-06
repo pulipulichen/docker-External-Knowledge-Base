@@ -53,6 +53,33 @@ curl -X POST http://localhost:8080/retrieval \
 
 **Smoke test:** `./test/run-test-search-knowledge-base.sh` sources `.env`, ensures Docker Compose is up, then posts the chunk-style payload above twice (10 seconds apart) against `http://localhost:8080/retrieval`.
 
+## Reset knowledge base (`/reset`)
+
+`POST /reset` removes the **Weaviate collection** named after the config stem (same collection naming as retrieval) and deletes **local generated artifacts**: the markdown cache under `knowledge_base/files/.md/` (single file for file-mode configs, or the `{file_name}-index` directory for directory-mode configs) and the **index timestamp** file under `knowledge_base/files/.time/` (`index_time_filepath` from the YAML-driven config).
+
+**Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as `/retrieval`.
+
+**JSON body**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `knowledge_id` | Yes | Same as `/retrieval`: config stem, optional `!section` for spreadsheets (only the stem is used for the Weaviate collection name and paths). |
+
+**`USE_MOCK_DB`:** When `true`, the handler **does not** call Weaviate (no collection deletion); it still removes `.md` / `.time` artifacts when present. When `false`, it calls `weaviate_collection_delete` for that `knowledge_id`.
+
+**Successful response (200)** JSON includes `knowledge_id`, `weaviate` (either `skipped` with reason, or `collection_existed` after delete), and `filesystem` with `markdown_removed`, `index_time_removed`, and `paths_removed` (list of paths that were removed).
+
+**Errors:** `401` unauthorized, `400` missing/invalid `knowledge_id`, `404` unknown config, `502` if Weaviate deletion throws (when not in mock mode).
+
+Example:
+
+```bash
+curl -X POST http://localhost:8080/reset \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{"knowledge_id": "example"}'
+```
+
 ## Search API
 
 `POST /search` proxies to **SearXNG** (JSON API) and returns a JSON object whose **`results`** array is trimmed to: `content` (snippet from SearXNG), `publishedDate`, `score`, `title`, `url`. The request forwards client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them.

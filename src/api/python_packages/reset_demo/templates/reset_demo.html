@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('reset_demo.static', filename='css/reset_demo.css') }}">
+</head>
+
+<body>
+    <main class="main-content" style="margin-left: 0;">
+        <div class="container">
+            <header>
+                <h1>Reset Laboratory</h1>
+                <p class="subtitle">Call <code style="color: var(--text-dim);">POST /reset</code> to drop Weaviate data and clear generated artifacts</p>
+            </header>
+
+            <div class="glass-panel" id="reset-panel">
+                <div class="form-group"
+                    style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                    <label for="api_key">API Key</label>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+                        <input type="password" id="api_key" name="api_key" autocomplete="off"
+                            placeholder="Paste your API key (saved only in this browser)"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: inherit; padding: 0.5rem 1rem; border-radius: 0.5rem; flex-grow: 1; font-size: 0.875rem; font-family: ui-monospace, monospace;">
+                        <span id="api-key-status" class="status-badge status-muted">Not set</span>
+                    </div>
+                </div>
+
+                <form id="reset-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="knowledge_id">Knowledge ID</label>
+                            <select id="knowledge_id" required>
+                                <option value="" disabled selected>Select Knowledge Base</option>
+                                {% for kid in knowledge_ids %}
+                                <option value="{{ kid }}">{{ kid }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="section_name">Section Name (Optional)</label>
+                            <input type="text" id="section_name" placeholder="e.g. Sheet1">
+                        </div>
+                    </div>
+                    <button type="submit" id="submit-btn" class="btn-danger">
+                        <span id="btn-text">Reset knowledge base</span>
+                        <div id="loading" class="loading-spinner"></div>
+                    </button>
+                </form>
+            </div>
+
+            <section class="results-section">
+                <div id="curl-section" style="display: none; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h3>CURL Example</h3>
+                        <button type="button" onclick="copyCurl()"
+                            style="width: auto; margin: 0; padding: 0.4rem 0.8rem; font-size: 0.75rem;">Copy CURL</button>
+                    </div>
+                    <pre id="curl-output"></pre>
+                </div>
+
+                <div class="results-header">
+                    <h2>Response</h2>
+                    <div id="status-container"></div>
+                </div>
+                <pre id="response-output" class="empty-state" style="text-align: left; margin-top: 1rem;">Submit the form to see the JSON response</pre>
+            </section>
+        </div>
+    </main>
+
+    <script src="{{ url_for('reset_demo.static', filename='js/reset_demo.js') }}"></script>
+</body>
+
+</html>

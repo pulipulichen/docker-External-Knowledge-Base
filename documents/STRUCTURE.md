@@ -42,7 +42,8 @@ Packages are grouped by concern. Names reflect typical responsibilities (exact e
 | `embedding/` | Embedding client and embedding-service readiness helpers. |
 | `ingest/` / `index/` / `update/` | Ingestion and indexing pipelines toward the vector store. |
 | `upload_file/` / `file_host/` | File upload and serving helpers where used by routes. |
-| `demo/` | `/demo` HTML UI; `static/` and `templates/` for the retrieval demo page. |
+| `retrieval_demo/` | `/demo/retrieval` HTML UI; `static/` and `templates/` for the retrieval demo page. |
+| `reset_demo/` | `/demo/reset` HTML UI; `POST /reset` via browser (same contract as `reset/`). |
 | `image_describe/` | Image description integration if exposed by the API. |
 
 ## `knowledge_base/` — data and config

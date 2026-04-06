@@ -21,7 +21,9 @@ from .python_packages.file_host.file_host import file_host_bp
 from .python_packages.search.search import search_bp
 from .python_packages.scrape.scrape import scrape_bp
 from .python_packages.news.news import news_bp
-from .python_packages.demo.demo import demo_bp
+from .python_packages.reset.reset import reset_bp
+from .python_packages.retrieval_demo.retrieval_demo import retrieval_demo_bp
+from .python_packages.reset_demo.reset_demo import reset_demo_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -33,12 +35,12 @@ logging.getLogger("httpx_logger").setLevel(logging.WARNING)
 logging.getLogger("weaviate").setLevel(logging.WARNING)
 
 _API_DIR = os.path.dirname(os.path.abspath(__file__))
-_DEMO_DIR = os.path.join(_API_DIR, 'python_packages', 'demo')
+_RETRIEVAL_DEMO_DIR = os.path.join(_API_DIR, 'python_packages', 'retrieval_demo')
 app = Flask(
     __name__,
-    static_folder=os.path.join(_DEMO_DIR, 'static'),
+    static_folder=os.path.join(_RETRIEVAL_DEMO_DIR, 'static'),
     static_url_path='/static',
-    template_folder=os.path.join(_DEMO_DIR, 'templates'),
+    template_folder=os.path.join(_RETRIEVAL_DEMO_DIR, 'templates'),
 )
 # app.register_blueprint(hello_bp)
 app.register_blueprint(retrieval_bp)
@@ -49,7 +51,9 @@ app.register_blueprint(file_host_bp)
 app.register_blueprint(search_bp)
 app.register_blueprint(scrape_bp)
 app.register_blueprint(news_bp)
-app.register_blueprint(demo_bp)
+app.register_blueprint(reset_bp)
+app.register_blueprint(retrieval_demo_bp)
+app.register_blueprint(reset_demo_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)
