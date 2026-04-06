@@ -6,7 +6,7 @@ from PIL import Image
 
 from .image_describe import image_describe
 
-_MIN_EDGE_PX = 256
+_MIN_EDGE_PX = 128
 
 
 def _image_size_from_base64(base64_data: str) -> tuple[int, int] | None:
