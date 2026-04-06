@@ -39,11 +39,11 @@ def convert_file_path_to_markdown_content(file_path):
             if file_size == 0:
                 raise ValueError(f"File '{file_path}' is empty (0 bytes).")
 
-            logger.info("tmp path: %s", file_path)
+            # logger.info("tmp path: %s", file_path)
 
             markdown_content = convert_path_to_markdown(file_path)
 
-            logger.info("markdown_content: %s", markdown_content)
+            # logger.info("markdown_content: %s", markdown_content)
 
             if len(markdown_content) == 0:
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
