@@ -25,6 +25,8 @@ services:
         condition: service_started
       searxng:
         condition: service_started
+      markdown_converter:
+        condition: service_started
     networks:
       - docker_external_knowledge_base
     environment:
@@ -47,6 +49,9 @@ services:
       # SearXNG (used by POST /search)
       - SEARXNG_URL=${SEARXNG_URL:-http://searxng:8080}
       - SEARXNG_REQUEST_TIMEOUT=${SEARXNG_REQUEST_TIMEOUT:-30}
+      # Ingest: file → markdown via markdown_converter service (see .env.example)
+      - MARKDOWN_CONVERTER_URL=${MARKDOWN_CONVERTER_URL:-http://markdown_converter:80}
+      - MARKDOWN_CONVERTER_TIMEOUT=${MARKDOWN_CONVERTER_TIMEOUT:-125}
     # deploy:
     #   mode: replicated
     #   replicas: 1
@@ -63,6 +68,8 @@ services:
     volumes:
       - ./src/markdown_converter:/app/markdown_converter
       - ./knowledge_base:/app/knowledge_base
+    networks:
+      - docker_external_knowledge_base
   redis:
     image: "redis:7.0.12-alpine"
     restart: on-failure

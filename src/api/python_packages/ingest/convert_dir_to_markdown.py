@@ -8,8 +8,7 @@ from .convert_file_path_to_markdown_content import convert_file_path_to_markdown
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../', 'knowledge_base/files')
-FILE_STORAGE_DIR = '/knowledge_base/files'
+FILE_STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../', 'knowledge_base/files')
 
 def convert_dir_to_markdown(knowledge_id, force_update: False):
     config = get_knowledge_base_config(knowledge_id)
