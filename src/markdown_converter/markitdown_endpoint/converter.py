@@ -10,7 +10,7 @@ _md_instance = None
 import os
 IMAGE_DESCRIPTION_ENABLED = os.environ.get("IMAGE_DESCRIPTION_ENABLED", "false")
 
-from ..process_image_description.process_image_description import process_image_description
+from .process_image_description import process_image_description
 
 def get_markitdown():
     """Lazy-init MarkItDown in the current worker process."""
