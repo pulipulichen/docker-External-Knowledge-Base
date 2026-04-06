@@ -169,7 +169,7 @@ form.addEventListener('submit', async (e) => {
     const queryPreview = query.length > 15 ? query.substring(0, 15) + '...' : query;
     const nav_text = navQueryItem.querySelector('.nav-text')
     nav_text.textContent = `🔍 [${knowledgeId}] ${queryPreview}`;
-    nav_text.title = query;
+    nav_text.title = `[${knowledgeId}] ${query}`;
 
     // Reset sidebar results
     const resultItems = sidebarNav.querySelectorAll('.nav-item:not(#nav-query-item)');
