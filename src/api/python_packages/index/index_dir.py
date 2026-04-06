@@ -62,7 +62,11 @@ async def index_dir(knowledge_id, force_update: False):
                 # 如果沒有 markdown_dir_path ，那就建立
                 make_index_dir(markdown_dir_path)
 
-                convert_file_to_markdown(file_path, markdown_file_path)
+                convert_file_to_markdown_result = convert_file_to_markdown(file_path, markdown_file_path)
+
+                if convert_file_to_markdown_result is False:
+                    continue
+
                 if await index_mode_file(knowledge_id, markdown_file_path) is True:
                     index_result = True
                 # logger.info(f"Processing file: {markdown_file_path}")
@@ -169,6 +173,8 @@ def check_need_update(file_path, markdown_file_path, update_delay_seconds):
 def convert_file_to_markdown(input_file_path, markdown_file_path):
     try:
         markdown_content = convert_file_path_to_markdown_content(input_file_path)
+        if markdown_content is False:
+            return False
         
         # 如果 markdown_file_path 的目錄還沒建起來，幫他建
         os.makedirs(os.path.dirname(markdown_file_path), exist_ok=True)
