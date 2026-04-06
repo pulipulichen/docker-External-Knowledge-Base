@@ -6,7 +6,7 @@ import sys
 
 from flask import Blueprint, jsonify, request
 
-from markitdown.markitdown import MarkItDown
+from markitdown import MarkItDown
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
