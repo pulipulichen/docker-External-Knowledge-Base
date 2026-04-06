@@ -68,4 +68,5 @@ def convert_file_path_to_markdown_content(file_path):
 
     except Exception as e:
         logger.error(f"Error converting file for input_file_path '{file_path}': {e}")
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
         return False
