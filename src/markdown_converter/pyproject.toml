@@ -2,6 +2,7 @@
 name = "docker-external-knowledge-base-markdown-converter"
 version = "0.1.0"
 dependencies = [
+    "Pillow>=10.0.0",
     "Flask[async]==2.3.3",
     "gunicorn==21.2.0",
     "requests==2.33.1",
