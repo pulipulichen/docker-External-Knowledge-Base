@@ -31,7 +31,10 @@ def _image_size_from_base64(base64_data: str) -> tuple[int, int] | None:
 
 
 def process_image_description(markdown_content: str) -> str:
-    pattern = r'!\[\]\(data:image\/([^;]+);base64,([^\)]+)\)'
+    
+    # 修正重點：將 !\[\] 改為 !\[.*?\]
+    # .*? 會匹配中括號內的任何字元（包括路徑、說明文字或空白）
+    pattern = r'!\[.*?\]\(data:image\/([^;]+);base64,([^\)]+)\)'
 
     def replacer(match):
         base64_data = match.group(2)
