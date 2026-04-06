@@ -55,9 +55,11 @@ def convert_file_path_to_markdown_content(file_path):
                 markdown_content = markdown_content.text_content
 
                 # 移除 ![alt](data:image/png;base64,...) 格式
-                markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
+                # 20260406-1142 改成保留圖片，因為有些圖片是重要的資訊
+                # markdown_content = re.sub(r'!\[.*?\]\(data:image\/.*?;base64,.*?\)', '', markdown_content)
 
                 if len(markdown_content) == 0:
+                    fcntl.flock(lock_file, fcntl.LOCK_UN)
                     raise ValueError(f"convert markdown error or empty: '{file_path}'")
 
                 return markdown_content
