@@ -31,7 +31,7 @@ def get_markitdown():
     global md_instance
     if md_instance is None:
         from markitdown import MarkItDown
-        md_instance = MarkItDown(llm_client=GeminiWrapper(), llm_model=GEMINI_MODEL)
+        md_instance = MarkItDown()
     return md_instance
 
 # md = MarkItDown(enable_plugins=False) # Set to True to enable plugins
