@@ -1,11 +1,8 @@
 import fcntl
-import importlib.util
 import logging
 import os
-import sys
 
 from flask import Blueprint, jsonify, request
-
 from markitdown import MarkItDown
 
 logger = logging.getLogger(__name__)
@@ -13,14 +10,11 @@ logger.setLevel(logging.DEBUG)
 
 _md_instance = None
 
-# This package lives at .../markitdown/; skip it when resolving the PyPI `markitdown` install.
-_LOCAL_MARKITDOWN_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_markitdown():
     """Lazy-init MarkItDown in the current worker process."""
     global _md_instance
     if _md_instance is None:
-        
         _md_instance = MarkItDown()
     return _md_instance
 

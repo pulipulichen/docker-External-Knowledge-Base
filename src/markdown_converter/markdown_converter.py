@@ -11,7 +11,7 @@ os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
 
 from flask import Flask
 
-from markitdown.markitdown import convert_bp
+from markitdown_endpoint.routes import convert_bp
 
 logging.basicConfig(level=logging.INFO)
 
