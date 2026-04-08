@@ -48,6 +48,8 @@ async def index_dir(knowledge_id, force_update: False):
         for file in files:
             logger.info(f'file: {file}')
             file_path = os.path.join(root, file)
+
+            logger.info(f'file_path: {file_path}')
             
             if include_ext:
                 file_ext = os.path.splitext(file)[1].lower()
