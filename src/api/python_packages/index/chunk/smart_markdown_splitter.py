@@ -11,7 +11,8 @@ def _encoder_for_model(model_name: str):
         if "gpt-4o" in mn:
             try:
                 return tiktoken.get_encoding("o200k_base")
-            except KeyError:
+            except (KeyError, ValueError):
+                # Old tiktoken: o200k_base missing ("Unknown encoding o200k_base")
                 pass
         return tiktoken.get_encoding("cl100k_base")
 
