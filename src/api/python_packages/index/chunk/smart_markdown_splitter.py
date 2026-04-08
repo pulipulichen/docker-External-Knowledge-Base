@@ -1,6 +1,21 @@
 import re
 import tiktoken
 
+
+def _encoder_for_model(model_name: str):
+    """Resolve tiktoken encoder; fall back when encoding_for_model lacks the model."""
+    try:
+        return tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        mn = (model_name or "").lower()
+        if "gpt-4o" in mn:
+            try:
+                return tiktoken.get_encoding("o200k_base")
+            except KeyError:
+                pass
+        return tiktoken.get_encoding("cl100k_base")
+
+
 class SmartMarkdownSplitter:
     def __init__(self, model_name="gpt-4o", max_tokens=1000, min_tokens=200):
         """
@@ -9,7 +24,7 @@ class SmartMarkdownSplitter:
         :param max_tokens: 每個 chunk 的最大 token 數
         :param min_tokens: 每個 chunk 的理想最小 token 數 (儘量合併小區塊)
         """
-        self.encoder = tiktoken.encoding_for_model(model_name)
+        self.encoder = _encoder_for_model(model_name)
         self.max_tokens = max_tokens
         self.min_tokens = min_tokens
         

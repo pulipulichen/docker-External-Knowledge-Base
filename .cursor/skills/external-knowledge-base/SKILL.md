@@ -24,6 +24,12 @@ description: >-
 - **Retrieval**: Chunk vs file mode; Weaviate when `USE_MOCK_DB` is false; mock path for local testing when true.
 - **Docs**: HTTP endpoints in [documents/API.md](../../../documents/API.md); layout in [documents/STRUCTURE.md](../../../documents/STRUCTURE.md); [README.md](../../../README.md) covers rclone mount and MCP Docker test scripts.
 
+## Python (API service)
+
+- **Dependencies**: Declare them in [src/api/pyproject.toml](../../../src/api/pyproject.toml). The API image installs them at build time; the host workspace may not have a matching venv.
+- **Do not install Python on the host** to validate changes (no `pip install`, no ad-hoc local venv for this stack) unless the user explicitly asks. Prefer **rebuilding and running the API container** (Docker Compose) so installs and import checks match production.
+- **tiktoken / model names**: Newer OpenAI model ids (e.g. `gpt-4o`) require a recent `tiktoken` that maps them to an encoding; pin `tiktoken` in `pyproject.toml` accordingly and add a safe fallback in code if `encoding_for_model` raises `KeyError`.
+
 ## Editing conventions
 
 - **Match neighboring code**: imports, typing, error handling, and naming as in the same package.
@@ -33,7 +39,7 @@ description: >-
 
 ## Tests and verification
 
-- **Do not run local Python import/module checks** in the user’s workspace (e.g. `python -c "from … import …"`, ad-hoc `pytest` on unchanged code) unless the user explicitly asks for it. Rely on static review, existing project tests/scripts, or the user’s remote/Docker verification instead.
+- **Do not run local Python import/module checks** in the user’s workspace (e.g. `python -c "from … import …"`, ad-hoc `pytest` on unchanged code) unless the user explicitly asks for it. This aligns with **Python (API service)** above: verify via Docker, not host `pip`/`python`.
 - Shell tests under `test/` (e.g. retrieval, MCP profile `mcp-test`). Prefer the project’s existing scripts over ad-hoc curls when validating behavior.
 - If the user validates on a **remote server** only (no local Docker), follow their remote-testing workflow when applicable.
 
