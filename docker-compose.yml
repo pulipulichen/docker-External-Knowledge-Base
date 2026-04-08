@@ -71,6 +71,9 @@ services:
       - root-caches:/root/.cache
     networks:
       - docker_external_knowledge_base
+    deploy:
+      mode: replcated
+      replicas: 3
       
   redis:
     image: "redis:7.0.12-alpine"
