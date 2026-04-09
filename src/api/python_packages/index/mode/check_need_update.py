@@ -38,6 +38,7 @@ def check_need_update(knowledge_id, markdown_file_path):
             return_metadata=MetadataQuery(score=False),
         )
         if len(response.objects) > 0:
+            logger.info(f"File is up to date in weaviate: {markdown_file_path}")
             return False
         return True
     except Exception:
