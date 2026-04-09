@@ -1,6 +1,7 @@
-import tiktoken
+# import tiktoken
 from typing import List
 import os
+from datetime import datetime, timezone
 
 import logging
 
@@ -40,6 +41,9 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str):
     
     relative_path = get_relative_path(file_path)
     title = relative_path.split('/')[-1]
+    updated_at = datetime.fromtimestamp(
+        os.path.getmtime(file_path), tz=timezone.utc
+    ).isoformat()
 
     chunks = []
     for chunk_count, section in enumerate(sections):
@@ -51,7 +55,8 @@ def get_chunks_from_markdown_file(knowledge_id, file_path: str):
             'document': section,
             "metadata": {
                 "title": title,
-                "path": relative_path
+                "path": relative_path,
+                "updated_at": updated_at,
             }
         })
 

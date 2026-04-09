@@ -69,11 +69,11 @@ async def index_dir(knowledge_id, force_update: False):
                 if convert_file_to_markdown_result is False:
                     continue
 
-                if await index_mode_file(knowledge_id, markdown_file_path) is True:
-                    index_result = True
+            if await index_mode_file(knowledge_id, markdown_file_path) is True:
+                index_result = True
                 # logger.info(f"Processing file: {markdown_file_path}")
-            else:
-                logger.info(f'Skip: {file_path}, force_update: {force_update}')
+            # else:
+            #     logger.info(f'Skip: {file_path}, force_update: {force_update}')
 
     # 在這裡檢查，如果 markdown_dir_path 底下，有 .md 檔案，但是沒有對應的 file_path ，那就刪除
     for root, dirs, files in os.walk(markdown_dir_path):
