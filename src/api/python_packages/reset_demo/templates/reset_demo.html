@@ -34,9 +34,9 @@
                 <form id="reset-form">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="knowledge_id">Knowledge ID</label>
-                            <select id="knowledge_id" required>
-                                <option value="" disabled selected>Select Knowledge Base</option>
+                            <label for="knowledge_id">Knowledge ID (from configs)</label>
+                            <select id="knowledge_id">
+                                <option value="" selected>Select Knowledge Base</option>
                                 {% for kid in knowledge_ids %}
                                 <option value="{{ kid }}">{{ kid }}</option>
                                 {% endfor %}
@@ -45,6 +45,12 @@
                         <div class="form-group">
                             <label for="section_name">Section Name (Optional)</label>
                             <input type="text" id="section_name" placeholder="e.g. Sheet1">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="knowledge_id_manual">Knowledge ID (manual)</label>
+                            <input type="text" id="knowledge_id_manual" name="knowledge_id_manual" autocomplete="off"
+                                placeholder="e.g. legacy_kb or id no longer in config">
+                            <p class="form-hint">If this field is not empty, it is used as the base Knowledge ID and the dropdown above is ignored.</p>
                         </div>
                     </div>
                     <button type="submit" id="submit-btn" class="btn-danger">

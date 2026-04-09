@@ -8,6 +8,7 @@ const curlOutput = document.getElementById('curl-output');
 const responseOutput = document.getElementById('response-output');
 
 const API_KEY_STORAGE_KEY = 'reset_demo_api_key';
+const KNOWLEDGE_ID_MANUAL_KEY = 'reset_demo_knowledge_id_manual';
 
 function getApiKey() {
     const el = document.getElementById('api_key');
@@ -35,6 +36,17 @@ function restoreKnowledgeIdSelect() {
     }
 }
 
+function getKnowledgeIdBase() {
+    const manualEl = document.getElementById('knowledge_id_manual');
+    const manual = manualEl && manualEl.value ? manualEl.value.trim() : '';
+    if (manual) {
+        return manual;
+    }
+    const select = document.getElementById('knowledge_id');
+    const fromSelect = select && select.value ? select.value.trim() : '';
+    return fromSelect;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     const apiKeyInput = document.getElementById('api_key');
     const storedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
@@ -43,6 +55,22 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     updateApiKeyStatus();
     restoreKnowledgeIdSelect();
+
+    const manualKidEl = document.getElementById('knowledge_id_manual');
+    const storedManualKid = localStorage.getItem(KNOWLEDGE_ID_MANUAL_KEY);
+    if (storedManualKid !== null && manualKidEl) {
+        manualKidEl.value = storedManualKid;
+    }
+    if (manualKidEl) {
+        manualKidEl.addEventListener('input', (e) => {
+            const v = e.target.value;
+            if (v) {
+                localStorage.setItem(KNOWLEDGE_ID_MANUAL_KEY, v);
+            } else {
+                localStorage.removeItem(KNOWLEDGE_ID_MANUAL_KEY);
+            }
+        });
+    }
 
     if (apiKeyInput) {
         apiKeyInput.addEventListener('input', () => {
@@ -101,7 +129,15 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    const knowledgeId = document.getElementById('knowledge_id').value;
+    const knowledgeId = getKnowledgeIdBase();
+    if (!knowledgeId) {
+        responseOutput.textContent = 'Select a Knowledge ID from the list or enter one in the manual field';
+        responseOutput.className = 'empty-state';
+        responseOutput.style.color = '#ef4444';
+        statusContainer.innerHTML = '<span class="status-badge status-error">Missing Knowledge ID</span>';
+        return;
+    }
+
     const sectionName = document.getElementById('section_name').value;
     const fullKnowledgeId = sectionName ? `${knowledgeId}!${sectionName}` : knowledgeId;
 
