@@ -1,10 +1,29 @@
 import os
 import logging
+import zipfile
+import xml.etree.ElementTree as ET
+
 import pyexcel_ods
 from .get_knowledge_base_config import get_knowledge_base_config
-from openpyxl import load_workbook
 
 logger = logging.getLogger(__name__)
+
+# OOXML workbook namespace (sheet names live in xl/workbook.xml; no need for full openpyxl parse).
+_XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+
+
+def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
+    """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
+    with zipfile.ZipFile(filepath, "r") as zf:
+        with zf.open("xl/workbook.xml") as wb_xml:
+            root = ET.parse(wb_xml).getroot()
+    # Default namespace on workbook root
+    for sheet in root.findall(f"{{{_XLSX_MAIN_NS}}}sheets/{{{_XLSX_MAIN_NS}}}sheet"):
+        name = sheet.get("name")
+        if name is not None:
+            return name
+    return None
+
 
 def get_section_name(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
@@ -18,18 +37,9 @@ def get_section_name(knowledge_id):
         return knowledge_id
 
     if filepath.endswith('.xlsx'):
-        logger.info(f"filepath xlsx: {filepath}")
-        
         try:
-            logger.info(f"load_workbook: {filepath}")
-            with open(filepath, 'r', encoding='utf-8') as f:
-                temp_file_content = f.read()
-            wb = load_workbook(filepath, read_only=True)
-            logger.info(f"wb: {wb}")
-            if wb.sheetnames:
-                return wb.sheetnames[0]
-            else:
-                return knowledge_id
+            first = _first_sheet_name_from_xlsx(filepath)
+            return first if first is not None else knowledge_id
         except Exception as e:
             logger.error(f"Error reading XLSX file '{filepath}': {e}")
             return knowledge_id
