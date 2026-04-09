@@ -29,6 +29,25 @@ def _looks_like_json_object_array(text: str) -> bool:
     return bool(_JSON_OBJECT_ARRAY_START.search(s) and _JSON_OBJECT_ARRAY_END.search(s))
 
 
+# Split between array elements without consuming the next object's leading "{".
+_JSON_ARRAY_OBJECT_BOUNDARY = re.compile(r"(?<=\})\s*,\s*(?=\{)")
+
+
+def _wrap_json_object_array_segment(segment: str) -> str:
+    """
+    Turn one slice from between-object splits into a valid single-element array: [{ ... }].
+    First slice starts with "["; later slices start with "{"; last slice ends with "]".
+    """
+    s = segment.strip()
+    if not s:
+        return s
+    if not s.startswith("["):
+        s = "[" + s
+    if not s.endswith("]"):
+        s = s + "]"
+    return s
+
+
 class SmartMarkdownSplitter:
     def __init__(self, model_name="gpt-4o", max_tokens=1000, min_tokens=200):
         """
@@ -55,9 +74,8 @@ class SmartMarkdownSplitter:
             r" ",
             r"",
         ]
-        # Top-level [{ ... }, { ... }] — split between objects, then fall back for huge items.
-        self._separators_json_object_array = [
-            r"\}\s*,\s*\{",
+        # After object boundaries (handled in _split_json_object_array), split huge objects.
+        self._separators_json_object_array_inner = [
             r"\n\n",
             r"\n",
             r"。\s*",
@@ -113,32 +131,47 @@ class SmartMarkdownSplitter:
             
         return splits
 
+    def _split_json_object_array(self, text: str) -> list[str]:
+        """Split top-level [{...},{...}] on object boundaries; each chunk is wrapped as [{...}]."""
+        segments = _JSON_ARRAY_OBJECT_BOUNDARY.split(text)
+        out: list[str] = []
+        for seg in segments:
+            s = seg.strip()
+            if not s:
+                continue
+            if self.count_tokens(s) <= self.max_tokens:
+                out.append(_wrap_json_object_array_segment(s))
+            else:
+                sub = self._split_text_recursively(s, self._separators_json_object_array_inner)
+                out.extend(sub)
+        return out
+
     def split(self, text):
         """主要執行方法：切分並智慧合併過小的區塊"""
-        self.separators = (
-            self._separators_json_object_array
-            if _looks_like_json_object_array(text)
-            else self._separators_markdown
-        )
+        is_json_object_array = _looks_like_json_object_array(text)
+        if is_json_object_array:
+            self.separators = self._separators_json_object_array_inner
+            initial_chunks = self._split_json_object_array(text)
+            return [c.strip() for c in initial_chunks if c.strip()]
+
+        self.separators = self._separators_markdown
         initial_chunks = self._split_text_recursively(text, self.separators)
-        
-        # 2. 智慧合併 (處理 min_tokens)
+
         final_chunks = []
         current_chunk = ""
-        
+
         for chunk in initial_chunks:
             chunk_tokens = self.count_tokens(chunk)
             current_tokens = self.count_tokens(current_chunk)
-            
-            # 如果目前 chunk 加上新的塊還在 max 範圍內，且目前太小，則合併
+
             if current_chunk and (current_tokens + chunk_tokens <= self.max_tokens):
                 current_chunk += chunk
             else:
                 if current_chunk:
                     final_chunks.append(current_chunk.strip())
                 current_chunk = chunk
-                
+
         if current_chunk:
             final_chunks.append(current_chunk.strip())
-            
+
         return final_chunks
