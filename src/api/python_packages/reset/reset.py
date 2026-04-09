@@ -82,17 +82,17 @@ async def reset_endpoint():
     parsed = parse_knowledge_id(knowledge_id_raw.strip())
     knowledge_id = parsed["knowledge_id"]
 
-    config = get_knowledge_base_config(knowledge_id)
-    if not config or not config.get("file_name"):
-        return (
-            jsonify(
-                {
-                    "error": "Unknown knowledge_id",
-                    "detail": f"No config found for '{knowledge_id}'",
-                }
-            ),
-            404,
-        )
+    
+    # if not config or not config.get("file_name"):
+    #     return (
+    #         jsonify(
+    #             {
+    #                 "error": "Unknown knowledge_id",
+    #                 "detail": f"No config found for '{knowledge_id}'",
+    #             }
+    #         ),
+    #         404,
+    #     )
 
     weaviate_result: dict | None = None
     
@@ -113,7 +113,15 @@ async def reset_endpoint():
             502,
         )
 
-    fs_result = await asyncio.to_thread(remove_knowledge_artifacts, knowledge_id, config)
+
+    fs_result = False
+    try:
+        config = get_knowledge_base_config(knowledge_id)
+        
+        if config is not None and config.get("file_name"):
+            fs_result = await asyncio.to_thread(remove_knowledge_artifacts, knowledge_id, config)
+    except Exception as e:
+        logger.exception("Filesystem remove failed for %s", knowledge_id)
 
     return (
         jsonify(
