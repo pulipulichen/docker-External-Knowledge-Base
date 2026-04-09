@@ -78,7 +78,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
     return unlock_index(knowledge_id)
     
 
-ROOT_INDEX_TIME_DIR_CHECK = False
+ROOT_INDEX_TIME_DIR_CHECK = True
 
 def write_index_time(config):
     # 把現在的時間寫入index_itme    
