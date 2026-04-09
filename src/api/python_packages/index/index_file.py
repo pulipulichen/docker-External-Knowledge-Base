@@ -78,19 +78,19 @@ async def index_file(knowledge_id, section_name, force_update: False):
     return unlock_index(knowledge_id)
     
 
-ROOT_INDEX_TIME_DIR_CHECK = False
+# ROOT_INDEX_TIME_DIR_CHECK = False
 
 def write_index_time(config):
     # 把現在的時間寫入index_itme    
     current_time = datetime.datetime.now().isoformat()
     index_time_filepath = config.get('index_time_filepath')
 
-    global ROOT_INDEX_TIME_DIR_CHECK
-    if ROOT_INDEX_TIME_DIR_CHECK is False:
-        index_time_dir = os.path.dirname(index_time_filepath)
-        os.makedirs(index_time_dir, exist_ok=True)
-        os.chmod(index_time_dir, 0o777)
-        ROOT_INDEX_TIME_DIR_CHECK = True
+    # global ROOT_INDEX_TIME_DIR_CHECK
+    # if ROOT_INDEX_TIME_DIR_CHECK is False:
+    index_time_dir = os.path.dirname(index_time_filepath)
+    os.makedirs(index_time_dir, exist_ok=True)
+    os.chmod(index_time_dir, 0o777)
+    # ROOT_INDEX_TIME_DIR_CHECK = True
     
     try:
         with open(index_time_filepath, 'w') as f:
