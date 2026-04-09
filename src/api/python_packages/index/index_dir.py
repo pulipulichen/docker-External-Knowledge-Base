@@ -73,7 +73,7 @@ async def index_dir(knowledge_id, force_update: False):
                     index_result = True
                 # logger.info(f"Processing file: {markdown_file_path}")
             else:
-                logger.info(f'Skip: {file_path}')
+                logger.info(f'Skip: {file_path}, force_update: {force_update}')
 
     # 在這裡檢查，如果 markdown_dir_path 底下，有 .md 檔案，但是沒有對應的 file_path ，那就刪除
     for root, dirs, files in os.walk(markdown_dir_path):
@@ -172,6 +172,7 @@ def check_need_update(file_path, markdown_file_path, update_delay_seconds):
     if (file_mtime - markdown_mtime) > update_delay_seconds:
         return True
     
+    logger.info(f"File is up to date: {file_path}, markdown_file_path: {markdown_file_path}, update_delay_seconds: {update_delay_seconds}")
     return False
 
 def convert_file_to_markdown(input_file_path, markdown_file_path):
