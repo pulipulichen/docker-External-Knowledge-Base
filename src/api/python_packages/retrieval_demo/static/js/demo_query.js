@@ -57,6 +57,7 @@ const escapeHTMLTags = (content) => {
 
 // Fields to persist in localStorage
 const persistFields = ['knowledge_id', 'section_name', 'top_k', 'score_threshold', 'query'];
+const persistCheckboxes = ['file_mode', 'disable_metadata'];
 const API_KEY_STORAGE_KEY = 'retrieval_api_key';
 
 function getApiKey() {
@@ -115,6 +116,13 @@ window.addEventListener('DOMContentLoaded', () => {
             if (el) el.value = value;
         }
     });
+    persistCheckboxes.forEach((id) => {
+        const el = document.getElementById(id);
+        const stored = localStorage.getItem(`retrieval_${id}`);
+        if (el && stored !== null) {
+            el.checked = stored === '1';
+        }
+    });
 });
 
 // Save values on change
@@ -124,6 +132,15 @@ persistFields.forEach(field => {
         const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
         el.addEventListener(eventType, (e) => {
             localStorage.setItem(`retrieval_${field}`, e.target.value);
+        });
+    }
+});
+
+persistCheckboxes.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('change', () => {
+            localStorage.setItem(`retrieval_${id}`, el.checked ? '1' : '0');
         });
     }
 });
@@ -247,6 +264,8 @@ form.addEventListener('submit', async (e) => {
     const sectionName = document.getElementById('section_name').value;
     const topK = parseInt(document.getElementById('top_k').value);
     const score_threshold = document.getElementById('score_threshold').value;
+    const fileMode = document.getElementById('file_mode').checked;
+    const disableMetadata = document.getElementById('disable_metadata').checked;
     const query = document.getElementById('query').value;
 
     // Update sidebar query item
@@ -269,7 +288,9 @@ form.addEventListener('submit', async (e) => {
         query: query,
         retrieval_setting: {
             top_k: topK,
-            score_threshold: score_threshold ? parseFloat(score_threshold) : null
+            score_threshold: score_threshold ? parseFloat(score_threshold) : null,
+            file_mode: fileMode,
+            disable_metadata: disableMetadata
         }
     };
 

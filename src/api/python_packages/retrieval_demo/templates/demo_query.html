@@ -68,6 +68,18 @@
                             <label for="score_threshold">Score Threshold (Optional)</label>
                             <input type="number" id="score_threshold" step="0.01" min="0" max="1" placeholder="e.g. 0.5">
                         </div>
+                        <div class="form-group checkbox-row">
+                            <label for="file_mode">
+                                <input type="checkbox" id="file_mode" name="file_mode">
+                                <span>File mode — file-level retrieval instead of chunks</span>
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-row">
+                            <label for="disable_metadata">
+                                <input type="checkbox" id="disable_metadata" name="disable_metadata">
+                                <span>Disable metadata — omit <code>metadata</code> on each record</span>
+                            </label>
+                        </div>
                         <div class="form-group full-width">
                             <label for="query">Query</label>
                             <textarea id="query" rows="3" placeholder="What would you like to search for?"
