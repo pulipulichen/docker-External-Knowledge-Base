@@ -21,7 +21,9 @@ def get_section_name(knowledge_id):
         logger.info(f"filepath xlsx: {filepath}")
         
         try:
+            logger.info(f"load_workbook: {filepath}")
             wb = load_workbook(filepath, read_only=True)
+            logger.info(f"wb: {wb}")
             if wb.sheetnames:
                 return wb.sheetnames[0]
             else:
