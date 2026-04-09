@@ -23,7 +23,12 @@ def get_markitdown():
 def convert_path_to_markdown(file_path: str) -> str:
     """Run MarkItDown on a local file path; returns extracted markdown text."""
     md = get_markitdown()
+
+    logger.info(f"Convertion is starting: {file_path}")
+
     markdown_content = md.convert(file_path, keep_data_uris=True).text_content
+
+    logger.info(f"Convertion is successful: {file_path}")
 
     if IMAGE_DESCRIPTION_ENABLED == "true":
         markdown_content = process_image_description(markdown_content)
