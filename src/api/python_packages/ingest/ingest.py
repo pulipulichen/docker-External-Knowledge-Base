@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 async def ingest_data(knowledge_id, section_name, force_update: False):
     # time.sleep(30)
 
-    # logger.info(f"Knowledge ID: {knowledge_id}")
+    logger.info(f"Knowledge ID: {knowledge_id}")
     # logger.info(f"force_update: {force_update}")
 
     knowledge_base_config = get_knowledge_base_config(knowledge_id)
