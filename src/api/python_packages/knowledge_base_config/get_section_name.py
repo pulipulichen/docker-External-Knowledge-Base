@@ -17,6 +17,7 @@ def get_section_name(knowledge_id):
         return knowledge_id
 
     if filepath.endswith('.xlsx'):
+        logger.info(f"filepath xlsx: {filepath}")
         from openpyxl import load_workbook
         try:
             wb = load_workbook(filepath, read_only=True)
