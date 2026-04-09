@@ -22,6 +22,8 @@ def get_section_name(knowledge_id):
         
         try:
             logger.info(f"load_workbook: {filepath}")
+            with open(filepath, 'r', encoding='utf-8') as f:
+                temp_file_content = f.read()
             wb = load_workbook(filepath, read_only=True)
             logger.info(f"wb: {wb}")
             if wb.sheetnames:
