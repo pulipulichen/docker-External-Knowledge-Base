@@ -33,7 +33,7 @@ async def index_file(knowledge_id, section_name, force_update: False):
 
     # force_update = True
 
-    # logger.info(f"index_file Knowledge ID: {knowledge_id} {force_update} {check_knowledge_base_need_update_automatically(knowledge_id)}")
+    logger.info(f"index_file Knowledge ID: {knowledge_id} {force_update} {check_knowledge_base_need_update_automatically(knowledge_id)}")
 
     if force_update is False and check_knowledge_base_need_update_automatically(knowledge_id) is False:
         logger.info("File does not need to be updated automatically.")
