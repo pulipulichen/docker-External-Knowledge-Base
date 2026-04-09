@@ -28,7 +28,7 @@ def get_knowledge_base_config(knowledge_id):
         config_path = os.path.join(CONFIG_DIR, knowledge_id + '.yaml')
 
         if not os.path.exists(config_path):
-            logger.error(f"Knowledge base config file not found at {config_path}", stack_info=True)
+            logger.error(f"Knowledge base config file '{knowledge_id}.yml' not found at {config_path}", stack_info=True)
             return {}
 
     with open(config_path, 'r') as file:
