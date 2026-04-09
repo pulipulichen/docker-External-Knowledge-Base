@@ -94,6 +94,33 @@ curl -X POST http://localhost:8080/reset \
      -d '{"reset_all": true}'
 ```
 
+## Ingest all configs (`/ingest/all`)
+
+`POST /ingest/all` queues **ingest/index** for **every** `*.yml` / `*.yaml` stem under `knowledge_base/configs/`, in **sorted** order, **one knowledge base at a time** on a background thread. Each run uses `ingest_data` with **`section_name` unset** (`None`), so spreadsheet-style configs use the same default section resolution as other ingest paths (`get_section_name` inside `ingest_data` when `section_name` is `None`).
+
+**Authentication:** Bearer token (`Authorization: Bearer <YOUR_API_KEY>`), same as `/retrieval` and `/reset`.
+
+**JSON body (optional)**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `force_update` | No | JSON boolean, default **`true`**. When `true`, ingest proceeds even if automatic update checks would otherwise skip work (same idea as `POST /update` with `force_update`). When `false`, each KB follows `index_file` / `check_knowledge_base_need_update_automatically` behavior. |
+
+**Response:** **`202 Accepted`** with `message`, `knowledge_ids`, `count`, and `force_update`. Processing continues asynchronously; the HTTP response does not wait for ingest to finish.
+
+**Errors:** `401` unauthorized, `400` if `force_update` is present but not a JSON boolean, `404` if no config files exist under `knowledge_base/configs/`.
+
+**curl** (host port **8080**):
+
+```bash
+curl -X POST http://localhost:8080/ingest/all \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{"force_update": true}'
+```
+
+The retrieval demo page (`/demo/retrieval`) includes a button that calls this endpoint and shows a copyable cURL example.
+
 ## Search API
 
 `POST /search` proxies to **SearXNG** (JSON API) and returns a JSON object whose **`results`** array is trimmed to: `content` (snippet from SearXNG), `publishedDate`, `score`, `title`, `url`. The request forwards client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them.

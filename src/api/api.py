@@ -24,6 +24,7 @@ from .python_packages.news.news import news_bp
 from .python_packages.reset.reset import reset_bp
 from .python_packages.retrieval_demo.retrieval_demo import retrieval_demo_bp
 from .python_packages.reset_demo.reset_demo import reset_demo_bp
+from .python_packages.ingest.ingest_all import ingest_all_bp
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="weaviate")
@@ -54,6 +55,7 @@ app.register_blueprint(news_bp)
 app.register_blueprint(reset_bp)
 app.register_blueprint(retrieval_demo_bp)
 app.register_blueprint(reset_demo_bp)
+app.register_blueprint(ingest_all_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)

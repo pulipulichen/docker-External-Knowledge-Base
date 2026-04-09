@@ -79,6 +79,21 @@
                         <div id="loading" class="loading-spinner"></div>
                     </button>
                 </form>
+                <div class="index-all-panel">
+                    <p class="index-all-hint">Queue indexing for every YAML config under <code>knowledge_base/configs</code> (default section per config).</p>
+                    <button type="button" id="index-all-btn" class="btn-index-all">
+                        <span id="index-all-btn-text">Index all configs</span>
+                        <div id="index-all-loading" class="loading-spinner"></div>
+                    </button>
+                    <p id="index-all-status" class="index-all-status" aria-live="polite"></p>
+                    <div id="index-all-curl-wrap" class="index-all-curl-wrap" style="display: none;">
+                        <div class="index-all-curl-header">
+                            <span>cURL</span>
+                            <button type="button" id="index-all-copy-curl" class="btn-copy-curl">Copy</button>
+                        </div>
+                        <pre id="index-all-curl" class="index-all-curl-pre"></pre>
+                    </div>
+                </div>
             </div>
 
             <section class="results-section">

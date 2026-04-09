@@ -143,8 +143,86 @@ function copyCurl() {
     });
 }
 
+function generateIngestAllCurl() {
+    const baseUrl = window.location.origin;
+    const body = JSON.stringify({ force_update: true }, null, 2);
+    return `curl -X POST "${baseUrl}/ingest/all" \\
+-H "Content-Type: application/json" \\
+-H "Authorization: Bearer ${getApiKey()}" \\
+-d '${body}'`;
+}
+
 if (sidebarExecuteBtn && form) {
     sidebarExecuteBtn.addEventListener('click', () => form.requestSubmit());
+}
+
+const indexAllBtn = document.getElementById('index-all-btn');
+const indexAllBtnText = document.getElementById('index-all-btn-text');
+const indexAllLoading = document.getElementById('index-all-loading');
+const indexAllStatus = document.getElementById('index-all-status');
+const indexAllCurlWrap = document.getElementById('index-all-curl-wrap');
+const indexAllCurlPre = document.getElementById('index-all-curl');
+const indexAllCopyCurl = document.getElementById('index-all-copy-curl');
+
+if (indexAllBtn && indexAllBtnText && indexAllLoading && indexAllStatus && indexAllCurlWrap && indexAllCurlPre) {
+    indexAllCurlPre.textContent = generateIngestAllCurl();
+    if (indexAllCopyCurl) {
+        indexAllCopyCurl.addEventListener('click', () => {
+            navigator.clipboard.writeText(indexAllCurlPre.textContent).then(() => {
+                alert('cURL copied to clipboard!');
+            });
+        });
+    }
+
+    indexAllBtn.addEventListener('click', async () => {
+        if (!getApiKey()) {
+            indexAllStatus.textContent = 'Enter your API key first.';
+            indexAllStatus.style.color = '#ef4444';
+            return;
+        }
+        indexAllCurlPre.textContent = generateIngestAllCurl();
+        indexAllCurlWrap.style.display = 'block';
+
+        indexAllBtn.disabled = true;
+        indexAllBtnText.style.display = 'none';
+        indexAllLoading.style.display = 'block';
+        indexAllStatus.textContent = '';
+        indexAllStatus.style.color = '';
+
+        try {
+            const response = await fetch('/ingest/all', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getApiKey()}`,
+                },
+                body: JSON.stringify({ force_update: true }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.status === 202) {
+                indexAllStatus.style.color = 'var(--accent)';
+                indexAllStatus.textContent =
+                    `Queued indexing for ${data.count} config(s): ${(data.knowledge_ids || []).join(', ')}`;
+            } else {
+                indexAllStatus.style.color = '#ef4444';
+                indexAllStatus.textContent = data.error || data.detail || `Request failed (${response.status})`;
+            }
+        } catch (err) {
+            indexAllStatus.style.color = '#ef4444';
+            indexAllStatus.textContent = err.message || 'Network error';
+        } finally {
+            indexAllBtn.disabled = false;
+            indexAllBtnText.style.display = 'block';
+            indexAllLoading.style.display = 'none';
+        }
+    });
+
+    const apiKeyInputForIngest = document.getElementById('api_key');
+    if (apiKeyInputForIngest) {
+        apiKeyInputForIngest.addEventListener('input', () => {
+            indexAllCurlPre.textContent = generateIngestAllCurl();
+        });
+    }
 }
 
 form.addEventListener('submit', async (e) => {
