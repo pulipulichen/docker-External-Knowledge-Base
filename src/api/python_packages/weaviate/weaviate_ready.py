@@ -20,7 +20,7 @@ def weaviate_ready(**kwargs):
 
   try:
     count = collection.aggregate.over_all(total_count=True).total_count
-    return count > 1
+    return count > 0
   except Exception as e:
     print(f"Error getting collection count for {collection_name}: {e}")
     return False
