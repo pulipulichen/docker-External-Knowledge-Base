@@ -17,6 +17,18 @@ def _encoder_for_model(model_name: str):
         return tiktoken.get_encoding("cl100k_base")
 
 
+_JSON_OBJECT_ARRAY_START = re.compile(r"^\s*\[\s*\{", re.DOTALL)
+_JSON_OBJECT_ARRAY_END = re.compile(r"\}\s*\]\s*$", re.DOTALL)
+
+
+def _looks_like_json_object_array(text: str) -> bool:
+    """True if text looks like a top-level JSON array of objects: [{ ... }, ... ]."""
+    if not text or not text.strip():
+        return False
+    s = text.strip()
+    return bool(_JSON_OBJECT_ARRAY_START.search(s) and _JSON_OBJECT_ARRAY_END.search(s))
+
+
 class SmartMarkdownSplitter:
     def __init__(self, model_name="gpt-4o", max_tokens=1000, min_tokens=200):
         """
@@ -28,21 +40,32 @@ class SmartMarkdownSplitter:
         self.encoder = _encoder_for_model(model_name)
         self.max_tokens = max_tokens
         self.min_tokens = min_tokens
-        
-        # 定義分割優先順序 (從最粗的架構到最細的文字)
-        self.separators = [
-            r"\n# ",      # H1 標題
-            r"\n## ",     # H2 標題
-            r"\n### ",    # H3 標題
-            r"\n[-*_]{3,}\s*\n", # 分隔線 (Horizontal Rules)
-            r"\n\n",      # 段落
-            r"\n\|\s*[-:]", # 表格的分隔線 (確保表格不被亂切)
-            r"\n",        # 單換行
-            r"。\s*",      # 中文句點
-            r"\.\s*",      # 英文句點
-            r" ",         # 空格
-            r""           # 字元 (最後手段)
+
+        # Markdown-oriented order (coarse structure first).
+        self._separators_markdown = [
+            r"\n# ",
+            r"\n## ",
+            r"\n### ",
+            r"\n[-*_]{3,}\s*\n",
+            r"\n\n",
+            r"\n\|\s*[-:]",
+            r"\n",
+            r"。\s*",
+            r"\.\s*",
+            r" ",
+            r"",
         ]
+        # Top-level [{ ... }, { ... }] — split between objects, then fall back for huge items.
+        self._separators_json_object_array = [
+            r"\}\s*,\s*\{",
+            r"\n\n",
+            r"\n",
+            r"。\s*",
+            r"\.\s*",
+            r" ",
+            r"",
+        ]
+        self.separators = self._separators_markdown
 
     def count_tokens(self, text):
         """精確計算 Token 數量"""
@@ -92,7 +115,11 @@ class SmartMarkdownSplitter:
 
     def split(self, text):
         """主要執行方法：切分並智慧合併過小的區塊"""
-        # 1. 執行遞迴切分
+        self.separators = (
+            self._separators_json_object_array
+            if _looks_like_json_object_array(text)
+            else self._separators_markdown
+        )
         initial_chunks = self._split_text_recursively(text, self.separators)
         
         # 2. 智慧合併 (處理 min_tokens)
