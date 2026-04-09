@@ -32,4 +32,7 @@ async def ingest_data(knowledge_id, section_name, force_update: False):
     if section_name is None:
         section_name = get_section_name(knowledge_id)
 
+
+    logger.info(f"section_name: {section_name}")
+
     await index_file(knowledge_id, section_name, force_update)
