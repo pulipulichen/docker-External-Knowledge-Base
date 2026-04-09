@@ -2,6 +2,7 @@ import os
 import logging
 import pyexcel_ods
 from .get_knowledge_base_config import get_knowledge_base_config
+from openpyxl import load_workbook
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +19,13 @@ def get_section_name(knowledge_id):
 
     if filepath.endswith('.xlsx'):
         logger.info(f"filepath xlsx: {filepath}")
-        from openpyxl import load_workbook
+        
         try:
             wb = load_workbook(filepath, read_only=True)
             if wb.sheetnames:
                 return wb.sheetnames[0]
+            else:
+                return knowledge_id
         except Exception as e:
             logger.error(f"Error reading XLSX file '{filepath}': {e}")
             return knowledge_id
