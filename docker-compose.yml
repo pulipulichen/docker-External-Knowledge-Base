@@ -73,7 +73,7 @@ services:
       - docker_external_knowledge_base
     deploy:
       mode: replcated
-      replicas: 3
+      replicas: 1
       
   redis:
     image: "redis:7.0.12-alpine"

@@ -49,6 +49,9 @@ def convert_file_path_to_markdown_content(file_path):
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
                 raise ValueError(f"convert markdown error or empty: '{file_path}'")
 
+
+            logger.info(f"Convertion is successful: {file_path}")
+
             return markdown_content
 
         finally:
