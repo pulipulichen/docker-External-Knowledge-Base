@@ -46,7 +46,7 @@ async def index_dir(knowledge_id, force_update: False):
     for root, dirs, files in os.walk(input_dir_path):
         
         for file in files:
-            logger.info(f'file: {file}')
+            # logger.info(f'file: {file}')
             file_path = os.path.join(root, file)
 
             logger.info(f'file_path: {file_path}')
@@ -72,6 +72,8 @@ async def index_dir(knowledge_id, force_update: False):
                 if await index_mode_file(knowledge_id, markdown_file_path) is True:
                     index_result = True
                 # logger.info(f"Processing file: {markdown_file_path}")
+            else:
+                logger.info(f'Skip: {file_path}')
 
     # 在這裡檢查，如果 markdown_dir_path 底下，有 .md 檔案，但是沒有對應的 file_path ，那就刪除
     for root, dirs, files in os.walk(markdown_dir_path):
@@ -176,6 +178,7 @@ def convert_file_to_markdown(input_file_path, markdown_file_path):
     try:
         markdown_content = convert_file_path_to_markdown_content(input_file_path)
         if markdown_content is False:
+            logger.info(f"Conversion failed or empty: {input_file_path}")
             return False
         
         # 如果 markdown_file_path 的目錄還沒建起來，幫他建
