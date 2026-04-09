@@ -2,6 +2,9 @@ const form = document.getElementById('reset-form');
 const submitBtn = document.getElementById('submit-btn');
 const btnText = document.getElementById('btn-text');
 const loading = document.getElementById('loading');
+const resetAllBtn = document.getElementById('reset-all-btn');
+const resetAllBtnText = document.getElementById('reset-all-btn-text');
+const resetAllLoading = document.getElementById('reset-all-loading');
 const statusContainer = document.getElementById('status-container');
 const curlSection = document.getElementById('curl-section');
 const curlOutput = document.getElementById('curl-output');
@@ -111,6 +114,11 @@ function generateCurl(body) {
 -d '${JSON.stringify(body)}'`;
 }
 
+function setResetControlsBusy(busy) {
+    if (submitBtn) submitBtn.disabled = busy;
+    if (resetAllBtn) resetAllBtn.disabled = busy;
+}
+
 function copyCurl() {
     const text = curlOutput.textContent;
     navigator.clipboard.writeText(text).then(() => {
@@ -150,7 +158,7 @@ form.addEventListener('submit', async (e) => {
 
     const body = { knowledge_id: fullKnowledgeId };
 
-    submitBtn.disabled = true;
+    setResetControlsBusy(true);
     btnText.style.display = 'none';
     loading.style.display = 'block';
     statusContainer.innerHTML = '';
@@ -182,8 +190,66 @@ form.addEventListener('submit', async (e) => {
         responseOutput.textContent = error.message || String(error);
         statusContainer.innerHTML = '<span class="status-badge status-error">Error</span>';
     } finally {
-        submitBtn.disabled = false;
+        setResetControlsBusy(false);
         btnText.style.display = 'block';
         loading.style.display = 'none';
     }
 });
+
+if (resetAllBtn) {
+    resetAllBtn.addEventListener('click', async () => {
+        if (!getApiKey()) {
+            responseOutput.textContent = 'Enter your API key first';
+            responseOutput.className = 'empty-state';
+            responseOutput.style.color = '#ef4444';
+            statusContainer.innerHTML = '<span class="status-badge status-error">Missing API key</span>';
+            return;
+        }
+
+        const confirmed = window.confirm(
+            'Reset ALL Weaviate collections and clear generated artifacts for every knowledge base config? This cannot be undone.'
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        const body = { reset_all: true };
+
+        setResetControlsBusy(true);
+        if (resetAllBtnText) resetAllBtnText.style.display = 'none';
+        if (resetAllLoading) resetAllLoading.style.display = 'block';
+        statusContainer.innerHTML = '';
+        curlOutput.textContent = generateCurl(body);
+        curlSection.style.display = 'block';
+        responseOutput.textContent = 'Requesting...';
+        responseOutput.className = '';
+        responseOutput.style.color = '';
+
+        try {
+            const response = await fetch('/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getApiKey()}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+            responseOutput.textContent = JSON.stringify(data, null, 2);
+
+            if (response.ok) {
+                statusContainer.innerHTML = '<span class="status-badge status-success">Success</span>';
+            } else {
+                statusContainer.innerHTML = `<span class="status-badge status-error">HTTP ${response.status}</span>`;
+            }
+        } catch (error) {
+            responseOutput.textContent = error.message || String(error);
+            statusContainer.innerHTML = '<span class="status-badge status-error">Error</span>';
+        } finally {
+            setResetControlsBusy(false);
+            if (resetAllBtnText) resetAllBtnText.style.display = 'block';
+            if (resetAllLoading) resetAllLoading.style.display = 'none';
+        }
+    });
+}

@@ -9,6 +9,7 @@ from ..auth.check_auth import check_auth
 from ..knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
 from ..knowledge_base_config.parse_knowledge_id import parse_knowledge_id
 from ..weaviate.weaviate_collection_delete import weaviate_collection_delete
+from ..weaviate.weaviate_reset import weaviate_reset_all
 
 reset_bp = Blueprint("reset", __name__)
 
@@ -18,6 +19,21 @@ logger = logging.getLogger(__name__)
 FILE_STORAGE_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "../../../", "knowledge_base/files"
 )
+
+CONFIGS_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "../../../", "knowledge_base/configs"
+)
+
+
+def _list_config_knowledge_ids() -> list[str]:
+    if not os.path.isdir(CONFIGS_DIR):
+        return []
+    ids: list[str] = []
+    for f in os.listdir(CONFIGS_DIR):
+        if f.endswith(".yml") or f.endswith(".yaml"):
+            ids.append(f.rsplit(".", 1)[0])
+    ids.sort()
+    return ids
 
 
 def _safe_remove_path(path: str) -> bool:
@@ -71,31 +87,59 @@ async def reset_endpoint():
     if not check_auth(request):
         return jsonify({"error": "Unauthorized"}), 401
 
-    data = request.get_json(force=True)
+    data = request.get_json(force=True) or {}
+    if data.get("reset_all") is True:
+        try:
+            weaviate_summary = await asyncio.to_thread(weaviate_reset_all)
+        except Exception as e:
+            logger.exception("Weaviate reset-all failed")
+            return (
+                jsonify(
+                    {"error": "Weaviate reset failed", "detail": str(e)},
+                ),
+                502,
+            )
+
+        filesystem_by_id: dict[str, dict | str] = {}
+        for kid in _list_config_knowledge_ids():
+            try:
+                config = get_knowledge_base_config(kid)
+                if config and config.get("file_name"):
+                    fs_result = await asyncio.to_thread(
+                        remove_knowledge_artifacts, kid, config
+                    )
+                    filesystem_by_id[kid] = fs_result
+            except Exception as e:
+                logger.exception("Filesystem remove failed for %s", kid)
+                filesystem_by_id[kid] = {"error": str(e)}
+
+        return (
+            jsonify(
+                {
+                    "reset_all": True,
+                    "weaviate": weaviate_summary,
+                    "filesystem": filesystem_by_id,
+                }
+            ),
+            200,
+        )
+
     knowledge_id_raw = data.get("knowledge_id", "")
     if not knowledge_id_raw or not isinstance(knowledge_id_raw, str):
         return (
-            jsonify({"error": "JSON body must include a string field 'knowledge_id'"}),
+            jsonify(
+                {
+                    "error": "JSON body must include a string field 'knowledge_id', or set 'reset_all' to true",
+                }
+            ),
             400,
         )
 
     parsed = parse_knowledge_id(knowledge_id_raw.strip())
     knowledge_id = parsed["knowledge_id"]
 
-    
-    # if not config or not config.get("file_name"):
-    #     return (
-    #         jsonify(
-    #             {
-    #                 "error": "Unknown knowledge_id",
-    #                 "detail": f"No config found for '{knowledge_id}'",
-    #             }
-    #         ),
-    #         404,
-    #     )
-
     weaviate_result: dict | None = None
-    
+
     try:
         delete_return = await asyncio.to_thread(
             weaviate_collection_delete, knowledge_id=knowledge_id
@@ -113,13 +157,14 @@ async def reset_endpoint():
             502,
         )
 
-
     fs_result = False
     try:
         config = get_knowledge_base_config(knowledge_id)
-        
+
         if config is not None and config.get("file_name"):
-            fs_result = await asyncio.to_thread(remove_knowledge_artifacts, knowledge_id, config)
+            fs_result = await asyncio.to_thread(
+                remove_knowledge_artifacts, knowledge_id, config
+            )
     except Exception as e:
         logger.exception("Filesystem remove failed for %s", knowledge_id)
 

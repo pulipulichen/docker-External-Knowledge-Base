@@ -53,10 +53,17 @@
                             <p class="form-hint">If this field is not empty, it is used as the base Knowledge ID and the dropdown above is ignored.</p>
                         </div>
                     </div>
-                    <button type="submit" id="submit-btn" class="btn-danger">
-                        <span id="btn-text">Reset knowledge base</span>
-                        <div id="loading" class="loading-spinner"></div>
-                    </button>
+                    <div class="reset-actions">
+                        <button type="submit" id="submit-btn" class="btn-danger">
+                            <span id="btn-text">Reset knowledge base</span>
+                            <div id="loading" class="loading-spinner"></div>
+                        </button>
+                        <button type="button" id="reset-all-btn" class="btn-danger btn-danger-outline">
+                            <span id="reset-all-btn-text">Reset all databases</span>
+                            <div id="reset-all-loading" class="loading-spinner"></div>
+                        </button>
+                    </div>
+                    <p class="form-hint" style="margin-top: 1rem;">Reset all databases calls Weaviate <code>delete_all</code>, then clears generated artifacts for every <code>.yml</code> / <code>.yaml</code> config in <code>knowledge_base/configs</code> (same as a per-ID reset, but for all IDs).</p>
                 </form>
             </div>
 

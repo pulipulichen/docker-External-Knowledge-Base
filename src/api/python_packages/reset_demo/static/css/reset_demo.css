@@ -387,6 +387,18 @@ pre {
     }
 }
 
+.reset-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.reset-actions button {
+    min-width: 11rem;
+}
+
 button.btn-danger {
     background: #dc2626;
 }
@@ -394,4 +406,15 @@ button.btn-danger {
 button.btn-danger:hover {
     background: #b91c1c;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+}
+
+button.btn-danger-outline {
+    background: transparent;
+    border: 2px solid #dc2626;
+    color: #fecaca;
+}
+
+button.btn-danger-outline:hover {
+    background: rgba(220, 38, 38, 0.2);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }

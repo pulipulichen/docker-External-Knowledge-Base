@@ -63,13 +63,18 @@ curl -X POST http://localhost:8080/retrieval \
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `knowledge_id` | Yes | Same as `/retrieval`: config stem, optional `!section` for spreadsheets (only the stem is used for the Weaviate collection name and paths). |
+| `knowledge_id` | Yes* | Same as `/retrieval`: config stem, optional `!section` for spreadsheets (only the stem is used for the Weaviate collection name and paths). |
+| `reset_all` | No | If JSON boolean `true`, resets **every** knowledge base: deletes **all** Weaviate collections (`weaviate_reset_all` / client `delete_all`), then for each `*.yml` / `*.yaml` stem under `knowledge_base/configs/`, removes that KB’s generated `.md` / `.time` artifacts (same rules as a single-ID reset). Mutually exclusive with a targeted `knowledge_id` request; when `reset_all` is `true`, `knowledge_id` is ignored. |
+
+\*Required unless `reset_all` is `true`.
 
 **`USE_MOCK_DB`:** When `true`, the handler **does not** call Weaviate (no collection deletion); it still removes `.md` / `.time` artifacts when present. When `false`, it calls `weaviate_collection_delete` for that `knowledge_id`.
 
-**Successful response (200)** JSON includes `knowledge_id`, `weaviate` (either `skipped` with reason, or `collection_existed` after delete), and `filesystem` with `markdown_removed`, `index_time_removed`, and `paths_removed` (list of paths that were removed).
+**Successful response (200)** for a single ID: JSON includes `knowledge_id`, `weaviate` (either `skipped` with reason, or `collection_existed` after delete), and `filesystem` with `markdown_removed`, `index_time_removed`, and `paths_removed` (list of paths that were removed).
 
-**Errors:** `401` unauthorized, `400` missing/invalid `knowledge_id`, `404` unknown config, `502` if Weaviate deletion throws (when not in mock mode).
+**Successful response (200)** for `reset_all`: JSON includes `reset_all: true`, `weaviate` with `deleted_collections` (names removed) and `count`, and `filesystem` mapping each config stem to the same artifact-removal object as single-ID reset (or an `error` string if cleanup failed for that ID).
+
+**Errors:** `401` unauthorized, `400` missing/invalid `knowledge_id` (when `reset_all` is not `true`), `404` unknown config, `502` if Weaviate deletion throws (when not in mock mode).
 
 Example:
 
@@ -78,6 +83,15 @@ curl -X POST http://localhost:8080/reset \
      -H "Authorization: Bearer <YOUR_API_KEY>" \
      -H "Content-Type: application/json" \
      -d '{"knowledge_id": "example"}'
+```
+
+Reset all Weaviate collections and all config-driven artifacts:
+
+```bash
+curl -X POST http://localhost:8080/reset \
+     -H "Authorization: Bearer <YOUR_API_KEY>" \
+     -H "Content-Type: application/json" \
+     -d '{"reset_all": true}'
 ```
 
 ## Search API
