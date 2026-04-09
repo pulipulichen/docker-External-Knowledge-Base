@@ -41,19 +41,20 @@ async def retrieval_endpoint():
     # app.logger.debug(f"Received data: {json.dumps(data, indent=2)}")
 
     knowledge_id_raw = data.get("knowledge_id", "")
-    file_mode = data.get("file_mode", False)
+    
     parsed_id = parse_knowledge_id(knowledge_id_raw)
     knowledge_id = parsed_id["knowledge_id"]
     section_name = parsed_id["section_name"]
     # app.logger.debug(f"Parsed knowledge_id: {knowledge_id}, section_name: {section_name}")
     
     query = data.get("query", "")
-    disable_metadata = data.get("disable_metadata", False)
-    retrieval_setting = data.get("retrieval_setting", {})
     
+    retrieval_setting = data.get("retrieval_setting", {})
+
     top_k = retrieval_setting.get("top_k", 5)
     score_threshold = retrieval_setting.get("score_threshold", None)
-
+    disable_metadata = retrieval_setting.get("disable_metadata", False)
+    file_mode = retrieval_setting.get("file_mode", False)
 
     # ==============================
     # Decide whether to use Mock Data or real DB based on USE_MOCK_DB

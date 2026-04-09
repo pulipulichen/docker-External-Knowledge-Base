@@ -37,7 +37,7 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
     
     config = get_knowledge_base_config(knowledge_id)
 
-    if config.get('section') or config.get('is_file') is False:
+    if config.get('section') or config.get('is_file') is False or section_name is None:
         item_id = f"{knowledge_id}"
     else:
         item_id = f"{knowledge_id}_{section_name}"
