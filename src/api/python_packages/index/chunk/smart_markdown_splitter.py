@@ -48,6 +48,19 @@ def _wrap_json_object_array_segment(segment: str) -> str:
     return s
 
 
+def _join_wrapped_single_object_arrays(parts: list[str]) -> str:
+    """Join multiple [{...}] strings into one JSON array [{...},{...},...]."""
+    stripped = [p.strip() for p in parts if p.strip()]
+    if len(stripped) == 1:
+        return stripped[0]
+    inners: list[str] = []
+    for p in stripped:
+        if not (p.startswith("[") and p.endswith("]")):
+            raise ValueError("expected each part to be a wrapped single-element array [{...}]")
+        inners.append(p[1:-1].strip())
+    return "[" + ",".join(inners) + "]"
+
+
 class SmartMarkdownSplitter:
     def __init__(self, model_name="gpt-4o", max_tokens=1000, min_tokens=200):
         """
@@ -131,28 +144,70 @@ class SmartMarkdownSplitter:
             
         return splits
 
-    def _split_json_object_array(self, text: str) -> list[str]:
-        """Split top-level [{...},{...}] on object boundaries; each chunk is wrapped as [{...}]."""
+    def _split_json_object_array(self, text: str) -> list[tuple[str, bool]]:
+        """
+        Split on object boundaries. Each wrapped one-object array is mergeable=True;
+        oversized segments split via recursion are mergeable=False (not valid [{...}]).
+        """
         segments = _JSON_ARRAY_OBJECT_BOUNDARY.split(text)
-        out: list[str] = []
+        out: list[tuple[str, bool]] = []
         for seg in segments:
             s = seg.strip()
             if not s:
                 continue
             if self.count_tokens(s) <= self.max_tokens:
-                out.append(_wrap_json_object_array_segment(s))
+                out.append((_wrap_json_object_array_segment(s), True))
             else:
                 sub = self._split_text_recursively(s, self._separators_json_object_array_inner)
-                out.extend(sub)
+                for c in sub:
+                    out.append((c.strip(), False))
         return out
+
+    def _merge_json_object_array_by_min_tokens(
+        self, items: list[tuple[str, bool]]
+    ) -> list[str]:
+        """Pack mergeable [{...}] chunks until each output is >= min_tokens when possible."""
+        result: list[str] = []
+        n = len(items)
+        i = 0
+
+        while i < n:
+            chunk, mergeable = items[i]
+            if not mergeable:
+                result.append(chunk)
+                i += 1
+                continue
+
+            run: list[str] = [chunk]
+            i += 1
+            joined = _join_wrapped_single_object_arrays(run)
+            run_tokens = self.count_tokens(joined)
+
+            while i < n and items[i][1]:
+                nxt = items[i][0]
+                trial = _join_wrapped_single_object_arrays(run + [nxt])
+                trial_tokens = self.count_tokens(trial)
+                if trial_tokens > self.max_tokens:
+                    break
+                if run_tokens >= self.min_tokens:
+                    break
+                run.append(nxt)
+                joined = trial
+                run_tokens = trial_tokens
+                i += 1
+
+            result.append(joined)
+
+        return result
 
     def split(self, text):
         """主要執行方法：切分並智慧合併過小的區塊"""
         is_json_object_array = _looks_like_json_object_array(text)
         if is_json_object_array:
             self.separators = self._separators_json_object_array_inner
-            initial_chunks = self._split_json_object_array(text)
-            return [c.strip() for c in initial_chunks if c.strip()]
+            tagged = self._split_json_object_array(text)
+            merged = self._merge_json_object_array_by_min_tokens(tagged)
+            return [c.strip() for c in merged if c.strip()]
 
         self.separators = self._separators_markdown
         initial_chunks = self._split_text_recursively(text, self.separators)
