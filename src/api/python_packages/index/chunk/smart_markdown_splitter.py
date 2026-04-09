@@ -62,16 +62,15 @@ def _join_wrapped_single_object_arrays(parts: list[str]) -> str:
 
 
 class SmartMarkdownSplitter:
-    def __init__(self, model_name="gpt-4o", max_tokens=1000, min_tokens=200):
+    def __init__(self, model_name="gpt-4o", max_tokens=1000):
         """
-        初始化分割器
-        :param model_name: 用於計算 token 的模型名稱
-        :param max_tokens: 每個 chunk 的最大 token 數
-        :param min_tokens: 每個 chunk 的理想最小 token 數 (儘量合併小區塊)
+        Splitter: pack consecutive segments up to max_tokens; start a new chunk when the next
+        segment would exceed max_tokens.
+        :param model_name: model name for tiktoken
+        :param max_tokens: maximum tokens per output chunk
         """
         self.encoder = _encoder_for_model(model_name)
         self.max_tokens = max_tokens
-        self.min_tokens = min_tokens
 
         # Markdown-oriented order (coarse structure first).
         self._separators_markdown = [
@@ -163,10 +162,10 @@ class SmartMarkdownSplitter:
                     out.append((c.strip(), False))
         return out
 
-    def _merge_json_object_array_by_min_tokens(
+    def _merge_json_object_array_up_to_max(
         self, items: list[tuple[str, bool]]
     ) -> list[str]:
-        """Pack mergeable [{...}] chunks until each output is >= min_tokens when possible."""
+        """Greedily merge adjacent mergeable [{...}] pieces while total tokens <= max_tokens."""
         result: list[str] = []
         n = len(items)
         i = 0
@@ -189,8 +188,6 @@ class SmartMarkdownSplitter:
                 trial_tokens = self.count_tokens(trial)
                 if trial_tokens > self.max_tokens:
                     break
-                if run_tokens >= self.min_tokens:
-                    break
                 run.append(nxt)
                 joined = trial
                 run_tokens = trial_tokens
@@ -201,12 +198,12 @@ class SmartMarkdownSplitter:
         return result
 
     def split(self, text):
-        """主要執行方法：切分並智慧合併過小的區塊"""
+        """Split text; merge consecutive parts greedily up to max_tokens per chunk."""
         is_json_object_array = _looks_like_json_object_array(text)
         if is_json_object_array:
             self.separators = self._separators_json_object_array_inner
             tagged = self._split_json_object_array(text)
-            merged = self._merge_json_object_array_by_min_tokens(tagged)
+            merged = self._merge_json_object_array_up_to_max(tagged)
             return [c.strip() for c in merged if c.strip()]
 
         self.separators = self._separators_markdown

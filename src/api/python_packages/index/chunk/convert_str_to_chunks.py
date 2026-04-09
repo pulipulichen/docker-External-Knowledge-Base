@@ -14,7 +14,7 @@ MAX_LENGTH= os.getenv("CHUNK_MAX_TOKENS", 5000)
 
 def convert_str_to_chunks(markdown_content: str, max_tokens: int) -> List:    
 
-    splitter = SmartMarkdownSplitter(max_tokens=500, min_tokens=100)
+    splitter = SmartMarkdownSplitter(max_tokens=500)
     sections = splitter.split(markdown_content)
     return sections
 
