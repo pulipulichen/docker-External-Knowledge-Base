@@ -366,7 +366,7 @@ function displayResults(records) {
 
         // Try to parse as JSON first
         try {
-            if (content.indexOf('"}\n---\n{"') > -1) {
+            if (content.indexOf('"}]\n---\n[{"') > -1) {
                 const parts = content.split('\n---\n');
                 const arraies = parts.map(part => JSON.parse(part));
 
