@@ -43,10 +43,10 @@ def check_need_update(knowledge_id, markdown_file_path):
             return False
         return True
     except Exception:
-        logger.info(f"knowledge_id: {knowledge_id}")
-        logger.info(f"relative_path: {relative_path}")
-        logger.info(f"updated_at: {updated_at}")
-
+        # logger.info(f"knowledge_id: {knowledge_id}")
+        # logger.info(f"knowledge_id: {knowledge_id}")
+        # logger.info(f"relative_path: {relative_path}")
+        # logger.info(f"updated_at: {updated_at}")
         logger.exception(
             "check_need_update failed for knowledge_id=%r path=%r; will re-index",
             knowledge_id,

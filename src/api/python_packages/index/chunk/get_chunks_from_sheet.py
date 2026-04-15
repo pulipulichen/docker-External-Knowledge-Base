@@ -65,6 +65,10 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
 
         for item in json_array:
             row_index = item.pop("__row_index__", 0)
+
+            # 排除掉 item 裡面 value 為空的 key
+            item = {k: v for k, v in item.items() if v is not None}
+
             if not batch:
                 batch.append(item)
                 batch_rows.append(row_index)
