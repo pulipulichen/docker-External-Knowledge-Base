@@ -4,7 +4,6 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 import pyexcel_ods
-from .get_knowledge_base_config import get_knowledge_base_config
 
 logger = logging.getLogger(__name__)
 
