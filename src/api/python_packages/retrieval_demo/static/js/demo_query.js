@@ -367,9 +367,11 @@ function displayResults(records) {
         // Try to parse as JSON first
         try {
             const jsonObj = JSON.parse(content);
+            console.log(`是 json: ${content}`);
             renderedContent = `<pre>${escapeHtml(JSON.stringify(jsonObj, null, 2))}</pre>`;
         } catch (e) {
             // Not JSON, render as Markdown
+            console.log(`不是 json: ${content}`);
             renderedContent = marked.parse(content);
 
             renderedContent = escapeHTMLTags(renderedContent)
