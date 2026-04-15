@@ -74,6 +74,7 @@ class SmartMarkdownSplitter:
 
         # Markdown-oriented order (coarse structure first).
         self._separators_markdown = [
+            r"\n---\n",
             r"\n# ",
             r"\n## ",
             r"\n### ",
