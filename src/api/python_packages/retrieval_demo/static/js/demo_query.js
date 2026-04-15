@@ -371,7 +371,7 @@ function displayResults(records) {
                 const arraies = parts.map(part => JSON.parse(part));
 
                 // 合併 arrayies 成一個 array 物件
-                const mergedArray = arrayies.flat();
+                const mergedArray = arraies.flat();
 
                 renderedContent = `<pre>${escapeHtml(JSON.stringify(mergedArray, null, 2))}</pre>`;
             } else {
