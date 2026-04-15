@@ -5,6 +5,7 @@ import threading
 
 import redis
 from markitdown import MarkItDown
+from .convert_sheet_to_markdown import convert_sheet_to_markdown
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -109,7 +110,10 @@ def convert_path_to_markdown(file_path: str) -> str:
 
     logger.info("Conversion is starting: %s", file_path)
 
-    markdown_content = md.convert(file_path, keep_data_uris=True).text_content
+    if file_path.endswith('.xlsx') or file_path.endswith('.ods'):
+        markdown_content = convert_sheet_to_markdown(file_path)
+    else:
+        markdown_content = md.convert(file_path, keep_data_uris=True).text_content
 
     logger.info("Conversion is successful: %s", file_path)
 

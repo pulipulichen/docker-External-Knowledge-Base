@@ -1,15 +1,33 @@
 import json
 import logging
-
-from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
-from .smart_markdown_splitter import SmartMarkdownSplitter
-from .utils.sheet_to_json import sheet_to_json
-
 import os
+
+from .utils.sheet_to_json import sheet_to_json
+from .utils.get_section_name import get_section_name
+from .utils.smart_markdown_splitter import SmartMarkdownSplitter
+
 
 logger = logging.getLogger(__name__)
 
-def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int = 1000) -> list[dict]:
+def convert_sheet_to_markdown(filepath: str, include_fields: list[str] = [], section_name: str = None, max_tokens: int = 1000) -> list[dict]:
+
+    try:
+        chunks = get_chunks_from_sheet(filepath, include_fields, section_name, max_tokens)
+        
+        # 把 chunks 裡面的 document 轉換成 markdown 內容
+        markdown_content = []
+        for chunk in chunks:
+            markdown_content.append(chunk['document'])
+        
+        # 把 markdown 內容轉換成 markdown 檔案
+        markdown_content = '\n---\n'.join(markdown_content)
+        return markdown_content
+    except Exception as e:
+        logger.error(f"An error occurred in convert_sheet_to_markdown: {e}")
+        return []
+
+
+def get_chunks_from_sheet(filepath: str, include_fields: list[str] = [], section_name: str = None, max_tokens: int = 1000) -> list[dict]:
     """
     Reads an ODS file, extracts data from a specified sheet, and returns chunks.
     The first row of the sheet is used as keys for each row object.
@@ -27,10 +45,6 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         list[dict]: Each item has ``chunk_id`` and ``document`` (JSON string).
     """
     try:
-        config = get_knowledge_base_config(knowledge_id)
-        filepath = config.get('file_path')
-        include_fields = config.get('include_fileds', [])
-
         # ============
 
         # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
@@ -42,17 +56,22 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         os.system(f"cp '{filepath}' /tmp")
         filepath = os.path.join('/tmp', os.path.basename(filepath))
 
+        if section_name is None:
+            section_name = get_section_name(filepath)
+            if section_name is None:
+                logger.error(f"Section name is not found in the file: {filepath}")
+                return []
+
         # ============
 
         json_array = sheet_to_json(filepath, section_name, include_fields)
 
-        effective_max = int(config.get("index.max_tokens", max_tokens))
-        splitter = SmartMarkdownSplitter(max_tokens=effective_max)
+        splitter = SmartMarkdownSplitter(max_tokens=max_tokens)
 
         def chunk_id_for_rows(row_indices: list[int]) -> str:
             if len(row_indices) == 1:
-                return f"{knowledge_id}_{section_name}_{row_indices[0]}"
-            return f"{knowledge_id}_{section_name}_{row_indices[0]}_{row_indices[-1]}"
+                return f"{section_name}_{row_indices[0]}"
+            return f"{section_name}_{row_indices[0]}_{row_indices[-1]}"
 
         def document_for_batch(batch: list[dict]) -> str:
             if len(batch) == 1:
@@ -78,7 +97,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
                 trial_doc = json.dumps([batch[0], item], ensure_ascii=False)
             else:
                 trial_doc = json.dumps(batch + [item], ensure_ascii=False)
-            if splitter.count_tokens(trial_doc) <= effective_max:
+            if splitter.count_tokens(trial_doc) <= max_tokens:
                 batch.append(item)
                 batch_rows.append(row_index)
             else:
