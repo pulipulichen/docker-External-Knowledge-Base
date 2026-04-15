@@ -366,9 +366,19 @@ function displayResults(records) {
 
         // Try to parse as JSON first
         try {
-            const jsonObj = JSON.parse(content);
-            console.log(`是 json: ${content}`);
-            renderedContent = `<pre>${escapeHtml(JSON.stringify(jsonObj, null, 2))}</pre>`;
+            if (content.indexOf('"}\n---\n{"') > -1) {
+                const parts = content.split('\n---\n');
+                const arraies = parts.map(part => JSON.parse(part));
+
+                // 合併 arrayies 成一個 array 物件
+                const mergedArray = arrayies.flat();
+
+                renderedContent = `<pre>${escapeHtml(JSON.stringify(mergedArray, null, 2))}</pre>`;
+            } else {
+                const jsonObj = JSON.parse(content);
+                console.log(`是 json: ${content}`);
+                renderedContent = `<pre>${escapeHtml(JSON.stringify(jsonObj, null, 2))}</pre>`;
+            }
         } catch (e) {
             // Not JSON, render as Markdown
             console.log(`不是 json: ${content}`);
