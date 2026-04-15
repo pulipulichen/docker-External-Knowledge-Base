@@ -68,6 +68,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
 
             # 排除掉 item 裡面 value 為空的 key
             item = {k: v for k, v in item.items() if v is not None}
+            logger.info(f"item: {item}")
 
             if not batch:
                 batch.append(item)
