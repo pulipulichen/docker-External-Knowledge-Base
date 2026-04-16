@@ -118,15 +118,15 @@ def _call_searxng(
         "format": "json",
         "secret_key": SEARXNG_SECRET
     }
-    if pageno:
-        params["pageno"] = str(pageno)
+    # if pageno:
+        # params["pageno"] = str(pageno)
 
     if categories:
         params["categories"] = categories
     if language:
         params["language"] = language
-    if safesearch is not None:
-        params["safesearch"] = str(safesearch)
+    # if safesearch is not None:
+        # params["safesearch"] = str(safesearch)
     if time_range:
         params["time_range"] = time_range
 
