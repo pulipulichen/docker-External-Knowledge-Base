@@ -15,7 +15,9 @@ _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 from openpyxl import load_workbook
 
 def _first_sheet_name_from_xlsx(file_path):
+    logger.info(f"Reading XLSX file '{file_path}'")
     wb = load_workbook(file_path, read_only=True)
+    logger.info(f"Sheetnames: '{wb.sheetnames}'")
     return wb.sheetnames[0]
 
 
