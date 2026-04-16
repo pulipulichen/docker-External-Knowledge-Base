@@ -5,6 +5,9 @@ import os
 
 import requests
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def search_web(
     query: str,
@@ -25,6 +28,8 @@ def search_web(
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
+
+    logger.info(f"search_web query: {query}")
 
     payload: dict = {
         "query": query,
@@ -48,8 +53,8 @@ def search_web(
         response = requests.post(url, headers=headers, json=payload, timeout=timeout)
         response.raise_for_status()
         result = response.json()
-        # print("Search succeeded; response:")
-        # print(json.dumps(result, indent=4, ensure_ascii=False))
+        print("Search succeeded; response:")
+        print(json.dumps(result, indent=4, ensure_ascii=False))
         return json.dumps(result, ensure_ascii=False)
 
     except requests.exceptions.RequestException as e:
