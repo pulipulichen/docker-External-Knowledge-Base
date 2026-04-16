@@ -57,7 +57,7 @@ def _process_ods(filepath: str, section_name: Optional[str] = None, include_fiel
         if os.path.islink(filepath):
             filepath = os.path.realpath(filepath)
         os.system(f"cat '{filepath}' > /dev/null")
-        os.system(f"cp '{filepath}' /tmp")
+        os.system(f"cp -f '{filepath}' /tmp")
         filepath = os.path.join('/tmp', os.path.basename(filepath))
         book = pyexcel_ods.get_data(filepath)
 

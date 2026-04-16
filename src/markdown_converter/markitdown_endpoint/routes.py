@@ -31,7 +31,7 @@ def convert_file_path_to_markdown_content(file_path):
             if file_size == 0:
                 logger.info("read: %s", file_path)
                 os.system(f"cat '{file_path}' > /dev/null")
-                os.system(f"cp '{file_path}' /tmp")
+                os.system(f"cp -f '{file_path}' /tmp")
                 file_path = os.path.join("/tmp", os.path.basename(file_path))
 
             file_size = os.path.getsize(file_path)

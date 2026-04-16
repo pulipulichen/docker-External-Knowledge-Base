@@ -20,9 +20,9 @@ def _first_sheet_name_from_xlsx(file_path):
         file_path = os.path.realpath(file_path)
 
     os.system(f"cat '{file_path}' > /dev/null")
-    os.system(f"cp '{file_path}' /tmp")
+    os.system(f"cp -f '{file_path}' /tmp")
     file_path = os.path.join('/tmp', os.path.basename(file_path))
-    
+
     wb = load_workbook(file_path, read_only=True)
     return wb.sheetnames[0]
 

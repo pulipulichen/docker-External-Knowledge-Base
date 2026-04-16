@@ -41,7 +41,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
             filepath = os.path.realpath(filepath)
 
         os.system(f"cat '{filepath}' > /dev/null")
-        os.system(f"cp '{filepath}' /tmp")
+        os.system(f"cp -f '{filepath}' /tmp")
         filepath = os.path.join('/tmp', os.path.basename(filepath))
 
         logger.info(f"filepath after: {filepath}")

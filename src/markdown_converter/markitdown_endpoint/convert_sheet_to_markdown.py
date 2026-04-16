@@ -53,7 +53,7 @@ def get_chunks_from_sheet(filepath: str, include_fields: list[str] = [], section
             filepath = os.path.realpath(filepath)
 
         os.system(f"cat '{filepath}' > /dev/null")
-        os.system(f"cp '{filepath}' /tmp")
+        os.system(f"cp -f '{filepath}' /tmp")
         filepath = os.path.join('/tmp', os.path.basename(filepath))
 
         if section_name is None:
