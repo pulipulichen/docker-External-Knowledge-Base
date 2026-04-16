@@ -116,8 +116,7 @@ def _call_searxng(
     params: dict[str, str] = {
         "q": query,
         "format": "json",
-        "language": "zh-TW",
-        # "secret_key": SEARXNG_SECRET
+        "secret_key": SEARXNG_SECRET
     }
     if pageno:
         params["pageno"] = str(pageno)
@@ -139,8 +138,22 @@ def _call_searxng(
 
     # limiter.toml 將 Docker 網段視為 trusted proxy 時，SearXNG 要求一定要有這兩個 header
     effective_ip = client_ip or "127.0.0.1"
+    # 如果 effective_ip 是 127.0.0.1 或 192.168. 開頭等這類型的內網，則嘗試取得對外的IP，來作為effective_ip
+    if effective_ip.startswith("127.0.0.1") or effective_ip.startswith("192.168."):
+        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+    elif effective_ip.startswith("172.16."):
+        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+    elif effective_ip.startswith("192.168."):
+        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+    elif effective_ip.startswith("10."):
+        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+    else:
+        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
+
+    
 
     logger.info(f"searxng headers: {headers}")
 
