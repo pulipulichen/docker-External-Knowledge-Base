@@ -252,12 +252,12 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          memory: 512M
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+    #   resources:
+    #     limits:
+    #       memory: 512M
     networks:
       - docker_external_knowledge_base
 
