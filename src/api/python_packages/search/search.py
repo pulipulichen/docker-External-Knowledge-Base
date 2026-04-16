@@ -140,7 +140,6 @@ def _call_searxng(
     effective_ip = client_ip or "127.0.0.1"
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
-    # resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()
