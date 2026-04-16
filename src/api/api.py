@@ -23,6 +23,7 @@ from .python_packages.scrape.scrape import scrape_bp
 from .python_packages.news.news import news_bp
 from .python_packages.reset.reset import reset_bp
 from .python_packages.retrieval_demo.retrieval_demo import retrieval_demo_bp
+from .python_packages.search_demo.search_demo import search_demo_bp
 from .python_packages.reset_demo.reset_demo import reset_demo_bp
 from .python_packages.ingest.ingest_all import ingest_all_bp
 
@@ -54,6 +55,7 @@ app.register_blueprint(scrape_bp)
 app.register_blueprint(news_bp)
 app.register_blueprint(reset_bp)
 app.register_blueprint(retrieval_demo_bp)
+app.register_blueprint(search_demo_bp)
 app.register_blueprint(reset_demo_bp)
 app.register_blueprint(ingest_all_bp)
 

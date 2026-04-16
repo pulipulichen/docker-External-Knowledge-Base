@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Demo Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/search-demo/static/css/search_demo.css">
+    <script src="/static/lib/marked.min.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Search Catalog</h2>
+        </div>
+        <nav class="sidebar-content" id="sidebar-nav">
+            <button type="button" id="sidebar-execute-btn" class="sidebar-execute-btn">Execute Search</button>
+            <a href="#query-panel" class="nav-item active" id="nav-query-item">
+                <span class="nav-text">🔎 New Search</span>
+            </a>
+            <!-- Result items will be injected here -->
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Search Laboratory</h1>
+                <p class="subtitle">Test the <code>POST /search</code> endpoint with a clean UI</p>
+            </header>
+
+            <div class="glass-panel" id="query-panel">
+                <div class="form-group"
+                    style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                    <label for="api_key">API Key</label>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+                        <input type="password" id="api_key" name="api_key" autocomplete="off"
+                            placeholder="Paste your API key (saved only in this browser)"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: inherit; padding: 0.5rem 1rem; border-radius: 0.5rem; flex-grow: 1; font-size: 0.875rem; font-family: ui-monospace, monospace;">
+                        <span id="api-key-status" class="status-badge status-muted">Not set</span>
+                    </div>
+                </div>
+
+                <form id="search-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="query">Query</label>
+                            <textarea id="query" rows="3" placeholder="What would you like to search for?" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="categories">Categories (Optional)</label>
+                            <input type="text" id="categories" placeholder="e.g. general, news, science">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="language">Language (Optional)</label>
+                            <input type="text" id="language" placeholder="e.g. en, zh-CN, zh-TW">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pageno">Page No.</label>
+                            <input type="number" id="pageno" value="1" min="1" max="50">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="limit">Limit</label>
+                            <input type="number" id="limit" value="5" min="1" max="50">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="safesearch">SafeSearch</label>
+                            <select id="safesearch">
+                                <option value="0">0 (off)</option>
+                                <option value="1" selected>1 (moderate)</option>
+                                <option value="2">2 (strict)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="time_range">Time range (Optional)</label>
+                            <input type="text" id="time_range" placeholder="e.g. day, week, month, year">
+                        </div>
+
+                        <div class="form-group checkbox-row">
+                            <label for="fulltext">
+                                <input type="checkbox" id="fulltext" name="fulltext" checked>
+                                <span>Fulltext — enrich results via Mercury (slower)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" id="submit-btn">
+                        <span id="btn-text">Execute Search</span>
+                        <div id="loading" class="loading-spinner"></div>
+                    </button>
+                </form>
+            </div>
+
+            <section class="results-section">
+                <div id="curl-section" style="display: none; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h3>cURL Example</h3>
+                        <button type="button" id="copy-curl-btn"
+                            style="width: auto; margin: 0; padding: 0.4rem 0.8rem; font-size: 0.75rem;">Copy cURL</button>
+                    </div>
+                    <pre id="curl-output"></pre>
+                </div>
+
+                <div class="results-header">
+                    <h2>Search Results</h2>
+                    <div id="status-container"></div>
+                </div>
+                <div id="results-list">
+                    <div class="empty-state">
+                        Results will appear here after execution
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/search-demo/static/js/search_demo.js"></script>
+</body>
+
+</html>
+
