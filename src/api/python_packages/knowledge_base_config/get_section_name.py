@@ -1,4 +1,5 @@
 import os
+import shutil
 import logging
 import zipfile
 import xml.etree.ElementTree as ET
@@ -19,9 +20,18 @@ def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
         # Resolve symlink to actual file path
         file_path = os.path.realpath(file_path)
 
-    os.system(f"cat '{file_path}' > /dev/null")
-    os.system(f"cp -f '{file_path}' /tmp")
-    filepath = os.path.join('/tmp', os.path.basename(file_path))
+    tmp_path = os.path.join("/tmp", os.path.basename(file_path))
+    try:
+        same_mtime = (
+            os.path.isfile(tmp_path)
+            and os.path.getmtime(file_path) == os.path.getmtime(tmp_path)
+        )
+    except OSError:
+        same_mtime = False
+    if not same_mtime:
+        os.system(f"cat '{file_path}' > /dev/null")
+        shutil.copy2(file_path, tmp_path)
+    filepath = tmp_path
 
     logger.info(f"Reading XLSX file '{filepath}' in _first_sheet_name_from_xlsx")
     with zipfile.ZipFile(filepath, "r") as zf:
