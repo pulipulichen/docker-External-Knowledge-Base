@@ -134,14 +134,15 @@ def _call_searxng(
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
+    logger.info(f"searxng endpoint: {endpoint}")
     logger.info(f"searxng params: {params}")
 
     # limiter.toml 將 Docker 網段視為 trusted proxy 時，SearXNG 要求一定要有這兩個 header
     effective_ip = client_ip or "127.0.0.1"
-    # headers["X-Real-IP"] = effective_ip
-    # headers["X-Forwarded-For"] = effective_ip
+    headers["X-Real-IP"] = effective_ip
+    headers["X-Forwarded-For"] = effective_ip
     # resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
-    resp = requests.get(endpoint, params=params, headers=headers)
+    resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()
         logger.info(f"searxng body: {body}")
