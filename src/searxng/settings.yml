@@ -8,7 +8,7 @@ use_default_settings:
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
-  limiter: false  # 防止你被濫用（建議開）
+  limiter: true  # 防止你被濫用（建議開）
 
 search:
   formats:
@@ -20,4 +20,4 @@ outgoing:
 
   # 關鍵：避免被 Google 擋
   headers:
-    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+    User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
