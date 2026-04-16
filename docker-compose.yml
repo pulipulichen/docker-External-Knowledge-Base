@@ -242,7 +242,7 @@ services:
     # expose:
     #   - "8080"
     ports:
-      - "48080:8888"
+      - "48080:8080"
     volumes:
       - "./src/searxng:/etc/searxng"
     environment:
