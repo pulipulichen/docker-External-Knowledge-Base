@@ -25,7 +25,7 @@ app = Flask(__name__)  # Keep a dummy app for local testing if __name__ == '__ma
 SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080").rstrip("/")
 SEARXNG_REQUEST_TIMEOUT = int(os.getenv("SEARXNG_REQUEST_TIMEOUT", "30"))
 SEARXNG_RATE_LIMIT_MAX_ATTEMPTS = 5
-SEARXNG_RATE_LIMIT_RETRY_DELAY_SEC = 3
+SEARXNG_RATE_LIMIT_RETRY_DELAY_SEC = 10
 DEFAULT_SEARCH_RESULT_LIMIT = 5
 MAX_SEARCH_RESULT_LIMIT = int(os.getenv("SEARCH_MAX_RESULT_LIMIT", "50"))
 
