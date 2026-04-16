@@ -34,6 +34,7 @@ def get_section_name(knowledge_id):
         try:
             logger.info(f"Reading XLSX file '{filepath}'")
             first = _first_sheet_name_from_xlsx(filepath)
+            logger.info(f"First sheet name: '{first}'")
             return first if first is not None else knowledge_id
         except Exception as e:
             logger.error(f"Error reading XLSX file '{filepath}': {e}")
