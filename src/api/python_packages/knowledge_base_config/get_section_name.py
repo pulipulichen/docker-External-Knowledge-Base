@@ -19,7 +19,7 @@ def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
         # Resolve symlink to actual file path
         file_path = os.path.realpath(file_path)
 
-    # os.system(f"cat '{file_path}' > /dev/null")
+    os.system(f"cat '{file_path}' > /dev/null")
     os.system(f"cp -f '{file_path}' /tmp")
     filepath = os.path.join('/tmp', os.path.basename(file_path))
 
