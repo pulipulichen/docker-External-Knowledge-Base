@@ -11,9 +11,17 @@ logger = logging.getLogger(__name__)
 # OOXML workbook namespace (sheet names live in xl/workbook.xml; no need for full openpyxl parse).
 _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 
-
 def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
     """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
+
+    file_path = filepath
+    if os.path.islink(file_path):
+        # Resolve symlink to actual file path
+        file_path = os.path.realpath(file_path)
+
+    os.system(f"cat '{file_path}' > /dev/null")
+    os.system(f"cp '{file_path}' /tmp")
+    filepath = os.path.join('/tmp', os.path.basename(file_path))
 
     logger.info(f"Reading XLSX file '{filepath}' in _first_sheet_name_from_xlsx")
     with zipfile.ZipFile(filepath, "r") as zf:
