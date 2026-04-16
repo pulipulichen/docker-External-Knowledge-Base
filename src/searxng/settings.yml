@@ -13,7 +13,7 @@ server:
 search:
   formats:
     - json
-    - html
+    # - html
 
 outgoing:
   request_timeout: 10.0
