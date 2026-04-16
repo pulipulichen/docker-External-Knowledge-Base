@@ -20,7 +20,7 @@ def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
         file_path = os.path.realpath(file_path)
 
     os.system(f"cat '{file_path}' > /dev/null")
-    os.system(f"cp '{file_path}' /tmp")
+    os.system(f"cp -f '{file_path}' /tmp")
     filepath = os.path.join('/tmp', os.path.basename(file_path))
 
     logger.info(f"Reading XLSX file '{filepath}' in _first_sheet_name_from_xlsx")
