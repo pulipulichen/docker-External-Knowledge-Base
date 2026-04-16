@@ -1,4 +1,4 @@
-const form = document.getElementById('search-form');
+const form = document.getElementById('news-form');
 const resultsList = document.getElementById('results-list');
 const sidebarNav = document.getElementById('sidebar-nav');
 const navQueryItem = document.getElementById('nav-query-item');
@@ -11,9 +11,9 @@ const curlSection = document.getElementById('curl-section');
 const curlOutput = document.getElementById('curl-output');
 const copyCurlBtn = document.getElementById('copy-curl-btn');
 
-const API_KEY_STORAGE_KEY = 'search_api_key';
-const persistFields = ['query', 'categories', 'language', 'pageno', 'safesearch', 'time_range'];
-const persistCheckboxes = ['fulltext'];
+const API_KEY_STORAGE_KEY = 'news_api_key';
+const persistFields = ['query', 'hl', 'gl', 'ceid', 'limit'];
+const persistCheckboxes = ['fulltext', 'disable_cache'];
 
 function escapeHtml(unsafe) {
     if (!unsafe) return "";
@@ -56,15 +56,16 @@ function normalizeOptionalString(s) {
     return v.length ? v : null;
 }
 
-function normalizeOptionalInt(s, fallback) {
+function normalizeLimit(s, fallback, maxCap) {
     if (s === null || s === undefined) return fallback;
     const v = parseInt(String(s), 10);
-    return Number.isFinite(v) && v > 0 ? v : fallback;
+    if (!Number.isFinite(v) || v < 1) return fallback;
+    return Math.min(v, maxCap);
 }
 
 function generateCurl(payload) {
     const baseUrl = window.location.origin;
-    return `curl -X POST "${baseUrl}/search" \\\n` +
+    return `curl -X POST "${baseUrl}/news" \\\n` +
         `-H "Content-Type: application/json" \\\n` +
         `-H "Authorization: Bearer ${getApiKey()}" \\\n` +
         `-d '${JSON.stringify(payload, null, 2)}'`;
@@ -83,25 +84,26 @@ function setLoadingState(isLoading) {
     loading.style.display = isLoading ? 'block' : 'none';
 }
 
+const NEWS_LIMIT_MAX = 50;
+
 function buildPayloadFromForm() {
     const query = normalizeOptionalString(document.getElementById('query').value);
-    const categories = normalizeOptionalString(document.getElementById('categories').value);
-    const language = normalizeOptionalString(document.getElementById('language').value);
-    const pageno = normalizeOptionalInt(document.getElementById('pageno').value, 1);
-    const safesearch = parseInt(document.getElementById('safesearch').value, 10);
-    const time_range = normalizeOptionalString(document.getElementById('time_range').value);
+    const hl = normalizeOptionalString(document.getElementById('hl').value) || 'zh-TW';
+    const gl = normalizeOptionalString(document.getElementById('gl').value) || 'TW';
+    const ceid = normalizeOptionalString(document.getElementById('ceid').value) || 'TW:zh-Hant';
+    const limit = normalizeLimit(document.getElementById('limit').value, 5, NEWS_LIMIT_MAX);
     const fulltext = !!document.getElementById('fulltext').checked;
+    const disable_cache = !!document.getElementById('disable_cache').checked;
 
-    const payload = {
+    return {
         query,
-        pageno,
-        safesearch,
+        hl,
+        gl,
+        ceid,
+        limit,
         fulltext,
+        disable_cache,
     };
-    if (categories) payload.categories = categories;
-    if (language) payload.language = language;
-    if (time_range) payload.time_range = time_range;
-    return payload;
 }
 
 function resetSidebarResults() {
@@ -113,16 +115,16 @@ function resetSidebarResults() {
 
 function updateSidebar(items) {
     items.forEach((item, index) => {
-        const title = item.title || item.url || `Result #${index + 1}`;
-        const score = (item.score !== undefined && item.score !== null) ? String(item.score) : 'N/A';
+        const title = item.title || item.url || `Article #${index + 1}`;
+        const when = item.pubDate ? String(item.pubDate) : '';
 
         const navItem = document.createElement('a');
         navItem.href = `#result-${index}`;
         navItem.className = 'nav-item';
         navItem.innerHTML = `
 <div class="nav-meta">
-<span>Rank #${index + 1}</span>
-<span>Score: ${escapeHtml(score)}</span>
+<span>#${index + 1}</span>
+<span>${escapeHtml(when)}</span>
 </div>
 <span class="nav-text">${escapeHtml(title)}</span>
 `;
@@ -135,8 +137,8 @@ function updateSidebar(items) {
 }
 
 function renderResultContent(item) {
-    const content = item.content || item.snippet || item.summary || "";
-    if (!content) return '<div class="result-content"><em>No content</em></div>';
+    const content = item.content || "";
+    if (!content) return '<div class="result-content"><em>No fulltext (RSS title only, or Mercury empty)</em></div>';
     if (window.marked) {
         const md = window.marked.parse(String(content));
         return `<div class="result-content">${escapeHTMLTags(md)}</div>`;
@@ -146,22 +148,20 @@ function renderResultContent(item) {
 
 function displayResults(items) {
     if (!items || items.length === 0) {
-        resultsList.innerHTML = '<div class="empty-state">No results.</div>';
+        resultsList.innerHTML = '<div class="empty-state">No articles.</div>';
         return;
     }
 
     resultsList.innerHTML = items.map((item, index) => {
-        const title = item.title || item.url || `Result #${index + 1}`;
+        const title = item.title || item.url || `Article #${index + 1}`;
         const url = item.url || '';
-        const publishedDate = item.publishedDate ? String(item.publishedDate) : '';
-        const score = (item.score !== undefined && item.score !== null) ? String(item.score) : '';
+        const pubDate = item.pubDate ? String(item.pubDate) : '';
 
         return `
 <div class="result-card" id="result-${index}">
   <div class="result-meta">
-    <span>Rank #${index + 1}</span>
-    ${score ? `<span>Score: ${escapeHtml(score)}</span>` : ''}
-    ${publishedDate ? `<span>${escapeHtml(publishedDate)}</span>` : ''}
+    <span>#${index + 1}</span>
+    ${pubDate ? `<span>${escapeHtml(pubDate)}</span>` : ''}
   </div>
   <div class="result-title">
     ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>` : escapeHtml(title)}
@@ -209,7 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     persistFields.forEach((field) => {
-        const value = localStorage.getItem(`search_${field}`);
+        const value = localStorage.getItem(`news_${field}`);
         if (value !== null) {
             const el = document.getElementById(field);
             if (el) el.value = value;
@@ -217,7 +217,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     persistCheckboxes.forEach((id) => {
         const el = document.getElementById(id);
-        const stored = localStorage.getItem(`search_${id}`);
+        const stored = localStorage.getItem(`news_${id}`);
         if (el && stored !== null) {
             el.checked = stored === '1';
         }
@@ -229,7 +229,7 @@ persistFields.forEach((field) => {
     if (el) {
         const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
         el.addEventListener(eventType, (e) => {
-            localStorage.setItem(`search_${field}`, e.target.value);
+            localStorage.setItem(`news_${field}`, e.target.value);
         });
     }
 });
@@ -238,7 +238,7 @@ persistCheckboxes.forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('change', () => {
-            localStorage.setItem(`search_${id}`, el.checked ? '1' : '0');
+            localStorage.setItem(`news_${id}`, el.checked ? '1' : '0');
         });
     }
 });
@@ -254,22 +254,28 @@ form.addEventListener('submit', async (e) => {
     }
 
     const payload = buildPayloadFromForm();
+    if (!payload.query) {
+        resultsList.innerHTML =
+            '<div class="empty-state" style="color: #ef4444;">Query is required</div>';
+        statusContainer.innerHTML = '<span class="status-badge status-error">Invalid query</span>';
+        return;
+    }
+
     setCurl(payload);
 
-    // Update sidebar query item
     const queryText = payload.query || '';
     const queryPreview = queryText.length > 18 ? queryText.substring(0, 18) + '...' : queryText;
     const navText = navQueryItem.querySelector('.nav-text');
-    navText.textContent = `🔎 ${queryPreview || 'New Search'}`;
+    navText.textContent = `📰 ${queryPreview || 'New query'}`;
     navText.title = queryText;
 
     resetSidebarResults();
     setLoadingState(true);
-    resultsList.innerHTML = '<div class="empty-state">Searching...</div>';
+    resultsList.innerHTML = '<div class="empty-state">Loading…</div>';
     statusContainer.innerHTML = '';
 
     try {
-        const response = await fetch('/search', {
+        const response = await fetch('/news', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -283,11 +289,11 @@ form.addEventListener('submit', async (e) => {
             throw new Error(data.error || data.detail || `Request failed (${response.status})`);
         }
 
-        const items = Array.isArray(data) ? data : (data.results || []);
+        const items = Array.isArray(data) ? data : [];
         displayResults(items);
         updateSidebar(items);
         statusContainer.innerHTML =
-            `<span class="status-badge status-success">Success: ${items.length} result(s)</span>`;
+            `<span class="status-badge status-success">Success: ${items.length} article(s)</span>`;
     } catch (err) {
         resultsList.innerHTML = `<div class="empty-state" style="color: #ef4444; border-color: #ef4444">Error: ${escapeHtml(err.message || 'Network error')}</div>`;
         statusContainer.innerHTML = `<span class="status-badge status-error">Error</span>`;
@@ -295,4 +301,3 @@ form.addEventListener('submit', async (e) => {
         setLoadingState(false);
     }
 });
-

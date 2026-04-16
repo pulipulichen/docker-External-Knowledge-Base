@@ -116,7 +116,8 @@ def _call_searxng(
     params: dict[str, str] = {
         "q": query,
         "format": "json",
-        "secret_key": SEARXNG_SECRET
+        "secret_key": SEARXNG_SECRET,
+        "categories": "general"
     }
     if pageno:
         params["pageno"] = str(pageno)

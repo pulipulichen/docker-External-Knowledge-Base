@@ -17,6 +17,7 @@ trusted_proxies = [
   # Docker 預設橋接多為 172.17.x–172.31.x；需與 nginx/API 轉發的 X-Forwarded-For 一併使用
   '172.16.0.0/12',
   '163.13.243.0/24',
+  '114.39.7.205/32',
   # 'fd00::/8',
 ]
 
@@ -45,6 +46,8 @@ pass_ip = [
   '::1',
   '172.16.0.0/16',
   '192.168.0.0/16',      # IPv4 private network
+  '163.13.243.0/24',
+  '114.39.7.205/32',
   # 'fe80::/10'            # IPv6 linklocal / wins over botdetection.ip_limit.filter_link_local
 ]
 

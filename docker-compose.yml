@@ -237,7 +237,7 @@ services:
   # （無法只靠 compose 列引擎名稱；映像讀取 /etc/searxng/settings.yml）。
   # 可選環境變數 SEARXNG_SECRET 覆寫 server.secret_key，見 .env.example。
   searxng:
-    image: searxng/searxng:2026.3.25-fe1d6d9c4
+    image: searxng/searxng:2026.4.13-ee66b070a
     # 僅內部連線；對外請用 nginx:40002 → 會補齊 X-Forwarded-For / X-Real-IP
     # expose:
     #   - "8080"

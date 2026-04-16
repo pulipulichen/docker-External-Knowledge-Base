@@ -4,33 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Demo Interface</title>
+    <title>News Demo Interface</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/search-demo/static/css/search_demo.css">
+    <link rel="stylesheet" href="/news-demo/static/css/news_demo.css">
     <script src="/static/lib/marked.min.js"></script>
 </head>
 
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h2>Search Catalog</h2>
+            <h2>News Feed</h2>
         </div>
         <nav class="sidebar-content" id="sidebar-nav">
-            <button type="button" id="sidebar-execute-btn" class="sidebar-execute-btn">Execute Search</button>
+            <button type="button" id="sidebar-execute-btn" class="sidebar-execute-btn">Fetch News</button>
             <a href="#query-panel" class="nav-item active" id="nav-query-item">
-                <span class="nav-text">🔎 New Search</span>
+                <span class="nav-text">📰 New query</span>
             </a>
-            <!-- Result items will be injected here -->
         </nav>
     </aside>
 
     <main class="main-content">
         <div class="container">
             <header>
-                <h1>Search Laboratory</h1>
-                <p class="subtitle">Test the <code>POST /search</code> endpoint with a clean UI</p>
+                <h1>News Laboratory</h1>
+                <p class="subtitle">Test the <code>POST /news</code> endpoint with a clean UI</p>
             </header>
 
             <div class="glass-panel" id="query-panel">
@@ -45,51 +44,49 @@
                     </div>
                 </div>
 
-                <form id="search-form">
+                <form id="news-form">
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="query">Query</label>
-                            <textarea id="query" rows="3" placeholder="What would you like to search for?" required></textarea>
+                            <textarea id="query" rows="3" placeholder="e.g. artificial intelligence Taiwan" required></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="categories">Categories (Optional)</label>
-                            <input type="text" id="categories" placeholder="e.g. general, news, science">
+                            <label for="hl">hl (interface language)</label>
+                            <input type="text" id="hl" value="zh-TW" placeholder="zh-TW">
                         </div>
 
                         <div class="form-group">
-                            <label for="language">Language (Optional)</label>
-                            <input type="text" id="language" placeholder="e.g. en, zh-CN, zh-TW">
+                            <label for="gl">gl (region)</label>
+                            <input type="text" id="gl" value="TW" placeholder="TW">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="ceid">ceid (country:language)</label>
+                            <input type="text" id="ceid" value="TW:zh-Hant" placeholder="TW:zh-Hant">
                         </div>
 
                         <div class="form-group">
-                            <label for="pageno">Page No.</label>
-                            <input type="number" id="pageno" value="1" min="1" max="50">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="safesearch">SafeSearch</label>
-                            <select id="safesearch">
-                                <option value="0">0 (off)</option>
-                                <option value="1" selected>1 (moderate)</option>
-                                <option value="2">2 (strict)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="time_range">Time range (Optional)</label>
-                            <input type="text" id="time_range" placeholder="e.g. day, week, month, year">
+                            <label for="limit">Result limit</label>
+                            <input type="number" id="limit" value="5" min="1" max="50">
                         </div>
 
                         <div class="form-group checkbox-row">
                             <label for="fulltext">
                                 <input type="checkbox" id="fulltext" name="fulltext" checked>
-                                <span>Fulltext — enrich results via Mercury (slower)</span>
+                                <span>Fulltext — Mercury article body (slower)</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox-row">
+                            <label for="disable_cache">
+                                <input type="checkbox" id="disable_cache" name="disable_cache">
+                                <span>Disable server-side news cache</span>
                             </label>
                         </div>
                     </div>
                     <button type="submit" id="submit-btn">
-                        <span id="btn-text">Execute Search</span>
+                        <span id="btn-text">Fetch News</span>
                         <div id="loading" class="loading-spinner"></div>
                     </button>
                 </form>
@@ -106,7 +103,7 @@
                 </div>
 
                 <div class="results-header">
-                    <h2>Search Results</h2>
+                    <h2>Articles</h2>
                     <div id="status-container"></div>
                 </div>
                 <div id="results-list">
@@ -118,8 +115,7 @@
         </div>
     </main>
 
-    <script src="/search-demo/static/js/search_demo.js"></script>
+    <script src="/news-demo/static/js/news_demo.js"></script>
 </body>
 
 </html>
-
