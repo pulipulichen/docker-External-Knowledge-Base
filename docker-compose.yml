@@ -7,6 +7,7 @@ services:
       - ./src/api:/app/api
       - ./knowledge_base:/app/knowledge_base
       - ./src/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - ./src/tiktoken:/root/.cache/tiktoken
     tmpfs:
       - /tmp
     env_file:
@@ -71,6 +72,7 @@ services:
     volumes:
       - ./src/markdown_converter:/app/markdown_converter
       - ./knowledge_base:/app/knowledge_base
+      - ./src/tiktoken:/root/.cache/tiktoken
       - root-caches:/root/.cache
     networks:
       - docker_external_knowledge_base
