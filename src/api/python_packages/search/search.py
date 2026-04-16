@@ -123,6 +123,8 @@ def _call_searxng(
 
     if categories:
         params["categories"] = categories
+
+    params["categories"] = "general"
     if language:
         params["language"] = language
     # if safesearch is not None:
