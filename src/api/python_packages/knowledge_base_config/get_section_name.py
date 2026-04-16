@@ -50,19 +50,19 @@ def get_section_name(knowledge_id):
         return knowledge_id
 
     if filepath.endswith('.xlsx'):
-        # try:
-        #     logger.info(f"Reading XLSX file '{filepath}'")
-        #     first = _first_sheet_name_from_xlsx(filepath)
-        #     return first if first is not None else knowledge_id
-        # except Exception as e:
-        #     logger.error(f"Error reading XLSX file '{filepath}': {e}")
-        #     return knowledge_id
+        try:
+            logger.info(f"Reading XLSX file '{filepath}'")
+            first = _first_sheet_name_from_xlsx(filepath)
+            return first if first is not None else knowledge_id
+        except Exception as e:
+            logger.error(f"Error reading XLSX file '{filepath}': {e}")
+            return knowledge_id
 
-        # 20260416-1028 無法讀取Google Drive上Excel的sheetname，放棄
-        # 取得filename，不帶ext
-        filename = os.path.basename(filepath)
-        filename = os.path.splitext(filename)[0]
-        return filename
+        # # 20260416-1028 無法讀取Google Drive上Excel的sheetname，放棄
+        # # 取得filename，不帶ext
+        # filename = os.path.basename(filepath)
+        # filename = os.path.splitext(filename)[0]
+        # return filename
 
     try:
         book = pyexcel_ods.get_data(filepath)
