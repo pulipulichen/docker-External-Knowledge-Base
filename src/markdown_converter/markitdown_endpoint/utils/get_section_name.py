@@ -14,6 +14,15 @@ _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 from openpyxl import load_workbook
 
 def _first_sheet_name_from_xlsx(file_path):
+    # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
+    if os.path.islink(file_path):
+        # Resolve symlink to actual file path
+        file_path = os.path.realpath(file_path)
+
+    os.system(f"cat '{file_path}' > /dev/null")
+    os.system(f"cp '{file_path}' /tmp")
+    file_path = os.path.join('/tmp', os.path.basename(file_path))
+    
     wb = load_workbook(file_path, read_only=True)
     return wb.sheetnames[0]
 
