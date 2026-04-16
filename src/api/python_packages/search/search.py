@@ -149,8 +149,7 @@ def _call_searxng(
         effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
     elif effective_ip.startswith("10."):
         effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
-    else:
-        effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
+    
 
     headers["X-Real-IP"] = effective_ip
     headers["X-Forwarded-For"] = effective_ip
