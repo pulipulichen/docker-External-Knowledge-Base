@@ -14,6 +14,8 @@ _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 
 def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
     """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
+
+    logger.info(f"Reading XLSX file '{filepath}'")
     with zipfile.ZipFile(filepath, "r") as zf:
         with zf.open("xl/workbook.xml") as wb_xml:
             root = ET.parse(wb_xml).getroot()
@@ -38,6 +40,7 @@ def get_section_name(knowledge_id):
 
     if filepath.endswith('.xlsx'):
         try:
+            logger.info(f"Reading XLSX file '{filepath}'")
             first = _first_sheet_name_from_xlsx(filepath)
             return first if first is not None else knowledge_id
         except Exception as e:

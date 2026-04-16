@@ -22,7 +22,7 @@ async def ingest_data(knowledge_id, section_name, force_update: False):
 
     knowledge_base_config = get_knowledge_base_config(knowledge_id)
 
-    logger.info(f"knowledge_base_config: {knowledge_base_config}")
+    # logger.info(f"knowledge_base_config: {knowledge_base_config}")
 
     if knowledge_base_config.get('is_url') is True:
         download_file(knowledge_id, force_update)
