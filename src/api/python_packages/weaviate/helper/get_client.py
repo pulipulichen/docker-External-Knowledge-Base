@@ -17,13 +17,20 @@ warnings.filterwarnings("ignore", category=ResourceWarning, message=".*The conne
 def get_client():
   global client 
 
-  if client is None or not client.is_connected():
-    # url = f"http://{weavite_host}:{weavite_port}"
-    # print("url", url)
+  try:
+    if client is None or not client.is_connected():
+      # url = f"http://{weavite_host}:{weavite_port}"
+      # print("url", url)
+      client = weaviate.connect_to_local(
+        host=weavite_host, 
+        port=weavite_port,
+        grpc_port=weavite_grpc_port
+      )  # 根據你的環境修改 URL
+  except Exception as e:
     client = weaviate.connect_to_local(
       host=weavite_host, 
       port=weavite_port,
       grpc_port=weavite_grpc_port
     )  # 根據你的環境修改 URL
-
+  
   return client
