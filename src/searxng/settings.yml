@@ -4,6 +4,7 @@ use_default_settings:
   engines:
     keep_only:
       - google
+      - bing
 
 server:
   secret_key: "ultrasecretkey2ultrasecretkey"
