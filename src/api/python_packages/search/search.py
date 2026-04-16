@@ -1,4 +1,5 @@
 import asyncio
+import ipaddress
 import logging
 import os
 import time
@@ -112,6 +113,17 @@ def _client_ip_from_request(req) -> str | None:
     return ra if ra else None
 
 
+def _is_ipv4_in_172_16_private_block(ip: str) -> bool:
+    """True if ip is in 172.16.0.0/12 (172.16.0.0 through 172.31.255.255), RFC 1918."""
+    try:
+        addr = ipaddress.ip_address(ip.strip())
+    except ValueError:
+        return False
+    if not isinstance(addr, ipaddress.IPv4Address):
+        return False
+    return addr in ipaddress.ip_network("172.16.0.0/12")
+
+
 def _call_searxng(
     query: str,
     categories: str | None,
@@ -153,7 +165,7 @@ def _call_searxng(
     # 如果 effective_ip 是 127.0.0.1 或 192.168. 開頭等這類型的內網，則嘗試取得對外的IP，來作為effective_ip
     if effective_ip.startswith("127.0.0.1") or effective_ip.startswith("192.168."):
         effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
-    elif effective_ip.startswith("172.16."):
+    elif _is_ipv4_in_172_16_private_block(effective_ip):
         effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
     elif effective_ip.startswith("192.168."):
         effective_ip = requests.get("https://api.ipify.org?format=json").json()["ip"]
