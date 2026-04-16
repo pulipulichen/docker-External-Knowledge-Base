@@ -33,6 +33,8 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
 
         # ============
 
+        logger.info(f"filepath: {filepath}")
+
         # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
         if os.path.islink(filepath):
             # Resolve symlink to actual file path
@@ -42,12 +44,16 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         os.system(f"cp '{filepath}' /tmp")
         filepath = os.path.join('/tmp', os.path.basename(filepath))
 
+        logger.info(f"filepath after: {filepath}")
+
         # ============
 
         json_array = sheet_to_json(filepath, section_name, include_fields)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))
         splitter = SmartMarkdownSplitter(max_tokens=effective_max)
+
+        logger.info(f"json_array count: {len(json_array)}")
 
         def chunk_id_for_rows(row_indices: list[int]) -> str:
             if len(row_indices) == 1:
