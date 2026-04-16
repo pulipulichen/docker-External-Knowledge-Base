@@ -11,18 +11,11 @@ logger = logging.getLogger(__name__)
 _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 
 
-def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
-    """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
-    with zipfile.ZipFile(filepath, "r") as zf:
-        with zf.open("xl/workbook.xml") as wb_xml:
-            root = ET.parse(wb_xml).getroot()
-    # Default namespace on workbook root
-    for sheet in root.findall(f"{{{_XLSX_MAIN_NS}}}sheets/{{{_XLSX_MAIN_NS}}}sheet"):
-        name = sheet.get("name")
-        if name is not None:
-            return name
-    return None
+from openpyxl import load_workbook
 
+def _first_sheet_name_from_xlsx(file_path):
+    wb = load_workbook(file_path, read_only=True)
+    return wb.sheetnames[0]
 
 def get_section_name(filepath):
     
