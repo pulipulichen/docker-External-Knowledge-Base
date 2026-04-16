@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 import yaml
 
 import requests
@@ -23,6 +24,8 @@ app = Flask(__name__)  # Keep a dummy app for local testing if __name__ == '__ma
 
 SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080").rstrip("/")
 SEARXNG_REQUEST_TIMEOUT = int(os.getenv("SEARXNG_REQUEST_TIMEOUT", "30"))
+SEARXNG_RATE_LIMIT_MAX_ATTEMPTS = 5
+SEARXNG_RATE_LIMIT_RETRY_DELAY_SEC = 3
 DEFAULT_SEARCH_RESULT_LIMIT = 5
 MAX_SEARCH_RESULT_LIMIT = int(os.getenv("SEARCH_MAX_RESULT_LIMIT", "50"))
 
@@ -84,6 +87,13 @@ def _searxng_results_list_only(body) -> list:
         items = body.get("results")
         return items if isinstance(items, list) else []
     return []
+
+
+def _searxng_response_looks_rate_limited(resp: requests.Response) -> bool:
+    if resp.status_code == 429:
+        return True
+    snippet = (resp.text or "")[:500]
+    return "too many requests" in snippet.lower()
 
 
 def _client_ip_from_request(req) -> str | None:
@@ -156,17 +166,29 @@ def _call_searxng(
 
     logger.info(f"searxng headers: {headers}")
 
-    resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
-
-    try:
-        body = resp.json()
-        logger.info(f"searxng body: {body}")
-    except ValueError:
-        body = {
-            "error": "searxng returned non-JSON body",
-            "detail": (resp.text or "")[:500],
-        }
-    return resp.status_code, body
+    for attempt in range(1, SEARXNG_RATE_LIMIT_MAX_ATTEMPTS + 1):
+        resp = requests.get(
+            endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT
+        )
+        try:
+            body = resp.json()
+            logger.info(f"searxng body: {body}")
+            return resp.status_code, body
+        except ValueError:
+            if _searxng_response_looks_rate_limited(resp) and attempt < SEARXNG_RATE_LIMIT_MAX_ATTEMPTS:
+                logger.warning(
+                    "SearXNG rate limited (non-JSON body), retry %d/%d after %ds",
+                    attempt,
+                    SEARXNG_RATE_LIMIT_MAX_ATTEMPTS,
+                    SEARXNG_RATE_LIMIT_RETRY_DELAY_SEC,
+                )
+                time.sleep(SEARXNG_RATE_LIMIT_RETRY_DELAY_SEC)
+                continue
+            body = {
+                "error": "searxng returned non-JSON body",
+                "detail": (resp.text or "")[:500],
+            }
+            return resp.status_code, body
 
 
 def _enrich_searxng_results_fulltext(body: dict) -> None:
