@@ -143,6 +143,7 @@ def _call_searxng(
     resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
     try:
         body = resp.json()
+        logger.info(f"searxng body: {body}")
     except ValueError:
         body = {
             "error": "searxng returned non-JSON body",
