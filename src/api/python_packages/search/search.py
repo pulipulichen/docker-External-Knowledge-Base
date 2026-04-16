@@ -116,7 +116,7 @@ def _call_searxng(
     params: dict[str, str] = {
         "q": query,
         "format": "json",
-        "secret_key": SEARXNG_SECRET
+        # "secret_key": SEARXNG_SECRET
     }
     if pageno:
         params["pageno"] = str(pageno)
@@ -142,7 +142,7 @@ def _call_searxng(
     headers["X-Forwarded-For"] = effective_ip
 
     logger.info(f"searxng headers: {headers}")
-    
+
     resp = requests.get(endpoint, params=params, headers=headers, timeout=SEARXNG_REQUEST_TIMEOUT)
 
 
