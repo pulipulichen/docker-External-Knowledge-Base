@@ -104,6 +104,10 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
                     "document": document_for_batch(batch),
                 }
             )
+
+
+        logger.info(f"chunks count: {len(chunks)}")
+        
         return chunks
 
     except Exception as e:
