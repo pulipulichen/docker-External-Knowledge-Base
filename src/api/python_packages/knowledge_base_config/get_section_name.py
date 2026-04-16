@@ -12,32 +12,27 @@ logger = logging.getLogger(__name__)
 _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 
 
-from openpyxl import load_workbook
+def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
+    """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
 
-def _first_sheet_name_from_xlsx(file_path):
-    
-
-    # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
-    if os.path.islink(file_path):
-        # Resolve symlink to actual file path
-        file_path = os.path.realpath(file_path)
-
-    os.system(f"cat '{file_path}' > /dev/null")
-    os.system(f"cp '{file_path}' /tmp")
-    file_path = os.path.join('/tmp', os.path.basename(file_path))
-    
-    logger.info(f"Reading XLSX file '{file_path}' in _first_sheet_name_from_xlsx")
-    wb = load_workbook(file_path, read_only=True)
-    logger.info(f"Sheetnames: '{wb.sheetnames}'")
-
-    return wb.sheetnames[0]
+    logger.info(f"Reading XLSX file '{filepath}' in _first_sheet_name_from_xlsx")
+    with zipfile.ZipFile(filepath, "r") as zf:
+        logger.info(f"get ZipFile")
+        with zf.open("xl/workbook.xml") as wb_xml:
+            root = ET.parse(wb_xml).getroot()
+            logger.info(f"get Root")
+    # Default namespace on workbook root
+    for sheet in root.findall(f"{{{_XLSX_MAIN_NS}}}sheets/{{{_XLSX_MAIN_NS}}}sheet"):
+        name = sheet.get("name")
+        logger.info(f"Sheet name: '{name}'")
+        if name is not None:
+            return name
+    return None
 
 
 def get_section_name(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
     filepath = config.get('file_path')
-
-    logger.info(f"Filepath: '{filepath}'")
 
     if filepath is None or not os.path.exists(filepath) or os.path.isdir(filepath):
         # logger.error(f"File '{filepath}' does not exist.")
@@ -50,7 +45,6 @@ def get_section_name(knowledge_id):
         try:
             logger.info(f"Reading XLSX file '{filepath}'")
             first = _first_sheet_name_from_xlsx(filepath)
-            logger.info(f"First sheet name: '{first}'")
             return first if first is not None else knowledge_id
         except Exception as e:
             logger.error(f"Error reading XLSX file '{filepath}': {e}")
