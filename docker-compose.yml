@@ -252,7 +252,7 @@ services:
     restart: unless-stopped
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
       resources:
         limits:
           memory: 512M
