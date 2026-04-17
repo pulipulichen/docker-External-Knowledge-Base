@@ -126,6 +126,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
     except requests.exceptions.Timeout:
         logging.warning("mercury-parser request timed out for url: %s", url)
         return 504, {}
+    
     try:
         body = resp.json()
     except ValueError:
