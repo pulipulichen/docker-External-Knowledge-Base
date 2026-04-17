@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrape Demo Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/scrape-demo/static/css/scrape_demo.css">
+    <script src="/static/lib/marked.min.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Scrape</h2>
+        </div>
+        <nav class="sidebar-content" id="sidebar-nav">
+            <button type="button" id="sidebar-execute-btn" class="sidebar-execute-btn">Execute scrape</button>
+            <a href="#query-panel" class="nav-item active" id="nav-query-item">
+                <span class="nav-text">📄 New URL</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Scrape Laboratory</h1>
+                <p class="subtitle">Try <code>POST /scrape</code> — Mercury-backed article extraction with optional Redis cache</p>
+            </header>
+
+            <div class="glass-panel" id="query-panel">
+                <div class="usage-panel">
+                    <h3 class="usage-title">What this endpoint does</h3>
+                    <ul class="usage-list">
+                        <li><strong>POST /scrape</strong> accepts JSON with a required <code>url</code> string.</li>
+                        <li>Optional <code>contentType</code> (string) is forwarded to mercury-parser (default on the server is <code>markdown</code>).</li>
+                        <li>Optional <code>headers</code> must be a string in the format mercury-parser expects (URL-encoded header pairs).</li>
+                        <li>Google News links are resolved to the underlying article URL before parsing.</li>
+                        <li>URLs whose path looks like a direct file download (e.g. <code>.pdf</code>) are rejected with HTTP 400.</li>
+                        <li>Successful responses are cached in Redis when available (same key as the API uses).</li>
+                    </ul>
+                </div>
+
+                <div class="form-group api-key-row">
+                    <label for="api_key">API Key</label>
+                    <div class="api-key-wrap">
+                        <input type="password" id="api_key" name="api_key" autocomplete="off"
+                            placeholder="Paste your API key (saved only in this browser)"
+                            class="api-key-input">
+                        <span id="api-key-status" class="status-badge status-muted">Not set</span>
+                    </div>
+                </div>
+
+                <form id="scrape-form">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="url">Article URL</label>
+                            <input type="url" id="url" name="url" placeholder="https://example.com/article" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contentType">contentType</label>
+                            <input type="text" id="contentType" name="contentType" value="markdown"
+                                placeholder="markdown">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="headers">headers (optional)</label>
+                            <input type="text" id="headers" name="headers"
+                                placeholder="URL-encoded header string for mercury-parser, if needed">
+                        </div>
+                    </div>
+                    <button type="submit" id="submit-btn">
+                        <span id="btn-text">Execute scrape</span>
+                        <div id="loading" class="loading-spinner"></div>
+                    </button>
+                </form>
+            </div>
+
+            <section class="results-section">
+                <div id="curl-section" class="curl-section" style="display: none;">
+                    <div class="curl-header">
+                        <h3>cURL example</h3>
+                        <button type="button" id="copy-curl-btn" class="btn-inline">Copy cURL</button>
+                    </div>
+                    <pre id="curl-output"></pre>
+                </div>
+
+                <div class="results-header">
+                    <h2>Parser output</h2>
+                    <div id="status-container"></div>
+                </div>
+                <div id="results-list">
+                    <div class="empty-state">
+                        Parsed content and raw JSON will appear here after a successful scrape
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/scrape-demo/static/js/scrape_demo.js"></script>
+</body>
+
+</html>
