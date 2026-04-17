@@ -146,7 +146,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
                 }
             logging.info(f"scrape %s body length: %s", url, len(stripped))
 
-    logging.info("scrape body length: %s", len(json.dumps(body, ensure_ascii=False).slice(0, 100)))
+    logging.info("scrape body length: %s", len(json.dumps(body, ensure_ascii=False)[:100]))
 
     return resp.status_code, body
 
