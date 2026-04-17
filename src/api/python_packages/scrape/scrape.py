@@ -121,7 +121,11 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
     if headers:
         params["headers"] = headers
 
-    resp = requests.get(endpoint, params=params, timeout=MERCURY_REQUEST_TIMEOUT)
+    try:
+        resp = requests.get(endpoint, params=params, timeout=MERCURY_REQUEST_TIMEOUT)
+    except requests.exceptions.Timeout:
+        logging.warning("mercury-parser request timed out for url: %s", url)
+        return 504, {}
     try:
         body = resp.json()
     except ValueError:
@@ -146,7 +150,7 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
                 }
             logging.info(f"scrape %s body length: %s", url, len(stripped))
 
-    logging.info("scrape body length: %s", len(json.dumps(body, ensure_ascii=False)[:100]))
+    logging.info("scrape body preview: %s", json.dumps(body, ensure_ascii=False)[:100])
 
     return resp.status_code, body
 
@@ -191,8 +195,6 @@ async def scrape_endpoint():
 
     try:
         status, results = await asyncio.to_thread(_scrape_with_resolved_url)
-    except requests.exceptions.Timeout:
-        return jsonify({"error": "mercury-parser request timed out"}), 504
     except requests.exceptions.RequestException as e:
         logging.exception("mercury-parser request failed")
         return jsonify({"error": "Failed to reach mercury-parser", "detail": str(e)}), 502

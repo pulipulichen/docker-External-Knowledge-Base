@@ -141,7 +141,7 @@ The retrieval demo page (`/demo/retrieval`) includes a button that calls this en
 | `time_range` | No | e.g. `day`, `week`, `month`, `year`. |
 | `fulltext` | No | Boolean, default `true` (Mercury body as above). Set `false` for snippet-only. Must be a JSON boolean. |
 
-Errors use JSON `error` / `detail` (e.g. 401, 400, 502, 504). With `fulltext: true` (the default), Mercury failure after a successful SearXNG response may return **502** or **504** for the whole request.
+Errors use JSON `error` / `detail` (e.g. 401, 400, 502, 504). With `fulltext: true` (the default), some Mercury failures after a successful SearXNG response may return **502** for the whole request (e.g. connection errors during full-text enrichment). Per-result Mercury **HTTP timeouts** drop full text for that hit only (snippet remains); they do not fail the entire search response.
 
 **MCP:** The `search_web` tool has a boolean **`fulltext`** argument (default `true`) forwarded to this endpoint.
 
@@ -187,6 +187,8 @@ curl -X POST http://localhost:8080/scrape \
 
 To add or remove extensions, edit **`src/api/python_packages/scrape/non_web_page_extensions.py`** and update the `NON_WEB_PAGE_EXTENSIONS` set. Each entry must be **lowercase** and **without** a leading dot (use `"pdf"`, not `".pdf"`). After changing the file, redeploy or restart the API container so the change takes effect.
 
+When the Mercury Parser HTTP client times out (`MERCURY_REQUEST_TIMEOUT`), `POST /scrape` responds with **504** and an empty JSON object **`{}`** (no `error` / `detail` fields).
+
 ## News API
 
 `POST /news` fetches [Google News RSS search](https://news.google.com/rss/search) and returns a **JSON array** of items (same order as the RSS `<item>` elements). Each object includes **`title`**, **`pubDate`**, and **`url`** when the feed provides an item link (mapped from RSS `<link>`; typically a Google News redirect URL). There is no `guid` or `cached` field in the response body. The upstream RSS request sends the client IP via `X-Forwarded-For` / `X-Real-IP` when your reverse proxy sets them (same idea as `/search`).
@@ -211,7 +213,7 @@ To add or remove extensions, edit **`src/api/python_packages/scrape/non_web_page
 - Top-level JSON **array** of objects per RSS item: at least `title`, `pubDate`, and `url` when present.
 - When `fulltext` is `true` (the default), each object also has **`content`** (string or `null`).
 
-Errors use the usual JSON `error` / `detail` fields (e.g. 401, 400, 502, 504). With `fulltext: true` (the default), a Mercury failure after a successful RSS fetch may return **502** or **504** for the whole request.
+Errors use the usual JSON `error` / `detail` fields (e.g. 401, 400, 502, 504). With `fulltext: true` (the default), some Mercury failures after a successful RSS fetch may return **502** for the whole request (e.g. connection errors during full-text enrichment). Per-item Mercury **HTTP timeouts** omit `content` for that item only; they do not fail the entire news response.
 
 **Caching:** News results are stored in Redis under keys prefixed with `news:rss:`, keyed by **`(query, hl, gl, ceid, fulltext, limit)`**. TTL defaults to **24 hours** (`NEWS_CACHE_TTL_SECONDS`). Full-text extraction reuses scrape cache keys (`scrape:mercury:…`, `SCRAPE_CACHE_TTL_SECONDS`). Connection uses the same `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` as the rest of the API. Optional: `NEWS_REQUEST_TIMEOUT` (seconds, default `30`) for the Google RSS HTTP call.
 
