@@ -133,8 +133,8 @@ def _call_mercury_parser(url: str, content_type: str | None, headers: str | None
         body = {"error": "mercury-parser returned non-JSON body", "detail": (resp.text or "")[:500]}
         return resp.status_code, body
 
-    if 'url' not in body:
-        body['url'] = url
+    # if 'url' not in body:
+    #     body['url'] = url
 
     if resp.status_code == 200 and isinstance(body, dict):
         raw = body.get("content")
