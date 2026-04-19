@@ -216,7 +216,7 @@ services:
     # 常用於將網頁內容轉換為乾淨的內容，適合閱讀與 RSS 整合
   mercury-parser:
     # image: wangqiru/mercury-parser-api:latest
-    image: pudding/docker-scrape-web-page-to-markdown:20260417.182056
+    image: pudding/docker-scrape-web-page-to-markdown:20260419.215736
     restart: unless-stopped
     # ports:
     #   - "43000:3000"
