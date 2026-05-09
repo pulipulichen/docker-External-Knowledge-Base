@@ -54,17 +54,22 @@ async def get_db_file_results(
         item_id = f"{knowledge_id}_{section_name}"
     # app.logger.info(f"Results from Weaviate query: {item_id}")
 
+    query_config = {
+        "max_results": top_k * top_k_extend_range,
+        "score_threshold": score_threshold
+    }
+
     results = weaviate_query(
         knowledge_id=item_id, 
         query=query,
         vector=await get_embedding(query, for_query=True),
-        query_config={
-            "max_results": top_k * top_k_extend_range,
-            "score_threshold": score_threshold
-        },
+        query_config=query_config,
         path=False,
         show_chunk_id=True
     )
+
+    if config.get("index_fields"):
+        return results
 
     # 2. 根據 path 去重，並保留 score 最高的結果
     unique_results_map = {}

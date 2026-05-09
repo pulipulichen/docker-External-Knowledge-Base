@@ -43,14 +43,16 @@ async def get_db_results(knowledge_id: str, section_name: str, query: str, top_k
         item_id = f"{knowledge_id}_{section_name}"
     # app.logger.info(f"Results from Weaviate query: {item_id}")
 
+    query_config = {
+        "max_results": top_k,
+        "score_threshold": score_threshold
+    }
+
     results = weaviate_query(
         knowledge_id=item_id, 
         query=query,
         vector=await get_embedding(query, for_query=True),
-        query_config={
-            "max_results": top_k,
-            "score_threshold": score_threshold
-        },
+        query_config=query_config,
         path=config.get("path", None)
     )
 

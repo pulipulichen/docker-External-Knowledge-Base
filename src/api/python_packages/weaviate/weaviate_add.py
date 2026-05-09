@@ -35,7 +35,8 @@ def weaviate_add(**kwargs):
     if document is None:
       continue
 
-    indexed_document = segment_text(document)
+    embedding_document = data_row.get('embedding_document', document)
+    indexed_document = segment_text(embedding_document)
 
     vector = data_row.get('vector', [])
     if len(vector) == 0:

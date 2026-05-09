@@ -68,6 +68,7 @@ Only applies to **ODS / XLSX** row indexing.
 
 - **`index_fields`** lists the columns used to build the searchable text stored in Weaviate.
 - **`display_fields`** lists the columns returned in retrieval results by default. Retrieval requests can override this with `retrieval_setting.display_fields`.
+- When `index_fields` is set, both the `_index` text and the embedding vector are built only from those fields; retrieval still uses hybrid search.
 - When either field is set, spreadsheet rows are indexed one row per chunk so the displayed fields stay aligned with the matched row.
 
 Example:
