@@ -43,8 +43,8 @@ def search_knowledge_base(
         response.raise_for_status()
 
         result = response.json()
-        print("Retrieval succeeded; response:")
-        print(json.dumps(result, indent=4, ensure_ascii=False))
+        # print("Retrieval succeeded; response:")
+        # print(json.dumps(result, indent=4, ensure_ascii=False))
         return json.dumps(result, ensure_ascii=False)
 
     except requests.exceptions.RequestException as e:

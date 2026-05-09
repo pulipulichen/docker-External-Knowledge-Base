@@ -64,7 +64,10 @@ async def retrieval_endpoint():
     elif file_mode is False or file_mode is None:
         results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
     else:
-        results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
+        try:
+            results = await get_db_file_results(knowledge_id, section_name, query, top_k, score_threshold)
+        except Exception as e:
+            results = await get_db_results(knowledge_id, section_name, query, top_k, score_threshold)
 
     if disable_metadata:
         _strip_metadata_from_records(results)
