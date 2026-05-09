@@ -5,11 +5,27 @@ from datetime import datetime, timezone
 from weaviate.classes.query import MetadataQuery
 
 from ...weaviate.helper.get_collection import get_collection
+from ...weaviate.helper.get_client import get_client
 from ...weaviate.helper.is_collection_existed import is_collection_existed
 from ...weaviate.helper.metadata_to_filters import metadata_to_filters
 from ..chunk.get_chunks_from_markdown_file import get_relative_path
 
 logger = logging.getLogger(__name__)
+
+
+def _is_closed_client_error(error):
+    message = str(error).lower()
+    return "weaviateclient" in message and "closed" in message
+
+
+def _has_matching_indexed_file(knowledge_id, filters):
+    collection = get_collection(knowledge_id)
+    response = collection.query.fetch_objects(
+        filters=filters,
+        limit=1,
+        return_metadata=MetadataQuery(score=False),
+    )
+    return len(response.objects) > 0
 
 
 def check_need_update(knowledge_id, markdown_file_path):
@@ -32,17 +48,31 @@ def check_need_update(knowledge_id, markdown_file_path):
         return True
 
     try:
-        collection = get_collection(knowledge_id)
-        response = collection.query.fetch_objects(
-            filters=filters,
-            limit=1,
-            return_metadata=MetadataQuery(score=False),
-        )
-        if len(response.objects) > 0:
+        if _has_matching_indexed_file(knowledge_id, filters):
             logger.info(f"File is up to date in weaviate: {markdown_file_path}")
             return False
         return True
-    except Exception:
+    except Exception as error:
+        if _is_closed_client_error(error):
+            logger.warning(
+                "Weaviate client was closed while checking knowledge_id=%r path=%r; reconnecting and retrying",
+                knowledge_id,
+                relative_path,
+            )
+            try:
+                get_client(force_reconnect=True)
+                if _has_matching_indexed_file(knowledge_id, filters):
+                    logger.info(f"File is up to date in weaviate: {markdown_file_path}")
+                    return False
+                return True
+            except Exception:
+                logger.exception(
+                    "check_need_update retry failed for knowledge_id=%r path=%r; will re-index",
+                    knowledge_id,
+                    relative_path,
+                )
+                return True
+
         # logger.info(f"knowledge_id: {knowledge_id}")
         # logger.info(f"knowledge_id: {knowledge_id}")
         # logger.info(f"relative_path: {relative_path}")

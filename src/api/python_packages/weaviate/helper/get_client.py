@@ -14,10 +14,17 @@ weavite_grpc_port = int(os.getenv('WEAVIATE_GRPC_PORT', '50051'))
 warnings.filterwarnings("ignore", category=ResourceWarning, message=".*The connection to Weaviate was not closed properly.*")
 
 # https://weaviate.io/developers/weaviate/connections/connect-local
-def get_client():
+def get_client(force_reconnect=False):
   global client 
 
   try:
+    if force_reconnect and client is not None:
+      try:
+        client.close()
+      except Exception:
+        pass
+      client = None
+
     if client is None or not client.is_connected():
       # url = f"http://{weavite_host}:{weavite_port}"
       # print("url", url)
