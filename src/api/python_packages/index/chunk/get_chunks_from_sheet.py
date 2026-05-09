@@ -64,8 +64,9 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
 
         # ============
 
-        fields_to_load = include_fields or list(dict.fromkeys(index_fields + display_fields))
-        json_array = sheet_to_json(filepath, section_name, fields_to_load)
+        # fields_to_load = include_fields or list(dict.fromkeys(index_fields + display_fields))
+        # json_array = sheet_to_json(filepath, section_name, fields_to_load)
+        json_array = sheet_to_json(filepath, section_name)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))
         splitter = SmartMarkdownSplitter(max_tokens=effective_max)
@@ -80,6 +81,7 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
                 index_item = _select_fields(item, index_fields)
                 if not index_item:
                     continue
+                logger.info(f"index_item: {index_item}")
                 chunk = {
                     "chunk_id": f"{knowledge_id}_{section_name}_{row_index}",
                     "document": json.dumps(index_item, ensure_ascii=False),
