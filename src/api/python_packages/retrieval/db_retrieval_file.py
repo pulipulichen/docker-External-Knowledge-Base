@@ -16,7 +16,13 @@ app = Flask(__name__) # Keep a dummy app for local testing if __name__ == '__mai
 # DEBUG = True
 DEBUG = False
 
-async def get_db_file_results(knowledge_id: str, section_name: str, query: str, top_k: int, score_threshold: float = None):
+async def get_db_file_results(
+    knowledge_id: str,
+    section_name: str,
+    query: str,
+    top_k: int,
+    score_threshold: float = None
+):
     """
     Retrieves results from the actual database based on the query, knowledge_id, top_k, and score_threshold.
     (Placeholder for actual database retrieval logic)
@@ -65,7 +71,7 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
 
     # app.logger.info("results:" + json.dumps(results, ensure_ascii = False))
     
-    for doc in results.get("records"):
+    for doc in results.get("records", []):
         # app.logger.info(json.dumps(doc, ensure_ascii = False))
         
         path = doc.get("metadata", {}).get("path")
@@ -121,7 +127,8 @@ async def get_db_file_results(knowledge_id: str, section_name: str, query: str, 
             # "path": target_path,
             "title": seed_doc.get("title"),
             "score": seed_doc.get("score"),
-            "content": full_content
+            "content": full_content,
+            "metadata": seed_doc.get("metadata", {})
         })
 
     return {

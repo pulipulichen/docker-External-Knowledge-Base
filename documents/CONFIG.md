@@ -62,6 +62,24 @@ Human-readable text. The MCP service uses it as the tool description when loadin
 
 Only applies when converting **ODS / XLSX** to row records. Lists **column names** to keep (must match the first-row headers). The key in code is **`include_fileds`** (`filed` is the legacy spelling—match the code).
 
+### `index_fields` / `display_fields`
+
+Only applies to **ODS / XLSX** row indexing.
+
+- **`index_fields`** lists the columns used to build the searchable text stored in Weaviate.
+- **`display_fields`** lists the columns returned in retrieval results by default. Retrieval requests can override this with `retrieval_setting.display_fields`.
+- When either field is set, spreadsheet rows are indexed one row per chunk so the displayed fields stay aligned with the matched row.
+
+Example:
+
+```yaml
+path: example_fields.xlsx
+index_fields:
+  - 水果
+display_fields:
+  - 肉類
+```
+
 ### `include_ext`
 
 When `path` points at a **folder** (directory indexing), list extensions to include, for example:

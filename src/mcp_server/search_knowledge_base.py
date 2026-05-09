@@ -13,6 +13,7 @@ def search_knowledge_base(
     score_threshold: float = 0.1,
     file_mode: bool = False,
     disable_metadata: bool = True,
+    display_fields: str | None = None,
 ):
     """POST JSON to the internal retrieval API; Bearer token from MCP_API_KEY."""
     url = "http://api/retrieval"
@@ -30,6 +31,7 @@ def search_knowledge_base(
         "retrieval_setting": {
             "top_k": top_k,
             "score_threshold": score_threshold,
+            "display_fields": display_fields,
         },
         "file_mode": file_mode,
         "disable_metadata": disable_metadata,

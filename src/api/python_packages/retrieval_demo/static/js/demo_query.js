@@ -56,7 +56,7 @@ const escapeHTMLTags = (content) => {
 };
 
 // Fields to persist in localStorage
-const persistFields = ['knowledge_id', 'section_name', 'top_k', 'score_threshold', 'query'];
+const persistFields = ['knowledge_id', 'section_name', 'top_k', 'score_threshold', 'display_fields', 'query'];
 const persistCheckboxes = ['file_mode', 'disable_metadata'];
 const API_KEY_STORAGE_KEY = 'retrieval_api_key';
 
@@ -264,6 +264,7 @@ form.addEventListener('submit', async (e) => {
     const sectionName = document.getElementById('section_name').value;
     const topK = parseInt(document.getElementById('top_k').value);
     const score_threshold = document.getElementById('score_threshold').value;
+    const displayFields = document.getElementById('display_fields').value.trim();
     const fileMode = document.getElementById('file_mode').checked;
     const disableMetadata = document.getElementById('disable_metadata').checked;
     const query = document.getElementById('query').value;
@@ -289,6 +290,7 @@ form.addEventListener('submit', async (e) => {
         retrieval_setting: {
             top_k: topK,
             score_threshold: score_threshold ? parseFloat(score_threshold) : null,
+            display_fields: displayFields || null,
             file_mode: fileMode,
             disable_metadata: disableMetadata
         }
@@ -330,7 +332,7 @@ form.addEventListener('submit', async (e) => {
 
 function updateSidebar(records) {
     records.forEach((record, index) => {
-        const content = record.content || record.text || "";
+        const content = record.content || record.text || JSON.stringify(record);
         const preview = content.substring(0, 30) + (content.length > 30 ? "..." : "");
         const score = record.score ? record.score.toFixed(3) : "N/A";
 
@@ -361,7 +363,7 @@ function displayResults(records) {
     }
 
     resultsList.innerHTML = records.map((record, index) => {
-        const content = record.content || record.text || "";
+        const content = record.content || record.text || JSON.stringify(record);
         let renderedContent = "";
 
         // Try to parse as JSON first

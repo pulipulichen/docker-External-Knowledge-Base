@@ -12,11 +12,12 @@
 |-------|----------|-------------|
 | `knowledge_id` | Yes | Config stem: the YAML filename in `knowledge_base/configs/` without extension (e.g. `example` → `example.yml`). For spreadsheet-style sources you can pass `my_kb!SheetName` so the part after `!` is the section/sheet name (see `parse_knowledge_id` in the API). |
 | `query` | Yes | Natural language or keywords to retrieve against. |
-| `retrieval_setting` | No | Object with optional `top_k` (default **5**) and `score_threshold` (default **no filter** in the HTTP handler when omitted; MCP defaults **0.1** when calling the helper). |
-| `file_mode` | No | JSON boolean, default **`false`**. If **`true`**, use file-level retrieval instead of chunk retrieval. |
-| `disable_metadata` | No | JSON boolean, default **`false`** for direct HTTP calls. If **`true`**, each object in **`records`** is returned **without** a **`metadata`** field (smaller responses). The MCP helper `search_knowledge_base` sends **`true`** by default so tool output stays lean unless you opt in. |
+| `retrieval_setting` | No | Object with optional `top_k` (default **5**), `score_threshold` (default **no filter** in the HTTP handler when omitted; MCP defaults **0.1** when calling the helper), `file_mode`, `disable_metadata`, and `display_fields`. Field-level indexing is configured per knowledge base in YAML; `display_fields` can be overridden per request. |
+| `file_mode` | No | JSON boolean under `retrieval_setting`, default **`false`**. If **`true`**, use file-level retrieval instead of chunk retrieval. Top-level `file_mode` is still accepted for older callers. |
+| `disable_metadata` | No | JSON boolean under `retrieval_setting`, default **`false`** for direct HTTP calls. If **`true`**, each object in **`records`** is returned **without** a **`metadata`** field (smaller responses). Top-level `disable_metadata` is still accepted for older callers. The MCP helper `search_knowledge_base` sends **`true`** by default so tool output stays lean unless you opt in. |
+| `display_fields` | No | Comma-separated field names under `retrieval_setting`, e.g. `title,content,metadata.path`. When set, returned records include only those fields for this request. When omitted or `null`, YAML `display_fields` is used. |
 
-**MCP:** The server registers one pair of tools per config file: **`search_<knowledge_id>_chunks`** and **`search_<knowledge_id>_files`**. Both call the internal helper `search_knowledge_base`, which `POST`s to `http://api/retrieval` inside Compose with the same JSON shape (Bearer **`MCP_API_KEY`** must match your API key). Tool arguments map to `query`, `top_k`, `score_threshold`, `file_mode` on the files variant, and **`disable_metadata`** (default **`true`** on the tools, forwarded as the top-level JSON field). Direct HTTP callers who omit **`disable_metadata`** get **`false`** (metadata included).
+**MCP:** The server registers one pair of tools per config file: **`search_<knowledge_id>_chunks`** and **`search_<knowledge_id>_files`**. Both call the internal helper `search_knowledge_base`, which `POST`s to `http://api/retrieval` inside Compose with the same JSON shape (Bearer **`MCP_API_KEY`** must match your API key). Tool arguments map to `query`, `top_k`, `score_threshold`, `file_mode` on the files variant, **`disable_metadata`** (default **`true`** on the tools), and optional `display_fields`. Direct HTTP callers who omit **`disable_metadata`** get **`false`** (metadata included).
 
 **curl** (host port **8080** maps to the API container; use **`API_KEY`** from `.env`):
 
@@ -29,7 +30,8 @@ curl -X POST http://localhost:8080/retrieval \
        "query": "webcam",
        "retrieval_setting": {
          "top_k": 5,
-         "score_threshold": 0.1
+         "score_threshold": 0.1,
+         "display_fields": "title,content,metadata.path"
        }
      }'
 ```
@@ -43,10 +45,10 @@ curl -X POST http://localhost:8080/retrieval \
      -d '{
        "knowledge_id": "example",
        "query": "webcam",
-       "file_mode": true,
        "retrieval_setting": {
          "top_k": 5,
-         "score_threshold": 0.1
+         "score_threshold": 0.1,
+         "file_mode": true
        }
      }'
 ```

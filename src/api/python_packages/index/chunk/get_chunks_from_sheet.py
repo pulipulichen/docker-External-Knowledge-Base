@@ -9,6 +9,20 @@ import os
 
 logger = logging.getLogger(__name__)
 
+def _normalize_fields(value) -> list[str]:
+    if isinstance(value, str):
+        return [field.strip() for field in value.split(",") if field.strip()]
+    if isinstance(value, list):
+        return [str(field).strip() for field in value if str(field).strip()]
+    return []
+
+
+def _select_fields(item: dict, fields: list[str]) -> dict:
+    if not fields:
+        return dict(item)
+    return {field: item[field] for field in fields if field in item}
+
+
 def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int = 1000) -> list[dict]:
     """
     Reads an ODS file, extracts data from a specified sheet, and returns chunks.
@@ -30,6 +44,8 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         config = get_knowledge_base_config(knowledge_id)
         filepath = config.get('file_path')
         include_fields = config.get('include_fileds', [])
+        index_fields = _normalize_fields(config.get('index_fields', []))
+        display_fields = _normalize_fields(config.get('display_fields', []))
 
         # ============
 
@@ -48,12 +64,35 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
 
         # ============
 
-        json_array = sheet_to_json(filepath, section_name, include_fields)
+        fields_to_load = include_fields or list(dict.fromkeys(index_fields + display_fields))
+        json_array = sheet_to_json(filepath, section_name, fields_to_load)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))
         splitter = SmartMarkdownSplitter(max_tokens=effective_max)
 
         logger.info(f"json_array count: {len(json_array)}")
+
+        if index_fields or display_fields:
+            chunks: list[dict] = []
+            for item in json_array:
+                row_index = item.pop("__row_index__", 0)
+                item = {k: v for k, v in item.items() if v is not None}
+                index_item = _select_fields(item, index_fields)
+                if not index_item:
+                    continue
+                chunk = {
+                    "chunk_id": f"{knowledge_id}_{section_name}_{row_index}",
+                    "document": json.dumps(index_item, ensure_ascii=False),
+                }
+                metadata = _select_fields(item, display_fields)
+                if metadata:
+                    chunk["metadata"] = {
+                        "_display_fields": json.dumps(metadata, ensure_ascii=False)
+                    }
+                chunks.append(chunk)
+
+            logger.info(f"chunks count: {len(chunks)}")
+            return chunks
 
         def chunk_id_for_rows(row_indices: list[int]) -> str:
             if len(row_indices) == 1:
