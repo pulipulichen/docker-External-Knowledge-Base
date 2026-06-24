@@ -111,14 +111,14 @@ def make_tool_function(reg_key, reg_desc, file_mode: bool = False):
             ),
         ] = True,
         display_fields: Annotated[
-            str | None,
+            str,
             Field(
                 description=(
                     "Optional comma-separated field names to include in returned records for this request; "
                     "when omitted, the knowledge base YAML display_fields setting is used"
                 ),
             ),
-        ] = None,
+        ] = "",
     ) -> str:
         return search_knowledge_base(
             reg_key,
@@ -127,7 +127,7 @@ def make_tool_function(reg_key, reg_desc, file_mode: bool = False):
             score_threshold,
             file_mode,
             disable_metadata,
-            display_fields,
+            _optional_str(display_fields),
         )
 
     # MCP uses the Python function name as the tool id; must be unique per tool
