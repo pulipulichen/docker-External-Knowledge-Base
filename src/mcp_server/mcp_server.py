@@ -192,63 +192,64 @@ def search_web_tool(
         str,
         Field(description="Web search keywords or a full question"),
     ],
-    categories: Annotated[
-        str,
-        Field(
-            description="Optional SearXNG category (e.g. general, images, news); empty to omit",
-        ),
-    ] = "",
-    language: Annotated[
-        str,
-        Field(description="Optional language code (e.g. zh-TW, en); empty to omit"),
-    ] = "",
-    pageno: Annotated[
-        int,
-        Field(description="Result page number, starting at 1"),
-    ] = 1,
-    safesearch: Annotated[
-        int,
-        Field(
-            description=(
-                "Safe search: 0 off, 1 moderate, 2 strict; use -1 to omit (default)"
-            ),
-        ),
-    ] = -1,
-    time_range: Annotated[
-        str,
-        Field(
-            description="Optional time range (e.g. day, week, month, year); empty to omit",
-        ),
-    ] = "",
-    fulltext: Annotated[
-        bool,
-        Field(
-            description=(
-                "If true (default), fetch each result URL through Mercury and put article markdown "
-                "in content (SearXNG excerpt moves to snippet); set false for snippet-only, faster"
-            ),
-        ),
-    ] = True,
-    limit: Annotated[
-        int,
-        Field(
-            description=(
-                "Maximum number of search hits to return in results (default 5; "
-                "API caps at SEARCH_MAX_RESULT_LIMIT, typically 50)"
-            ),
-        ),
-    ] = 5,
+    # categories: Annotated[
+    #     str,
+    #     Field(
+    #         description="Optional SearXNG category (e.g. general, images, news); empty to omit",
+    #     ),
+    # ] = "",
+    # language: Annotated[
+    #     str,
+    #     Field(description="Optional language code (e.g. zh-TW, en); empty to omit"),
+    # ] = "",
+    # pageno: Annotated[
+    #     int,
+    #     Field(description="Result page number, starting at 1"),
+    # ] = 1,
+    # safesearch: Annotated[
+    #     int,
+    #     Field(
+    #         description=(
+    #             "Safe search: 0 off, 1 moderate, 2 strict; use -1 to omit (default)"
+    #         ),
+    #     ),
+    # ] = -1,
+    # time_range: Annotated[
+    #     str,
+    #     Field(
+    #         description="Optional time range (e.g. day, week, month, year); empty to omit",
+    #     ),
+    # ] = "",
+    # fulltext: Annotated[
+    #     bool,
+    #     Field(
+    #         description=(
+    #             "If true (default), fetch each result URL through Mercury and put article markdown "
+    #             "in content (SearXNG excerpt moves to snippet); set false for snippet-only, faster"
+    #         ),
+    #     ),
+    # ] = True,
+    # limit: Annotated[
+    #     int,
+    #     Field(
+    #         description=(
+    #             "Maximum number of search hits to return in results (default 5; "
+    #             "API caps at SEARCH_MAX_RESULT_LIMIT, typically 50)"
+    #         ),
+    #     ),
+    # ] = 5,
 ) -> str:
+    # """Search the public web via SearXNG; with fulltext, each result has snippet + Mercury content."""
     """Search the public web via SearXNG; with fulltext, each result has snippet + Mercury content."""
     return search_web(
         query,
-        categories=_optional_str(categories),
-        language=_optional_str(language),
-        pageno=pageno,
-        safesearch=safesearch if safesearch >= 0 else None,
-        time_range=_optional_str(time_range),
-        fulltext=fulltext,
-        limit=limit,
+        # categories=_optional_str(categories),
+        # language=_optional_str(language),
+        # pageno=pageno,
+        # safesearch=safesearch if safesearch >= 0 else None,
+        # time_range=_optional_str(time_range),
+        # fulltext=fulltext,
+        # limit=limit,
     )
 
 
