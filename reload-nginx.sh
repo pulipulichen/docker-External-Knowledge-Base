@@ -5,7 +5,6 @@ cd "$(dirname "$0")"
 
 git pull
 
-docker compose up -d \
-  --force-recreate \
-  --no-deps \
-  nginx
+docker-compose rm -sf nginx
+
+docker-compose up -d --no-deps nginx
