@@ -2,6 +2,7 @@
 
 ## 0.0.3
 
+- Added Nginx proxy routes for MCP OAuth protected-resource and authorization-server metadata discovery.
 - Added spreadsheet `index_fields` support so indexed text and vectors can be limited to selected columns.
 - Added configurable `display_fields` output with per-request overrides for retrieval responses.
 - Kept field-limited spreadsheet retrieval compatible with hybrid Weaviate search.
