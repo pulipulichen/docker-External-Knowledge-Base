@@ -1,0 +1,16 @@
+---
+description: Keep project documentation written in English
+alwaysApply: true
+---
+
+# Project Documentation Language
+
+- Write repository documentation in English.
+- This applies to Markdown files, documentation under `documents/`, the root
+  `README.md`, changelog entries, and developer-facing configuration notes.
+- Keep documentation examples, headings, tables, comments in documentation,
+  and explanatory text in English.
+- Do not translate existing documentation into another language unless the
+  file is explicitly a localized variant.
+- User prompts may be written in any language; repository-facing documentation
+  must still follow this English-only policy.

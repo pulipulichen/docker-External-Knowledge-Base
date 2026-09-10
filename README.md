@@ -13,6 +13,8 @@ rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_ba
 
 HTTP API usage for **Search**, **Scrape**, **News**, and **Knowledge base retrieval** (`/search`, `/scrape`, `/news`, `/retrieval`) is documented in [documents/API.md](documents/API.md).
 
+Browser-based demo pages, including startup instructions and available URLs, are documented in [documents/DEMO.md](documents/DEMO.md).
+
 Repository layout (`src/`, `knowledge_base/`, `test/`, and related paths) is described in [documents/STRUCTURE.md](documents/STRUCTURE.md).
 
 ## MCP integration tests (Docker)
