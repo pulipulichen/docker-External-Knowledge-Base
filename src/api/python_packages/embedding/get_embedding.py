@@ -11,6 +11,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 EMBEDDING_ENGINE = os.getenv("EMBEDDING_ENGINE", "ollama").strip().lower()
+if EMBEDDING_ENGINE == "tei":
+    logger.warning("EMBEDDING_ENGINE=tei is deprecated; using Ollama instead.")
+    EMBEDDING_ENGINE = "ollama"
+
 OLLAMA_ENDPOINT = os.getenv("OLLAMA_ENDPOINT", "http://ollama:11434").rstrip("/")
 OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "embeddinggemma:300m").strip()
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
@@ -18,7 +22,6 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 CACHE_EXPIRATION_SECONDS = int(os.getenv("CACHE_EXPIRATION_SECONDS", 3600))
 
-# 與 [api] 的 GEMINI_BASE_URL（聊天／代理）分開，避免誤打到非 embed 端點
 GEMINI_EMBEDDING_BASE_URL = os.getenv(
     "GEMINI_EMBEDDING_BASE_URL",
     "https://generativelanguage.googleapis.com",
@@ -75,12 +78,9 @@ def _embedding_gemini_http(text: str, for_query: bool):
     model = GEMINI_EMBEDDING_MODEL
     url = f"{GEMINI_EMBEDDING_BASE_URL}/v1beta/models/{model}:embedContent"
     body_text = _format_text_for_gemini(model, text, for_query)
-    payload = {
-        "content": {"parts": [{"text": body_text}]},
-    }
+    payload = {"content": {"parts": [{"text": body_text}]}}
     if _GEMINI_OUT_DIM_RAW:
         payload["outputDimensionality"] = int(_GEMINI_OUT_DIM_RAW)
-
     if not _gemini_uses_prompt_task_prefix(model):
         payload["taskType"] = GEMINI_TASK_QUERY if for_query else GEMINI_TASK_DOCUMENT
 
@@ -88,10 +88,7 @@ def _embedding_gemini_http(text: str, for_query: bool):
         response = httpx.post(
             url,
             json=payload,
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": GEMINI_API_KEY,
-            },
+            headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY},
             timeout=120.0,
         )
         response.raise_for_status()
@@ -116,10 +113,7 @@ def _embedding_ollama_http(text: str):
     try:
         response = httpx.post(
             f"{OLLAMA_ENDPOINT}/api/embed",
-            json={
-                "model": OLLAMA_EMBEDDING_MODEL,
-                "input": text,
-            },
+            json={"model": OLLAMA_EMBEDDING_MODEL, "input": text},
             headers={"Content-Type": "application/json"},
             timeout=6000.0,
         )
@@ -151,11 +145,6 @@ except redis.exceptions.ConnectionError as e:
 
 
 async def get_embedding(text: str, *, for_query: bool = False):
-    """
-    取得輸入字串的 embedding。
-    for_query：使用 Gemini 時區分檢索查詢與文件片段（官方非對稱格式 / taskType）。
-    Ollama 路徑使用模型本身的 embedding 模板，因此忽略此旗標。
-    """
     cache_key = _cache_key(text, for_query)
 
     if redis_client:
@@ -182,21 +171,11 @@ if __name__ == "__main__":
     async def main():
         test_text = "這是一個測試句子，用於獲取其嵌入向量。"
         embedding_result = await get_embedding(test_text)
-
         if embedding_result:
             logger.info("Embedding 成功取得！")
             logger.info(f"Embedding 向量長度: {len(embedding_result)}")
             logger.info(f"前5個向量值: {embedding_result[:5]}")
         else:
             logger.error("Embedding 取得失敗。")
-
-        test_text_2 = "第二個測試句子。"
-        embedding_result_2 = await get_embedding(test_text_2)
-
-        if embedding_result_2:
-            logger.info("第二個 Embedding 成功取得！")
-            logger.info(f"Embedding 向量長度: {len(embedding_result_2)}")
-        else:
-            logger.error("第二個 Embedding 取得失敗。")
 
     asyncio.run(main())
