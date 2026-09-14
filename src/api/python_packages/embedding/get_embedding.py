@@ -10,8 +10,9 @@ from .wait_for_embedding_service import wait_for_embedding_service
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-EMBEDDING_ENGINE = os.getenv("EMBEDDING_ENGINE", "tei").strip().lower()
-TEI_ENDPOINT = os.getenv("TEI_ENDPOINT", "http://tei:80")
+EMBEDDING_ENGINE = os.getenv("EMBEDDING_ENGINE", "ollama").strip().lower()
+OLLAMA_ENDPOINT = os.getenv("OLLAMA_ENDPOINT", "http://ollama:11434").rstrip("/")
+OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "embeddinggemma:300m").strip()
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
@@ -29,8 +30,14 @@ GEMINI_TASK_DOCUMENT = os.getenv("GEMINI_EMBEDDING_TASK_TYPE_DOCUMENT", "RETRIEV
 _GEMINI_OUT_DIM_RAW = os.getenv("GEMINI_EMBEDDING_OUTPUT_DIMENSIONALITY", "").strip()
 
 
+def _embedding_model_cache_id() -> str:
+    if EMBEDDING_ENGINE == "gemini":
+        return GEMINI_EMBEDDING_MODEL
+    return OLLAMA_EMBEDDING_MODEL
+
+
 def _cache_key(text: str, for_query: bool) -> str:
-    return f"embedding:{EMBEDDING_ENGINE}:q={int(for_query)}:{text}"
+    return f"embedding:{EMBEDDING_ENGINE}:{_embedding_model_cache_id()}:q={int(for_query)}:{text}"
 
 
 def _gemini_uses_prompt_task_prefix(model: str) -> bool:
@@ -105,6 +112,36 @@ def _embedding_gemini_http(text: str, for_query: bool):
         return None
 
 
+def _embedding_ollama_http(text: str):
+    try:
+        response = httpx.post(
+            f"{OLLAMA_ENDPOINT}/api/embed",
+            json={
+                "model": OLLAMA_EMBEDDING_MODEL,
+                "input": text,
+            },
+            headers={"Content-Type": "application/json"},
+            timeout=6000.0,
+        )
+        response.raise_for_status()
+        data = response.json()
+        embeddings = data.get("embeddings") if isinstance(data, dict) else None
+        if not embeddings or not isinstance(embeddings[0], list):
+            logger.error("Unexpected Ollama /api/embed response shape")
+            return None
+        return embeddings[0]
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            "Ollama embed HTTP error: %s — %s",
+            e.response.status_code,
+            e.response.text[:500] if e.response.text else "",
+        )
+        return None
+    except httpx.RequestError as e:
+        logger.error("Ollama embed request error: %s", e)
+        return None
+
+
 try:
     redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
     redis_client.ping()
@@ -117,7 +154,7 @@ async def get_embedding(text: str, *, for_query: bool = False):
     """
     取得輸入字串的 embedding。
     for_query：使用 Gemini 時區分檢索查詢與文件片段（官方非對稱格式 / taskType）。
-    TEI 路徑會忽略此旗標。
+    Ollama 路徑使用模型本身的 embedding 模板，因此忽略此旗標。
     """
     cache_key = _cache_key(text, for_query)
 
@@ -126,29 +163,19 @@ async def get_embedding(text: str, *, for_query: bool = False):
         if cached_result:
             return json.loads(cached_result)
 
-    try:
-        if EMBEDDING_ENGINE == "gemini":
-            embedding_result = await asyncio.to_thread(_embedding_gemini_http, text, for_query)
-        else:
-            await wait_for_embedding_service()
-            response = httpx.post(
-                f"{TEI_ENDPOINT}/embed",
-                json={"inputs": text},
-                headers={"Content-Type": "application/json"},
-                timeout=6000,
-            )
-            response.raise_for_status()
-            embedding_result = response.json()
-            if isinstance(embedding_result[0], list):
-                embedding_result = embedding_result[0]
-
-        if isinstance(embedding_result, list) and redis_client and embedding_result:
-            redis_client.setex(cache_key, CACHE_EXPIRATION_SECONDS, json.dumps(embedding_result))
-
-        return embedding_result
-    except httpx.RequestError as e:
-        logger.error(f"Error getting embedding: {e}")
+    if EMBEDDING_ENGINE == "gemini":
+        embedding_result = await asyncio.to_thread(_embedding_gemini_http, text, for_query)
+    elif EMBEDDING_ENGINE == "ollama":
+        await wait_for_embedding_service()
+        embedding_result = await asyncio.to_thread(_embedding_ollama_http, text)
+    else:
+        logger.error("Unsupported EMBEDDING_ENGINE: %s", EMBEDDING_ENGINE)
         return None
+
+    if isinstance(embedding_result, list) and redis_client and embedding_result:
+        redis_client.setex(cache_key, CACHE_EXPIRATION_SECONDS, json.dumps(embedding_result))
+
+    return embedding_result
 
 
 if __name__ == "__main__":
