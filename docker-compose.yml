@@ -15,8 +15,8 @@ services:
     depends_on:
       redis:
         condition: service_started
-      tei:
-        condition: service_started
+      ollama_init:
+        condition: service_completed_successfully
       weaviate:
         # condition: service_healthy
         condition: service_started
@@ -109,23 +109,32 @@ services:
     networks:
       - docker_external_knowledge_base
 
-  tei:
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.3
-    environment:
-      # - MODEL_ID=google/embeddinggemma-300m
-      - MODEL_ID=${EMBEDDING_MODEL_ID:-google/embeddinggemma-300m}
-      - HF_TOKEN=${HF_TOKEN}
+  ollama:
+    image: ollama/ollama:latest
     restart: on-failure
+    environment:
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-5m}
     ports:
-      - 40001:80
+      - "40001:11434"
     volumes:
-      - ./cache/tei:/data
-    cap_add:
-      - SYS_ADMIN
-    security_opt:
-      - seccomp=unconfined
-    # logging:
-    #   driver: "none"
+      - ollama_data:/root/.ollama
+    networks:
+      - docker_external_knowledge_base
+
+  # Pull the embedding model once at startup so API requests never race a missing model.
+  ollama_init:
+    image: ollama/ollama:latest
+    restart: on-failure
+    depends_on:
+      ollama:
+        condition: service_started
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    command:
+      - pull
+      - ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma:300m}
     networks:
       - docker_external_knowledge_base
 
@@ -266,6 +275,7 @@ volumes:
   redis_data:
   weaviate_data:
   root-caches:
+  ollama_data:
 
 networks:
   docker_external_knowledge_base:
