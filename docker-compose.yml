@@ -134,7 +134,7 @@ services:
       - ollama_data:/root/.ollama
     command:
       - pull
-      - ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma:300m}
+      - ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
     networks:
       - docker_external_knowledge_base
 
