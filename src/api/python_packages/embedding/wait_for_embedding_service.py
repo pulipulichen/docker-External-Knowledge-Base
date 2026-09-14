@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 OLLAMA_ENDPOINT = os.getenv("OLLAMA_ENDPOINT", "http://ollama:11434").rstrip("/")
 EMBEDDING_ENGINE = os.getenv("EMBEDDING_ENGINE", "ollama").strip().lower()
+EMBEDDING_ENGINE = "ollama" if EMBEDDING_ENGINE == "tei" else EMBEDDING_ENGINE
 SERVICE_CHECK_INTERVAL = int(os.getenv("SERVICE_CHECK_INTERVAL", 5))
 SERVICE_CHECK_TIMEOUT = int(os.getenv("SERVICE_CHECK_TIMEOUT", 60))
 
@@ -15,10 +16,6 @@ IS_SERVICE_ALIVE = False
 
 
 async def wait_for_embedding_service():
-    """
-    Wait until the local Ollama embedding service is available.
-    Gemini uses a remote API and therefore does not need a local health check.
-    """
     global IS_SERVICE_ALIVE
 
     if EMBEDDING_ENGINE == "gemini":
@@ -37,25 +34,11 @@ async def wait_for_embedding_service():
             if resp.status_code == 200:
                 IS_SERVICE_ALIVE = True
                 return True
-            logger.warning(
-                "Ollama responded with HTTP %s. Retrying in %ss...",
-                resp.status_code,
-                SERVICE_CHECK_INTERVAL,
-            )
+            logger.warning("Ollama responded with HTTP %s. Retrying in %ss...", resp.status_code, SERVICE_CHECK_INTERVAL)
         except httpx.RequestError as e:
-            logger.warning(
-                "Ollama not yet available (%s: %s). Retrying in %ss...",
-                type(e).__name__,
-                e,
-                SERVICE_CHECK_INTERVAL,
-            )
+            logger.warning("Ollama not yet available (%s: %s). Retrying in %ss...", type(e).__name__, e, SERVICE_CHECK_INTERVAL)
         except Exception as e:
-            logger.error(
-                "Unexpected embedding service check error: %s: %s",
-                type(e).__name__,
-                e,
-                exc_info=True,
-            )
+            logger.error("Unexpected embedding service check error: %s: %s", type(e).__name__, e, exc_info=True)
 
         await asyncio.sleep(SERVICE_CHECK_INTERVAL)
 
