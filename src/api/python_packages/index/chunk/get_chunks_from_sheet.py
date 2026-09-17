@@ -2,10 +2,9 @@ import json
 import logging
 
 from ...knowledge_base_config.get_knowledge_base_config import get_knowledge_base_config
+from ...knowledge_base_config.stage_file import stage_file_for_read
 from .smart_markdown_splitter import SmartMarkdownSplitter
 from .utils.sheet_to_json import sheet_to_json
-
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,9 @@ def _select_fields(item: dict, fields: list[str]) -> dict:
     return {field: item[field] for field in fields if field in item}
 
 
-def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int = 1000) -> list[dict]:
+def get_chunks_from_sheet(
+    knowledge_id: str, section_name: str, max_tokens: int = 1000
+) -> list[dict] | bool:
     """
     Reads an ODS file, extracts data from a specified sheet, and returns chunks.
     The first row of the sheet is used as keys for each row object.
@@ -47,24 +48,12 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         index_fields = _normalize_fields(config.get('index_fields', []))
         display_fields = _normalize_fields(config.get('display_fields', []))
 
-        # ============
-
         logger.info(f"filepath: {filepath}")
 
-        # 如果 filepath 是連接檔，那就取得原始檔案路徑後再來輸入
-        if os.path.islink(filepath):
-            # Resolve symlink to actual file path
-            filepath = os.path.realpath(filepath)
-
-        os.system(f"cat '{filepath}' > /dev/null")
-        os.system(f"cp -f '{filepath}' /tmp")
-        filepath = os.path.join('/tmp', os.path.basename(filepath))
-
-        logger.info(f"filepath after: {filepath}")
-
-        # ============
-
-        json_array = sheet_to_json(filepath, section_name)
+        # A mounted Google Drive file may exist but still fail during reads.
+        # Stage it locally so parsing never reads from the mount.
+        with stage_file_for_read(filepath) as staged_filepath:
+            json_array = sheet_to_json(staged_filepath, section_name)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))
         splitter = SmartMarkdownSplitter(max_tokens=effective_max)
@@ -151,6 +140,11 @@ def get_chunks_from_sheet(knowledge_id: str, section_name: str, max_tokens: int 
         return chunks
 
     except Exception as e:
-        logger.error(f"An error occurred in get_chunks_from_sheet: {e}")
-        return []
+        logger.error(
+            f"An error occurred in get_chunks_from_sheet: {e}",
+            exc_info=True,
+        )
+        # False is distinct from a valid, empty spreadsheet. The caller must
+        # not mark the knowledge base as indexed after a read failure.
+        return False
 

@@ -1,11 +1,11 @@
 import os
-import shutil
 import logging
 import zipfile
 import xml.etree.ElementTree as ET
 
 import pyexcel_ods
 from .get_knowledge_base_config import get_knowledge_base_config
+from .stage_file import stage_file_for_read
 
 logger = logging.getLogger(__name__)
 
@@ -15,29 +15,15 @@ _XLSX_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
     """Return the first worksheet name by reading only xl/workbook.xml inside the ZIP."""
 
-    file_path = filepath
-    if os.path.islink(file_path):
-        # Resolve symlink to actual file path
-        file_path = os.path.realpath(file_path)
-
-    tmp_path = os.path.join("/tmp", os.path.basename(file_path))
-    try:
-        same_mtime = (
-            os.path.isfile(tmp_path)
-            and os.path.getmtime(file_path) == os.path.getmtime(tmp_path)
+    with stage_file_for_read(filepath) as staged_filepath:
+        logger.info(
+            f"Reading XLSX file '{staged_filepath}' in "
+            "_first_sheet_name_from_xlsx"
         )
-    except OSError:
-        same_mtime = False
-    if not same_mtime:
-        os.system(f"cat '{file_path}' > /dev/null")
-        shutil.copy2(file_path, tmp_path)
-    filepath = tmp_path
-
-    logger.info(f"Reading XLSX file '{filepath}' in _first_sheet_name_from_xlsx")
-    with zipfile.ZipFile(filepath, "r") as zf:
-        logger.info(f"get ZipFile")
-        with zf.open("xl/workbook.xml") as wb_xml:
-            root = ET.parse(wb_xml).getroot()
+        with zipfile.ZipFile(staged_filepath, "r") as zf:
+            logger.info("get ZipFile")
+            with zf.open("xl/workbook.xml") as wb_xml:
+                root = ET.parse(wb_xml).getroot()
             logger.info(f"get Root")
     # Default namespace on workbook root
     for sheet in root.findall(f"{{{_XLSX_MAIN_NS}}}sheets/{{{_XLSX_MAIN_NS}}}sheet"):
@@ -75,7 +61,8 @@ def get_section_name(knowledge_id):
         # return filename
 
     try:
-        book = pyexcel_ods.get_data(filepath)
+        with stage_file_for_read(filepath) as staged_filepath:
+            book = pyexcel_ods.get_data(staged_filepath)
     except Exception as e:
         logger.error(f"Error reading ODS file '{filepath}': {e}")
         return knowledge_id
