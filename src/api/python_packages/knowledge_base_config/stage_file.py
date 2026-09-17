@@ -1,7 +1,10 @@
+import fcntl
 import hashlib
 import logging
 import os
 import shutil
+import subprocess
+import tempfile
 import time
 from contextlib import contextmanager
 from typing import Iterator
@@ -63,12 +66,65 @@ def _get_cache_path(source_path: str, cache_dir: str) -> str:
     return os.path.join(cache_dir, f"{source_hash}_{clean_name}")
 
 
+def _copy_mounted_file(source_path: str, tmp_path: str) -> bool:
+    """
+    Attempt to copy a file from a mounted remote path to a local temporary path.
+    Tries Python streaming first, falling back to shell `cat` redirection which
+    is particularly effective at pulling streams from FUSE mounts without seeking.
+    """
+    # Method 1: Python streaming read
+    try:
+        with open(source_path, "rb") as source, open(tmp_path, "wb") as destination:
+            shutil.copyfileobj(source, destination, length=1024 * 1024)
+            destination.flush()
+            os.fsync(destination.fileno())
+
+        if os.path.getsize(tmp_path) >= FILE_STAGE_MIN_SIZE_BYTES:
+            return True
+    except (OSError, shutil.Error) as err:
+        logger.debug("Python copy failed for '%s': %s; trying shell cat", source_path, err)
+
+    # Method 2: Shell `cat` streaming directly to target file
+    # This avoids seek/partial read issues common in FUSE Google Drive mounts
+    try:
+        if os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+        cmd = f"cat '{source_path}' > '{tmp_path}'"
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            timeout=120,
+        )
+        if (
+            result.returncode == 0
+            and os.path.exists(tmp_path)
+            and os.path.getsize(tmp_path) >= FILE_STAGE_MIN_SIZE_BYTES
+        ):
+            return True
+        else:
+            stderr_msg = result.stderr.decode("utf-8", errors="replace").strip()
+            logger.debug(
+                "Shell cat copy failed for '%s': code=%d, stderr=%s",
+                source_path,
+                result.returncode,
+                stderr_msg,
+            )
+    except Exception as err:
+        logger.debug("Shell cat execution error for '%s': %s", source_path, err)
+
+    return False
+
+
 def stage_file(filepath: str, force_update: bool = False) -> str:
     """
     Ensure a mounted or symlinked file is copied to a persistent local cache.
-
-    If the source file cannot be read (e.g. rclone Input/output error) but a
-    previous cache exists, it falls back to the existing cache with a warning.
+    Uses file locking to prevent concurrent read/write races on the same file.
     """
     if not filepath:
         raise FileNotFoundError("No file path was configured")
@@ -84,79 +140,104 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
 
     cache_dir = _get_cache_dir()
     cached_path = _get_cache_path(source_path, cache_dir)
+    lock_path = f"{cached_path}.lock"
 
-    # If cache exists and is not forced to update, check freshness
-    if os.path.exists(cached_path) and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES:
-        if not force_update:
-            try:
-                source_mtime = os.path.getmtime(source_path)
-                cached_mtime = os.path.getmtime(cached_path)
-                if cached_mtime >= source_mtime:
-                    logger.debug("Staged file cache is up-to-date: '%s'", cached_path)
-                    return cached_path
-            except OSError:
-                logger.debug("Using existing cache for '%s' without mtime check", filepath)
-                return cached_path
-
-    last_error = None
-    tmp_path = f"{cached_path}.{os.getpid()}.tmp"
-
-    for attempt in range(1, FILE_STAGE_RETRIES + 1):
+    # Acquire an exclusive lock during staging to prevent concurrent threads/workers from colliding
+    with open(lock_path, "w") as lock_file:
         try:
-            with open(source_path, "rb") as source, open(tmp_path, "wb") as destination:
-                shutil.copyfileobj(source, destination, length=1024 * 1024)
-                destination.flush()
-                os.fsync(destination.fileno())
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
 
-            staged_size = os.path.getsize(tmp_path)
-            if staged_size < FILE_STAGE_MIN_SIZE_BYTES:
-                raise OSError(f"The staged file is too small ({staged_size} bytes)")
+            # Check if cache already exists and is fresh
+            if (
+                os.path.exists(cached_path)
+                and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES
+            ):
+                if not force_update:
+                    try:
+                        source_mtime = os.path.getmtime(source_path)
+                        cached_mtime = os.path.getmtime(cached_path)
+                        if cached_mtime >= source_mtime:
+                            logger.debug("Staged file cache is up-to-date: '%s'", cached_path)
+                            return cached_path
+                    except OSError:
+                        logger.debug(
+                            "Using existing cache for '%s' without mtime check", filepath
+                        )
+                        return cached_path
 
+            # Attempt to copy with retries
+            last_error = None
+            for attempt in range(1, FILE_STAGE_RETRIES + 1):
+                tmp_fd, tmp_path = tempfile.mkstemp(
+                    prefix="stage_",
+                    suffix=".tmp",
+                    dir=cache_dir,
+                )
+                os.close(tmp_fd)
+
+                try:
+                    success = _copy_mounted_file(source_path, tmp_path)
+                    if success:
+                        try:
+                            source_mtime = os.path.getmtime(source_path)
+                            os.utime(tmp_path, (source_mtime, source_mtime))
+                        except OSError:
+                            pass
+
+                        os.replace(tmp_path, cached_path)
+                        logger.info(
+                            "Staged file '%s' for reading at '%s' on attempt %d (%d bytes)",
+                            filepath,
+                            cached_path,
+                            attempt,
+                            os.path.getsize(cached_path),
+                        )
+                        return cached_path
+                    else:
+                        staged_size = (
+                            os.path.getsize(tmp_path) if os.path.exists(tmp_path) else 0
+                        )
+                        raise OSError(f"The staged file is too small ({staged_size} bytes)")
+                except (OSError, shutil.Error) as error:
+                    last_error = error
+                    if os.path.exists(tmp_path):
+                        try:
+                            os.unlink(tmp_path)
+                        except OSError:
+                            pass
+
+                    # Fallback: if previous cache exists, use it
+                    if (
+                        os.path.exists(cached_path)
+                        and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES
+                    ):
+                        logger.warning(
+                            "Unable to refresh staged file '%s' (%s); falling back to existing cache '%s'",
+                            filepath,
+                            error,
+                            cached_path,
+                        )
+                        return cached_path
+
+                    logger.warning(
+                        "Unable to stage file '%s' on attempt %d/%d: %s",
+                        filepath,
+                        attempt,
+                        FILE_STAGE_RETRIES,
+                        error,
+                    )
+                    if attempt < FILE_STAGE_RETRIES:
+                        time.sleep(FILE_STAGE_RETRY_DELAY_SECONDS)
+
+            raise OSError(
+                f"Unable to read '{filepath}' after {FILE_STAGE_RETRIES} attempts"
+            ) from last_error
+
+        finally:
             try:
-                source_mtime = os.path.getmtime(source_path)
-                os.utime(tmp_path, (source_mtime, source_mtime))
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
             except OSError:
                 pass
-
-            os.replace(tmp_path, cached_path)
-            logger.info(
-                "Staged file '%s' for reading at '%s' on attempt %d",
-                filepath,
-                cached_path,
-                attempt,
-            )
-            return cached_path
-        except (OSError, shutil.Error) as error:
-            last_error = error
-            if os.path.exists(tmp_path):
-                try:
-                    os.unlink(tmp_path)
-                except OSError:
-                    pass
-
-            # Graceful fallback: if a previous cache exists, use it instead of failing
-            if os.path.exists(cached_path) and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES:
-                logger.warning(
-                    "Unable to refresh staged file '%s' (%s); falling back to existing cache '%s'",
-                    filepath,
-                    error,
-                    cached_path,
-                )
-                return cached_path
-
-            logger.warning(
-                "Unable to stage file '%s' on attempt %d/%d: %s",
-                filepath,
-                attempt,
-                FILE_STAGE_RETRIES,
-                error,
-            )
-            if attempt < FILE_STAGE_RETRIES:
-                time.sleep(FILE_STAGE_RETRY_DELAY_SECONDS)
-
-    raise OSError(
-        f"Unable to read '{filepath}' after {FILE_STAGE_RETRIES} attempts"
-    ) from last_error
 
 
 @contextmanager

@@ -2,6 +2,9 @@
 
 ## 0.0.3
 
+- Added cross-process and cross-thread file locking (`fcntl.flock`) for file staging to prevent race conditions during concurrent ingestion and worksheet inspection.
+- Added shell streaming (`cat`) fallback for staging files from FUSE Google Drive mounts that report zero file size.
+- Optimized `get_section_name` to return the configured `section` directly without reading files when defined in configuration.
 - Added persistent local caching with graceful fallback for mounted spreadsheets to eliminate repeated rclone reads and avoid Input/output errors.
 - Documented `--vfs-cache-mode full` for rclone Google Drive mounts and direct Google Sheets URL alternatives.
 - Added Nginx proxy routes for MCP OAuth protected-resource and authorization-server metadata discovery.

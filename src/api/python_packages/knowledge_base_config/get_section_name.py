@@ -36,6 +36,9 @@ def _first_sheet_name_from_xlsx(filepath: str) -> str | None:
 
 def get_section_name(knowledge_id):
     config = get_knowledge_base_config(knowledge_id)
+    if config.get('section'):
+        return config.get('section')
+
     filepath = config.get('file_path')
 
     if filepath is None or not os.path.exists(filepath) or os.path.isdir(filepath):
