@@ -58,6 +58,16 @@ Human-readable text. The MCP service uses it as the tool description when loadin
 - When the API **does not** use `knowledge_id!worksheet` syntax, the default sheet name can be set here.
 - If `section` is set, Weaviate collection / object IDs stay **`{knowledge_id}`** (no `_worksheet` suffix), unlike the “one `knowledge_id_worksheet` per sheet” pattern. The project’s `goods_item.yml` is an example of a fixed `section`.
 
+### `rclone_source`
+
+Optional rclone remote path for **private Google Docs / Sheets** that cannot use a public export URL. Example: `gdrive-goods:布丁宿舍日常用品 - AppSheet - 2020.xlsx`.
+
+When set, ingest exports the file with `rclone copyto` (Drive API) into a local cache instead of reading the FUSE mount. Mounted Google native documents usually appear as **0 bytes** and cannot be copied reliably through `rclone mount`.
+
+If `rclone_source` is omitted and `path` lives under `knowledge_base/files/.mnt/<remote>/...`, the API tries `rclone copyto <remote>:<relative-path>` when that remote exists in the container rclone config.
+
+The API container needs rclone (installed in the image) and a bind-mounted rclone config (`RCLONE_CONFIG_DIR`, default `/root/.config/rclone`).
+
 ### `include_fileds` (spelling note)
 
 Only applies when converting **ODS / XLSX** to row records. Lists **column names** to keep (must match the first-row headers). The key in code is **`include_fileds`** (`filed` is the legacy spelling—match the code).

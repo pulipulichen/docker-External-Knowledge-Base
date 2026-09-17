@@ -85,6 +85,12 @@ Query tuning can also use defaults or extras such as `DATABASE_QUERY_*` and `DAT
 |----------|---------|
 | `IMAGE_DESCRIPTION_ENABLED` | Enable image descriptions (read as a string; typically `true` / `false`). |
 | `IMAGE_DESCRIBE_MIN_EDGE_PX` | Minimum shortest-edge size in pixels; smaller images may skip description to save cost. |
+| `KNOWLEDGE_BASE_FILE_READ_RETRIES` | Staging retries for mounted files (default 5). |
+| `KNOWLEDGE_BASE_FILE_READ_RETRY_DELAY_SECONDS` | Base delay between staging retries (default 5; multiplied by attempt). |
+| `KNOWLEDGE_BASE_FILE_MIN_SIZE_BYTES` | Reject staged copies smaller than this (default 1). |
+| `KNOWLEDGE_BASE_FILE_COPY_TIMEOUT_SECONDS` | Timeout for `rclone copyto` / `cat` of a mounted file (default 300). |
+
+Compose substitution: **`RCLONE_CONFIG_DIR`** (default `/root/.config/rclone`) is bind-mounted into the API container so private Google Docs can be exported with rclone.
 
 ### `[embedding]`
 

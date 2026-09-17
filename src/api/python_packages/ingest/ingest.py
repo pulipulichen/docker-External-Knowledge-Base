@@ -28,7 +28,11 @@ def _stage_mounted_spreadsheet(config: dict, force_update: bool = False) -> bool
         return True
 
     try:
-        stage_file(filepath, force_update=force_update)
+        stage_file(
+            filepath,
+            force_update=force_update,
+            rclone_source=config.get("rclone_source"),
+        )
         return True
     except (OSError, ValueError) as error:
         logger.error(

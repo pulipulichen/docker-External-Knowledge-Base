@@ -5,7 +5,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 RUN apt-get update && \ 
-    apt-get install -y ffmpeg libreoffice && \
+    apt-get install -y ffmpeg libreoffice rclone && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy the pyproject.toml and install dependencies

@@ -12,7 +12,7 @@ rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_ba
   --disable-http2
 ```
 
-> **Note**: `--vfs-cache-mode full` is required for spreadsheets (.xlsx) and documents (.docx) so random access does not trigger an `Input/output error`. Alternatively, you can configure Google Sheets URLs directly in YAML configs without mounting Google Drive.
+> **Note**: Native Google Docs/Sheets appear as 0-byte files on the mount. The API exports them with `rclone copyto` when host rclone config is mounted (`RCLONE_CONFIG_DIR`). For private sheets, set `rclone_source` in the YAML (see [documents/rclone/3.mount.md](documents/rclone/3.mount.md)). `--vfs-cache-mode full` is still recommended for other Office files.
 
 HTTP API usage for **Search**, **Scrape**, **News**, and **Knowledge base retrieval** (`/search`, `/scrape`, `/news`, `/retrieval`) is documented in [documents/API.md](documents/API.md).
 

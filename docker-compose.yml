@@ -8,6 +8,9 @@ services:
       - ./knowledge_base:/app/knowledge_base
       - ./src/searxng/settings.yml:/etc/searxng/settings.yml:ro
       - ./src/tiktoken:/root/.cache/tiktoken
+      # Host rclone config so the API can export private Google Docs/Sheets
+      # via Drive API (rclone copyto) instead of reading the FUSE mount.
+      - ${RCLONE_CONFIG_DIR:-/root/.config/rclone}:/root/.config/rclone:ro
     tmpfs:
       - /tmp
     env_file:

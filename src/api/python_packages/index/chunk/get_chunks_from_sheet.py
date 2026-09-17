@@ -52,7 +52,9 @@ def get_chunks_from_sheet(
 
         # A mounted Google Drive file may exist but still fail during reads.
         # Stage it locally so parsing never reads from the mount.
-        with stage_file_for_read(filepath) as staged_filepath:
+        with stage_file_for_read(
+            filepath, rclone_source=config.get("rclone_source")
+        ) as staged_filepath:
             json_array = sheet_to_json(staged_filepath, section_name)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))

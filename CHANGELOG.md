@@ -2,6 +2,8 @@
 
 ## 0.0.3
 
+- Export private Google Docs/Sheets with `rclone copyto` (Drive API) instead of reading 0-byte FUSE mount files; optional YAML `rclone_source` and `.mnt/<remote>/` path inference.
+- Capture the first sequential `cat` of a mounted file into local cache; skip Python `open()` on FUSE so rclone export streams are not aborted.
 - Added cross-process and cross-thread file locking (`fcntl.flock`) for file staging to prevent race conditions during concurrent ingestion and worksheet inspection.
 - Added shell streaming (`cat`) fallback for staging files from FUSE Google Drive mounts that report zero file size.
 - Optimized `get_section_name` to return the configured `section` directly without reading files when defined in configuration.

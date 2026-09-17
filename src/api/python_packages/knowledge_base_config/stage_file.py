@@ -13,14 +13,18 @@ logger = logging.getLogger(__name__)
 
 FILE_STAGE_RETRIES = max(
     1,
-    int(os.getenv("KNOWLEDGE_BASE_FILE_READ_RETRIES", "3")),
+    int(os.getenv("KNOWLEDGE_BASE_FILE_READ_RETRIES", "5")),
 )
 FILE_STAGE_RETRY_DELAY_SECONDS = float(
-    os.getenv("KNOWLEDGE_BASE_FILE_READ_RETRY_DELAY_SECONDS", "2")
+    os.getenv("KNOWLEDGE_BASE_FILE_READ_RETRY_DELAY_SECONDS", "5")
 )
 FILE_STAGE_MIN_SIZE_BYTES = max(
     1,
     int(os.getenv("KNOWLEDGE_BASE_FILE_MIN_SIZE_BYTES", "1")),
+)
+FILE_STAGE_COPY_TIMEOUT_SECONDS = max(
+    30,
+    int(os.getenv("KNOWLEDGE_BASE_FILE_COPY_TIMEOUT_SECONDS", "300")),
 )
 
 PRIMARY_CACHE_DIR = os.path.join(
@@ -66,62 +70,177 @@ def _get_cache_path(source_path: str, cache_dir: str) -> str:
     return os.path.join(cache_dir, f"{source_hash}_{clean_name}")
 
 
-def _copy_mounted_file(source_path: str, tmp_path: str) -> bool:
-    """
-    Attempt to copy a file from a mounted remote path to a local temporary path.
-    Tries Python streaming first, falling back to shell `cat` redirection which
-    is particularly effective at pulling streams from FUSE mounts without seeking.
-    """
-    # Method 1: Python streaming read
+def _safe_size(path: str) -> int:
     try:
-        with open(source_path, "rb") as source, open(tmp_path, "wb") as destination:
-            shutil.copyfileobj(source, destination, length=1024 * 1024)
-            destination.flush()
-            os.fsync(destination.fileno())
+        return os.path.getsize(path)
+    except OSError:
+        return -1
 
-        if os.path.getsize(tmp_path) >= FILE_STAGE_MIN_SIZE_BYTES:
-            return True
-    except (OSError, shutil.Error) as err:
-        logger.debug("Python copy failed for '%s': %s; trying shell cat", source_path, err)
 
-    # Method 2: Shell `cat` streaming directly to target file
-    # This avoids seek/partial read issues common in FUSE Google Drive mounts
+def _infer_rclone_source(source_path: str) -> str | None:
+    """Map ``.../.mnt/<remote>/<relpath>`` to ``remote:relpath`` when rclone knows that remote."""
+    rclone_bin = shutil.which("rclone")
+    if not rclone_bin:
+        return None
+
+    abs_path = os.path.abspath(source_path)
+    marker = f"{os.sep}.mnt{os.sep}"
+    if marker not in abs_path:
+        return None
+
+    rest = abs_path.split(marker, 1)[1]
+    remote, sep, relpath = rest.partition(os.sep)
+    if not remote or not sep:
+        return None
+
     try:
-        if os.path.exists(tmp_path):
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
-
-        cmd = f"cat '{source_path}' > '{tmp_path}'"
-        result = subprocess.run(
-            cmd,
-            shell=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            timeout=120,
+        listed = subprocess.run(
+            [rclone_bin, "listremotes"],
+            capture_output=True,
+            text=True,
+            timeout=15,
         )
-        if (
-            result.returncode == 0
-            and os.path.exists(tmp_path)
-            and os.path.getsize(tmp_path) >= FILE_STAGE_MIN_SIZE_BYTES
-        ):
-            return True
-        else:
-            stderr_msg = result.stderr.decode("utf-8", errors="replace").strip()
-            logger.debug(
-                "Shell cat copy failed for '%s': code=%d, stderr=%s",
-                source_path,
-                result.returncode,
-                stderr_msg,
-            )
-    except Exception as err:
-        logger.debug("Shell cat execution error for '%s': %s", source_path, err)
+    except (OSError, subprocess.SubprocessError):
+        return None
 
+    remotes = [
+        line.strip().rstrip(":")
+        for line in listed.stdout.splitlines()
+        if line.strip()
+    ]
+    if remote not in remotes:
+        logger.debug(
+            "rclone remote '%s' is not in listremotes; skip Drive API export",
+            remote,
+        )
+        return None
+    return f"{remote}:{relpath}"
+
+
+def _copy_with_rclone(rclone_source: str, tmp_path: str) -> bool:
+    """Export a Google native document through rclone Drive API (not FUSE)."""
+    rclone_bin = shutil.which("rclone")
+    if not rclone_bin:
+        return False
+
+    if os.path.exists(tmp_path):
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+    logger.info(
+        "Exporting '%s' with rclone copyto (timeout %ss)",
+        rclone_source,
+        FILE_STAGE_COPY_TIMEOUT_SECONDS,
+    )
+    result = subprocess.run(
+        [
+            rclone_bin,
+            "copyto",
+            "--ignore-size",
+            "--drive-export-formats",
+            "docx,xlsx,pdf",
+            rclone_source,
+            tmp_path,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=FILE_STAGE_COPY_TIMEOUT_SECONDS,
+    )
+    size = _safe_size(tmp_path)
+    if result.returncode == 0 and size >= FILE_STAGE_MIN_SIZE_BYTES:
+        logger.info("rclone copyto wrote %d bytes from '%s'", size, rclone_source)
+        return True
+
+    stderr = (result.stderr or "").strip()
+    logger.warning(
+        "rclone copyto failed for '%s': code=%s size=%s stderr=%s",
+        rclone_source,
+        result.returncode,
+        size,
+        stderr[:500],
+    )
     return False
 
 
-def stage_file(filepath: str, force_update: bool = False) -> str:
+def _copy_with_cat(source_path: str, tmp_path: str) -> bool:
+    """
+    Capture a single sequential read from FUSE into a local file.
+
+    Native Google Docs/Sheets appear as 0-byte files on rclone mount. Python
+    ``open()`` can abort the export stream; ``cat`` stdout must be saved on
+    the first read — do not discard it and retry.
+    """
+    if os.path.exists(tmp_path):
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+    logger.info(
+        "Copying mounted file '%s' with sequential cat (timeout %ss)",
+        source_path,
+        FILE_STAGE_COPY_TIMEOUT_SECONDS,
+    )
+    with open(tmp_path, "wb") as destination:
+        result = subprocess.run(
+            ["cat", "--", source_path],
+            stdout=destination,
+            stderr=subprocess.PIPE,
+            timeout=FILE_STAGE_COPY_TIMEOUT_SECONDS,
+        )
+        destination.flush()
+        os.fsync(destination.fileno())
+
+    size = _safe_size(tmp_path)
+    if result.returncode == 0 and size >= FILE_STAGE_MIN_SIZE_BYTES:
+        logger.info("cat wrote %d bytes from '%s'", size, source_path)
+        return True
+
+    stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
+    logger.warning(
+        "cat copy failed for '%s': code=%s size=%s stderr=%s",
+        source_path,
+        result.returncode,
+        size,
+        stderr[:500],
+    )
+    return False
+
+
+def _copy_mounted_file(
+    source_path: str,
+    tmp_path: str,
+    rclone_source: str | None,
+) -> bool:
+    """Try rclone Drive API export first, then a single sequential cat of the mount."""
+    sources_to_try: list[str] = []
+    if rclone_source:
+        sources_to_try.append(rclone_source)
+    inferred = _infer_rclone_source(source_path)
+    if inferred and inferred not in sources_to_try:
+        sources_to_try.append(inferred)
+
+    for source in sources_to_try:
+        try:
+            if _copy_with_rclone(source, tmp_path):
+                return True
+        except (OSError, subprocess.SubprocessError) as error:
+            logger.warning("rclone export error for '%s': %s", source, error)
+
+    try:
+        return _copy_with_cat(source_path, tmp_path)
+    except (OSError, subprocess.SubprocessError) as error:
+        logger.warning("cat copy error for '%s': %s", source_path, error)
+        return False
+
+
+def stage_file(
+    filepath: str,
+    force_update: bool = False,
+    rclone_source: str | None = None,
+) -> str:
     """
     Ensure a mounted or symlinked file is copied to a persistent local cache.
     Uses file locking to prevent concurrent read/write races on the same file.
@@ -142,30 +261,36 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
     cached_path = _get_cache_path(source_path, cache_dir)
     lock_path = f"{cached_path}.lock"
 
-    # Acquire an exclusive lock during staging to prevent concurrent threads/workers from colliding
     with open(lock_path, "w") as lock_file:
         try:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
 
-            # Check if cache already exists and is fresh
-            if (
+            source_size = _safe_size(source_path)
+            cache_ok = (
                 os.path.exists(cached_path)
-                and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES
-            ):
-                if not force_update:
-                    try:
-                        source_mtime = os.path.getmtime(source_path)
-                        cached_mtime = os.path.getmtime(cached_path)
-                        if cached_mtime >= source_mtime:
-                            logger.debug("Staged file cache is up-to-date: '%s'", cached_path)
-                            return cached_path
-                    except OSError:
-                        logger.debug(
-                            "Using existing cache for '%s' without mtime check", filepath
-                        )
-                        return cached_path
+                and _safe_size(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES
+            )
 
-            # Attempt to copy with retries
+            # Google native docs report size 0 on the mount. Re-reading them
+            # through FUSE is unreliable; keep a good cache unless forced.
+            if cache_ok and not force_update:
+                if source_size == 0:
+                    logger.info(
+                        "Using staged cache '%s' for 0-byte mounted file '%s'",
+                        cached_path,
+                        filepath,
+                    )
+                    return cached_path
+                try:
+                    if os.path.getmtime(cached_path) >= os.path.getmtime(source_path):
+                        logger.debug("Staged file cache is up-to-date: '%s'", cached_path)
+                        return cached_path
+                except OSError:
+                    logger.debug(
+                        "Using existing cache for '%s' without mtime check", filepath
+                    )
+                    return cached_path
+
             last_error = None
             for attempt in range(1, FILE_STAGE_RETRIES + 1):
                 tmp_fd, tmp_path = tempfile.mkstemp(
@@ -176,7 +301,9 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
                 os.close(tmp_fd)
 
                 try:
-                    success = _copy_mounted_file(source_path, tmp_path)
+                    success = _copy_mounted_file(
+                        source_path, tmp_path, rclone_source
+                    )
                     if success:
                         try:
                             source_mtime = os.path.getmtime(source_path)
@@ -193,12 +320,10 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
                             os.path.getsize(cached_path),
                         )
                         return cached_path
-                    else:
-                        staged_size = (
-                            os.path.getsize(tmp_path) if os.path.exists(tmp_path) else 0
-                        )
-                        raise OSError(f"The staged file is too small ({staged_size} bytes)")
-                except (OSError, shutil.Error) as error:
+
+                    staged_size = _safe_size(tmp_path)
+                    raise OSError(f"The staged file is too small ({max(staged_size, 0)} bytes)")
+                except (OSError, shutil.Error, subprocess.SubprocessError) as error:
                     last_error = error
                     if os.path.exists(tmp_path):
                         try:
@@ -206,11 +331,7 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
                         except OSError:
                             pass
 
-                    # Fallback: if previous cache exists, use it
-                    if (
-                        os.path.exists(cached_path)
-                        and os.path.getsize(cached_path) >= FILE_STAGE_MIN_SIZE_BYTES
-                    ):
+                    if cache_ok:
                         logger.warning(
                             "Unable to refresh staged file '%s' (%s); falling back to existing cache '%s'",
                             filepath,
@@ -227,7 +348,7 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
                         error,
                     )
                     if attempt < FILE_STAGE_RETRIES:
-                        time.sleep(FILE_STAGE_RETRY_DELAY_SECONDS)
+                        time.sleep(FILE_STAGE_RETRY_DELAY_SECONDS * attempt)
 
             raise OSError(
                 f"Unable to read '{filepath}' after {FILE_STAGE_RETRIES} attempts"
@@ -241,10 +362,16 @@ def stage_file(filepath: str, force_update: bool = False) -> str:
 
 
 @contextmanager
-def stage_file_for_read(filepath: str, force_update: bool = False) -> Iterator[str]:
+def stage_file_for_read(
+    filepath: str,
+    force_update: bool = False,
+    rclone_source: str | None = None,
+) -> Iterator[str]:
     """
     Context manager for reading staged files.
     Preserves the cached file on disk across calls.
     """
-    staged_path = stage_file(filepath, force_update=force_update)
+    staged_path = stage_file(
+        filepath, force_update=force_update, rclone_source=rclone_source
+    )
     yield staged_path
