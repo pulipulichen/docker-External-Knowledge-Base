@@ -3,13 +3,16 @@
 
 ```rclone mount
 rclone mount gdrive:/documents /root/docker-External-Knowledge-Base/knowledge_base_files/.mnt/gdrive --daemon \
-  --vfs-cache-mode off \
+  --vfs-cache-mode full \
+  --vfs-cache-max-age 24h \
   --drive-export-formats "docx,xlsx,pdf" \
   --vfs-read-chunk-size 32M \
   --vfs-read-chunk-size-limit 2G \
   --vfs-read-wait 180s \
   --disable-http2
 ```
+
+> **Note**: `--vfs-cache-mode full` is required for spreadsheets (.xlsx) and documents (.docx) so random access does not trigger an `Input/output error`. Alternatively, you can configure Google Sheets URLs directly in YAML configs without mounting Google Drive.
 
 HTTP API usage for **Search**, **Scrape**, **News**, and **Knowledge base retrieval** (`/search`, `/scrape`, `/news`, `/retrieval`) is documented in [documents/API.md](documents/API.md).
 
