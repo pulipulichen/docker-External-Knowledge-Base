@@ -1,8 +1,22 @@
 #!/bin/bash
 
-# 偵測看看現在這個目錄底下的docker有沒有啟動。沒有的話，啟動它
+# Restart the project and print SUCCESSFUL only after every startup step
+# has completed successfully.
 
-cd $(dirname $0)
+set -Eeuo pipefail
+
+cd "$(dirname "$0")"
+
+fail() {
+  local exit_code=$?
+  echo
+  echo "==========="
+  echo "FAILED"
+  echo "==========="
+  exit "$exit_code"
+}
+
+trap fail ERR
 
 sudo docker compose down
 
@@ -12,8 +26,15 @@ sudo docker compose down
 
 sleep 2
 
-sudo docker compose up --build -d &
+# Do not background this command: wait until compose has finished creating
+# and starting all services before continuing.
+sudo docker compose up --build -d
 
 sleep 5
 
 ./logs.sh
+
+echo
+echo "==========="
+echo "SUCCESSFUL"
+echo "==========="
