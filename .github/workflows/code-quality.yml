@@ -37,8 +37,15 @@ jobs:
             bash -n "$file"
           done < <(find . -type f -name '*.sh' -not -path './.git/*' -print0)
 
-      - name: Validate Docker Compose configuration
-        run: docker compose config --quiet
+      - name: Validate Docker Compose syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          # CI intentionally does not validate runtime environment expansion.
+          # .env is excluded from version control, so provide an empty env file
+          # and disable interpolation. This checks Compose YAML/structure only.
+          : > /tmp/ci-empty.env
+          docker compose --env-file /tmp/ci-empty.env config --quiet --no-interpolate
 
       - name: Validate JSON files
         shell: bash
