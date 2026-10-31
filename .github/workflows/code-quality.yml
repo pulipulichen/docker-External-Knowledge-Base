@@ -45,7 +45,9 @@ jobs:
           # .env is excluded from version control, so provide an empty env file
           # and disable interpolation. This checks Compose YAML/structure only.
           : > /tmp/ci-empty.env
-          docker compose --env-file /tmp/ci-empty.env config --quiet --no-interpolate
+          # Compose must interpolate volume source defaults before parsing colon-separated mounts.
+          # Use an empty env file, but supply a harmless placeholder for required secrets.
+          API_KEY=ci-placeholder docker compose --env-file /tmp/ci-empty.env config --quiet
 
       - name: Validate JSON files
         shell: bash
