@@ -19,7 +19,7 @@ HEALTHCHECK --interval=10s \
             --timeout=5s \
             --retries=20 \
             --start-period=30s \
-    CMD curl -sf http://localhost:8080/v1/.well-known/ready || exit 1
+    CMD wget -q -O /dev/null http://127.0.0.1:8080/v1/.well-known/ready || exit 1
 
 # Base image 已經包含預設的 ENTRYPOINT 和 CMD，
 # 這裡不需要額外撰寫，它會自動啟動 Weaviate。

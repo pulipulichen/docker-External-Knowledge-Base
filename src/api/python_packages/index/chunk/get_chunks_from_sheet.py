@@ -44,7 +44,8 @@ def get_chunks_from_sheet(
     try:
         config = get_knowledge_base_config(knowledge_id)
         filepath = config.get('file_path')
-        include_fields = config.get('include_fileds', [])
+        # Preserve the legacy typo while accepting the correctly spelled key.
+        include_fields = _normalize_fields(config.get('include_fields', config.get('include_fileds', [])))
         index_fields = _normalize_fields(config.get('index_fields', []))
         display_fields = _normalize_fields(config.get('display_fields', []))
 
@@ -55,7 +56,7 @@ def get_chunks_from_sheet(
         with stage_file_for_read(
             filepath, rclone_source=config.get("rclone_source")
         ) as staged_filepath:
-            json_array = sheet_to_json(staged_filepath, section_name)
+            json_array = sheet_to_json(staged_filepath, section_name, include_fields=include_fields)
 
         effective_max = int(config.get("index.max_tokens", max_tokens))
         splitter = SmartMarkdownSplitter(max_tokens=effective_max)
