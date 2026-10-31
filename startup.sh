@@ -32,7 +32,8 @@ sudo docker compose up --build -d
 
 sleep 5
 
-./logs.sh
+# Print a bounded log snapshot; logs.sh follows forever and would block SUCCESSFUL.
+sudo docker compose logs --tail=40 --no-color
 
 echo
 echo "==========="
