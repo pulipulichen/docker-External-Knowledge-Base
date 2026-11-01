@@ -41,13 +41,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # CI intentionally does not validate runtime environment expansion.
-          # .env is excluded from version control, so provide an empty env file
-          # and disable interpolation. This checks Compose YAML/structure only.
-          : > /tmp/ci-empty.env
-          # Compose must interpolate volume source defaults before parsing colon-separated mounts.
-          # Use an empty env file, but supply a harmless placeholder for required secrets.
-          API_KEY=ci-placeholder docker compose --env-file /tmp/ci-empty.env config --quiet
+          # Compose services reference .env via env_file, so the file must exist.
+          # Create a temporary, empty local file without committing real secrets.
+          # Keep interpolation enabled to parse volume paths with default values.
+          if [ -e .env ]; then
+            echo "Unexpected .env exists in CI checkout; refusing to overwrite it." >&2
+            exit 1
+          fi
+          touch .env
+          trap 'rm -f .env' EXIT
+          API_KEY=ci-placeholder docker compose --env-file .env config --quiet
 
       - name: Validate JSON files
         shell: bash
