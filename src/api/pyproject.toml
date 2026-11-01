@@ -18,6 +18,8 @@ dependencies = [
     "openpyxl==3.0.10", 
     "split_markdown4gpt==1.0.9",
     "googlenewsdecoder==0.1.7",
+    # googlenewsdecoder uses selectolax.parser (Modest), removed in selectolax 1.x.
+    "selectolax==0.4.13",
 ]
 
 [build-system]
