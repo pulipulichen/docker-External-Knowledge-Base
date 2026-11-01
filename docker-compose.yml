@@ -87,7 +87,7 @@ services:
     networks:
       - docker_external_knowledge_base
     deploy:
-      mode: replcated
+      mode: replicated
       replicas: 1
       
   redis:
