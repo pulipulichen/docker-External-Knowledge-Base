@@ -11,6 +11,8 @@ RUN apt-get update && \
 # Copy the pyproject.toml and install dependencies
 COPY pyproject.toml pyproject.toml
 RUN pip install --no-cache-dir -e .
+# Fail the image build when transitive dependency upgrades break this import.
+RUN python -c "from googlenewsdecoder import gnewsdecoder"
 
 # Copy the current directory contents into the container at /app
 # COPY . .
